@@ -1,0 +1,17 @@
+.sdgButton, .sdgAnalytics, .sdgHub, .sdgEvents, .sdgHighlights, .signIn{
+  background-color: transparent;
+  border: none;
+  font-size: 17px;
+  color: white;
+  cursor: pointer;
+}
+
+.signUp{
+  background-color: white;
+  border-style: solid;
+  border-width: 1px;
+  padding: 10px;
+  font-size: 17px;
+  border-color: white;
+  border-radius: 15px;
+}
