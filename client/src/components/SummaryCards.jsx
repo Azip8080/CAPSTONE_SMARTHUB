@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchDashboardSummary } from "../api/analyticsApi";
+import { fetchDashboardSummary } from "../api/analyticsAPI";
 import "./SummaryCards.css";
 
 export default function SummaryCards() {
