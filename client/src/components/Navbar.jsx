@@ -7,7 +7,7 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-inner">
 
-        {/* Left — Logo + Title */}
+       
         <div className="navbar-brand">
           <img src={SDGIMG} className="navbar-logo" alt="SDG Logo" />
           <span className="navbar-title">Sustainable Development City of Manila</span>
@@ -22,7 +22,7 @@ function Navbar() {
           <Link to="/knowledge" className="nav-link">Knowledge Hub</Link>
         </div>
 
-        {/* Right — Auth */}
+      
         <div className="navbar-auth">
           <Link to="/login" className="nav-signin">Sign In</Link>
           <Link to="/signup" className="nav-signup">Sign Up</Link>

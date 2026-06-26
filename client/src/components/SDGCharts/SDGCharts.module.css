@@ -1,9 +1,9 @@
-.sdg-charts {
+.sdgCharts {
   background: #f8fafc;
   padding: 56px 2.5rem 72px;
 }
 
-.sdg-charts-inner {
+.sdgChartsInner {
   max-width: 1280px;
   margin: 0 auto;
   display: flex;
@@ -11,30 +11,30 @@
   gap: 24px;
 }
 
-.charts-heading {
+.chartSheading {
   margin-bottom: 4px;
 }
 
-.charts-heading h2 {
+.sdgChartsHeading h2 {
   font-size: 24px;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.5px;
 }
 
-.charts-heading p {
+.sdgChartsHeading p {
   font-size: 14px;
   color: #94a3b8;
   margin-top: 6px;
 }
 
-.charts-toolbar {
+.chartsToolbar {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.charts-toolbar-label {
+.chartsToolbarLabel {
   font-size: 11px;
   color: #94a3b8;
   text-transform: uppercase;
@@ -43,13 +43,13 @@
   white-space: nowrap;
 }
 
-.range-pills {
+.rangePills {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-.range-pill {
+.rangePill {
   font-size: 13px;
   padding: 6px 16px;
   border-radius: 20px;
@@ -61,19 +61,19 @@
   font-weight: 400;
 }
 
-.range-pill:hover {
+.rangePill:hover {
   border-color: #3b82f6;
   color: #3b82f6;
 }
 
-.range-pill.active {
+.rangePillActive {
   background: #0f172a;
   color: #fff;
   border-color: #0f172a;
   font-weight: 500;
 }
 
-.chart-card {
+.chartCard {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -81,14 +81,14 @@
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
 }
 
-.chart-card-header {
+.chartCardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 24px;
 }
 
-.chart-card-title {
+.chartCardTitle {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -97,11 +97,11 @@
   margin-bottom: 24px;
 }
 
-.chart-card-header .chart-card-title {
+.chartCardHeader .chartCardTitle {
   margin-bottom: 0;
 }
 
-.metric-toggle {
+.metricToggle {
   display: flex;
   gap: 4px;
   background: #f1f5f9;
@@ -109,7 +109,7 @@
   border-radius: 8px;
 }
 
-.metric-btn {
+.metricBtn {
   font-size: 13px;
   padding: 6px 14px;
   border-radius: 6px;
@@ -121,22 +121,22 @@
   font-weight: 500;
 }
 
-.metric-btn:hover {
+.metricBtn:hover {
   color: #0f172a;
 }
 
-.metric-btn.active {
+.metricBtn.active {
   background: #ffffff;
   color: #3b82f6;
   box-shadow: 0 1px 3px rgba(15,23,42,0.1);
 }
 
-.chart-canvas-wrapper {
+.chartCanvasWrapper {
   position: relative;
   width: 100%;
 }
 
-.chart-legend {
+.chartLegend {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
@@ -145,7 +145,7 @@
   border-top: 1px solid #f1f5f9;
 }
 
-.legend-item {
+.legendItem {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -153,42 +153,42 @@
   color: #64748b;
 }
 
-.legend-dot {
+.legendDot {
   width: 8px;
   height: 8px;
   border-radius: 2px;
   flex-shrink: 0;
 }
 
-.chart-status {
+.chartStatus {
   font-size: 14px;
   color: #cbd5e1;
   padding: 48px 0;
   text-align: center;
 }
 
-.chart-status.error {
+.chartStatus.error {
   color: #f87171;
 }
 
-.charts-row {
+.chartsRow {
   display: grid;
   grid-template-columns: 1fr 1.6fr;
   gap: 24px;
 }
 
 @media (max-width: 768px) {
-  .charts-row {
+  .chartsRow {
     grid-template-columns: 1fr;
   }
 
-  .chart-card-header {
+  .chartCardHeader {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
 
-  .sdg-charts {
+  .sdgCharts {
     padding: 40px 1rem 56px;
   }
 }

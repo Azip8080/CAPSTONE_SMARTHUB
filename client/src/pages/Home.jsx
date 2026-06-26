@@ -1,5 +1,5 @@
 import "./Home.css";
-import SDGCharts from "../components/SDGCharts";
+import SDGCharts from "../components/SDGCharts/SDGCharts";
 import SummaryCards from "../components/SummaryCards";
 
 function Home() {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchDashboardSummary } from "../api/analyticsAPI";
-import "./SummaryCards.css";
+import styles from "./SummaryCards.module.css";
 
 export default function SummaryCards() {
   const [summary, setSummary] = useState({
@@ -29,34 +29,34 @@ export default function SummaryCards() {
 
   if (loading) {
     return (
-      <section className="summary-container">
+      <section className={styles.summaryContainer}>
         <p>Loading dashboard summary...</p>
       </section>
     );
   }
 
   return (
-    <section className="summary-container">
+    <section className={styles.summaryContainer}>
 
-      <div className="summary-card">
+      <div className={styles.summaryCard}>
         <h2>{summary.totalProjects}</h2>
         <h4>TOTAL PROJECTS</h4>
         <p>Across {summary.activeGoals} SDGs</p>
       </div>
 
-      <div className="summary-card">
+      <div className={styles.summaryCard}>
         <h2>{summary.activeGoals}</h2>
         <h4>ACTIVE GOALS</h4>
         <p>All SDGs covered</p>
       </div>
 
-      <div className="summary-card">
+      <div className={styles.summaryCard}>
         <h2>{summary.communities}</h2>
         <h4>COMMUNITIES</h4>
         <p>Engaged barangays</p>
       </div>
 
-      <div className="summary-card">
+      <div className={styles.summaryCard}>
         <h2>+{summary.thisYear}</h2>
         <h4>THIS YEAR</h4>
         <p>New projects</p>
