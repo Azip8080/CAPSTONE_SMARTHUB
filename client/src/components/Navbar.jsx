@@ -1,38 +1,35 @@
 import "./Navbar.css";
+import { Link } from "react-router-dom";
 import SDGIMG from "../assets/438-4388580_un-sustainable-development-goals-circle-hd-png-download-removebg-preview.png";
-import Button from "./Button";
-import style from "./Button.module.css";
 
 function Navbar() {
   return (
-    <>
-      <section id="center">
-        <div className="navBar"> 
-          <div className="logo-div">
-            <img src={SDGIMG} className="sdgLogo" />
-          </div>
+    <nav className="navbar">
+      <div className="navbar-inner">
 
-          <div className="sdg-title">
-            <p className="sdgTitle">
-              SUSTAINABLE DEVELOPMENT CITY OF MANILA
-            </p>
-          </div>
-
-          <div className="navbar-middle">
-            <Button className={style.sdgButton}>17 SDGS</Button>
-            <Button className={style.sdgAnalytics}>ANALYTICS</Button>
-            <Button className={style.sdgHighlights}>SDG HIGHLIGHTS</Button>
-            <Button className={style.sdgEvents}>EVENTS</Button>
-            <Button className={style.sdgHub}>KNOWLEDGE HUB</Button>
-          </div>
-
-          <div className="navbar-right">
-            <Button className={style.signIn}>Sign In</Button>
-            <Button className={style.signUp}>Sign Up</Button>
-          </div>
+        {/* Left — Logo + Title */}
+        <div className="navbar-brand">
+          <img src={SDGIMG} className="navbar-logo" alt="SDG Logo" />
+          <span className="navbar-title">Sustainable Development City of Manila</span>
         </div>
-      </section>
-    </>
+
+      
+        <div className="navbar-links">
+          <Link to="/sdgs" className="nav-link">17 SDGs</Link>
+          <Link to="/analytics" className="nav-link">Analytics</Link>
+          <Link to="/highlights" className="nav-link">SDG Highlights</Link>
+          <Link to="/events" className="nav-link">Events</Link>
+          <Link to="/knowledge" className="nav-link">Knowledge Hub</Link>
+        </div>
+
+        {/* Right — Auth */}
+        <div className="navbar-auth">
+          <Link to="/login" className="nav-signin">Sign In</Link>
+          <Link to="/signup" className="nav-signup">Sign Up</Link>
+        </div>
+
+      </div>
+    </nav>
   );
 }
 

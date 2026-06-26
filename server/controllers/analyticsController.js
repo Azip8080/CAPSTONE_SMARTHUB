@@ -2,9 +2,6 @@ const Project = require("../models/Project");
 const Event = require("../models/Event");
 const User = require("../models/User");
 
-// ── SDG reference data ─────────────────────────────────────────────────────
-// These match whatever strings are stored in sdgTag (e.g. "SDG 1", "SDG 2"...)
-
 const SDG_LIST = [
   { tag: "SDG 1",  label: "No Poverty",               color: "#E5243B" },
   { tag: "SDG 2",  label: "Zero Hunger",               color: "#DDA63A" },
@@ -25,7 +22,6 @@ const SDG_LIST = [
   { tag: "SDG 17", label: "Partnerships",              color: "#19486A" },
 ];
 
-// ── Date filter helper ─────────────────────────────────────────────────────
 
 function buildDateFilter(year, range, field = "createdAt") {
   if (year) {
@@ -48,12 +44,7 @@ function buildDateFilter(year, range, field = "createdAt") {
   return {};
 }
 
-// ── Controllers ────────────────────────────────────────────────────────────
 
-/**
- * GET /api/analytics/distribution?year=2024&range=6months
- * Bar chart — total projects per SDG
- */
 const getSDGProjectDistribution = async (req, res) => {
   try {
     const { year, range } = req.query;
@@ -63,8 +54,6 @@ const getSDGProjectDistribution = async (req, res) => {
       { $match: dateFilter },
       { $group: { _id: "$sdgTag", count: { $sum: 1 } } },
     ]);
-
-    // Map results to all 17 SDGs (fill 0 for any with no projects)
     const data = SDG_LIST.map((sdg) => {
       const found = results.find((r) => r._id === sdg.tag);
       return {
@@ -82,11 +71,7 @@ const getSDGProjectDistribution = async (req, res) => {
   }
 };
 
-/**
- * GET /api/analytics/participation?year=2024&range=6months
- * Pie chart — top 3 SDGs by number of projects (used as participation proxy)
- * (Replace with a Volunteer model later if you add one)
- */
+
 const getSDGParticipation = async (req, res) => {
   try {
     const { year, range } = req.query;
@@ -116,11 +101,6 @@ const getSDGParticipation = async (req, res) => {
   }
 };
 
-/**
- * GET /api/analytics/trend?metric=projects&range=6months
- * Line chart — monthly totals over time
- * metric: "projects" | "users" | "events"
- */
 const getSDGTrend = async (req, res) => {
   try {
     const { metric = "projects", range = "6months" } = req.query;
@@ -167,8 +147,41 @@ const getSDGTrend = async (req, res) => {
   }
 };
 
+
+const getDashboardSummary = async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const totalProjects = await Project.countDocuments();
+    const activeGoals = await Project.distinct("sdgTag");
+    const communities = await Project.distinct("barangay");
+    const projectsThisYear = await Project.countDocuments({
+      createdAt: {
+        $gte: new Date(`${currentYear}-01-01`),
+        $lte: new Date(`${currentYear}-12-31`),
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalProjects,
+        activeGoals: activeGoals.length,
+        communities: communities.length,
+        thisYear: projectsThisYear,
+      },
+    });
+  } catch (err) {
+    console.error("getDashboardSummary:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 module.exports = {
   getSDGProjectDistribution,
   getSDGParticipation,
   getSDGTrend,
+  getDashboardSummary,
 };
