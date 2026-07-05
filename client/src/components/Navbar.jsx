@@ -9,7 +9,7 @@ function Navbar() {
 
        
         <div className="navbar-brand">
-          <img src={SDGIMG} className="navbar-logo" alt="SDG Logo" />
+         <Link to="/"><img src={SDGIMG} className="navbar-logo" alt="SDG Logo" /> </Link>
           <span className="navbar-title">Sustainable Development City of Manila</span>
         </div>
 

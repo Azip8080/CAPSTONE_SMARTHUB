@@ -1,0 +1,108 @@
+.page {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.hero {
+  background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+  padding: 80px 2.5rem 72px;
+  text-align: center;
+}
+
+.heroTitle {
+  font-size: 48px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+
+.heroSubtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.5);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.75;
+}
+
+.toolbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 2.5rem;
+}
+
+.toolbarInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbarLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+.select {
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 7px 32px 7px 12px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 0.15s;
+  min-width: 140px;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.clearBtn {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.clearBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.layout {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 40px 2.5rem 64px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .heroTitle {
+    font-size: 36px;
+  }
+}
