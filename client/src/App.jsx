@@ -6,7 +6,9 @@ import Events from "./pages/Events/Events";
 import SDGHighlights from "./pages/SDGHighlights/SDGHighlights";
 import Login from "./pages/Login"
 import About from "./pages/About/About";
+import Signup from "./pages/Signup";
 import Footer from "./components/Footer/Footer";
+import Profile from "./pages/Profile/Profile";
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
       
       <div className="content">
       <Routes>
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<About />} />
         <Route path="/highlights" element={<SDGHighlights />} />
         <Route path="/events" element={<Events />} />

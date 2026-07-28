@@ -1,0 +1,228 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.left {
+  position: relative;
+  overflow: hidden;
+}
+
+.leftBg {
+  position: absolute;
+  inset: 0;
+  background-image: url("../assets/BG.png");
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.leftOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 15, 30, 0.75) 0%,
+    rgba(10, 15, 30, 0.6) 50%,
+    rgba(10, 15, 30, 0.88) 100%
+  );
+  z-index: 1;
+}
+
+.leftInner {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 56px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandIcon {
+  width: 40px;
+  height: 40px;
+  background: #3b82f6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+}
+
+.brandName {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.leftContent {
+  max-width: 400px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #3b82f6;
+  margin-bottom: 16px;
+}
+
+.leftTitle {
+  font-size: 40px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.15;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+
+.leftDesc {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.75;
+}
+
+.leftFooter {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.right {
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 48px;
+  overflow-y: auto;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.cardHeader {
+  margin-bottom: 28px;
+}
+
+.cardTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.cardSubtitle {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  column-gap: 16px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input {
+  font-size: 14px;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 11px 14px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.row .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+
+.error {
+  font-size: 13px;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.submitBtn {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.submitBtn:hover { background: #2563eb; }
+.submitBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.loginText {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+}
+
+.loginLink {
+  color: #3b82f6;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.loginLink:hover { color: #2563eb; }
+
+@media (max-width: 768px) {
+  .page { grid-template-columns: 1fr; }
+  .left { min-height: 300px; }
+  .leftTitle { font-size: 28px; }
+  .right { padding: 48px 24px; }
+  .row { grid-template-columns: 1fr; }
+}
