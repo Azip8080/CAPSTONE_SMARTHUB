@@ -1,17 +1,50 @@
-.page 
-{ display: flex; 
-flex-direction: column; 
-gap: 8px; 
-
+.page {
+  padding: 24px 0;
 }
-.title 
-{ font-size: 26px; 
-font-weight: 700; color: #0f172a; 
-letter-spacing: -0.5px;
 
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
 }
-.sub 
-{ font-size: 14px; 
-color: #94a3b8; 
 
+.pageTitle {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.addBtn {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: #0f172a;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.addBtn:hover {
+  background: #1e293b;
+}
+
+.tableWrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
 }
