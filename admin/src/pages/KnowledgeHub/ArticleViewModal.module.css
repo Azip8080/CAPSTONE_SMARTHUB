@@ -1,0 +1,79 @@
+.viewBody {
+  padding: 0 24px 24px;
+}
+
+.viewBadges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.sdgChip {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.catChip {
+  font-size: 10px;
+  font-weight: 600;
+  color: #475569;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.sdgName {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.viewContent {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+
+.viewActions {
+  display: flex;
+  gap: 10px;
+}
+
+.editBtn {
+  font-size: 12px;
+  font-weight: 500;
+  color: #3b82f6;
+  background: #eff6ff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.editBtn:hover {
+  background: #dbeafe;
+}
+
+.deleteBtn {
+  font-size: 12px;
+  font-weight: 500;
+  color: #ef4444;
+  background: #fef2f2;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.deleteBtn:hover {
+  background: #fecaca;
+}
