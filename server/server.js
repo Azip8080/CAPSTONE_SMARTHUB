@@ -4,16 +4,19 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
+const knowledgeRoutes = require("./routes/KnowledgeRoutes");
 const userRoutes = require("./routes/userRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const eventRoutes = require("./routes/eventRoutes");
-const analyticsRoutes = require("./routes/analyticsRoutes"); 
+const analyticsRoutes = require("./routes/analyticsRoutes");
+ 
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+app.use("/api/knowledge", knowledgeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
