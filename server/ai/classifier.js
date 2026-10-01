@@ -1,6 +1,77 @@
 const { HfInference } = require("@huggingface/inference");
-const SDG_KEYWORDS    = require("./keywords");
 
+const SDG_KEYWORDS = require("./keywords");
+
+const COMPILED_KEYWORDS = Object.entries(SDG_KEYWORDS).map(
+  ([tag, keywords]) => ({
+    tag,
+    patterns: keywords.map((keyword) => {
+      const escaped = String(keyword).replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+
+      return new RegExp(`\\b${escaped}\\b`, "gi");
+    }),
+  })
+);
+
+function keywordClassify(text) {
+  const scores = {};
+
+  for (const { tag, patterns } of COMPILED_KEYWORDS) {
+    let score = 0;
+
+    for (const pattern of patterns) {
+      pattern.lastIndex = 0;
+
+      const matches = text.match(pattern);
+      if (matches) {
+        score += matches.length;
+      }
+    }
+
+    scores[tag] = score;
+  }
+
+  const sorted = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .filter(([, score]) => score > 0);
+
+  if (sorted.length === 0) {
+    return null;
+  }
+
+  return {
+    tag: sorted[0][0],
+    confidence: Math.min(sorted[0][1] / 10, 1),
+    method: "keyword",
+    topMatches: sorted.slice(0, 3).map(([tag, score]) => ({
+      tag,
+      score,
+    })),
+  };
+}
+
+async function classifyText(text) {
+  if (!text || !text.trim()) {
+    throw new Error("No text provided for classification");
+  }
+  const result = keywordClassify(text);
+
+  if (result) {
+    return result;
+  }
+
+  return {
+    tag: "SDG 1",
+    confidence: 0,
+    method: "default",
+    topMatches: [],
+  };
+}
+
+module.exports = { classifyText };
 const hf = new HfInference(process.env.HF_TOKEN);
 
 const SDG_LABELS = [
@@ -88,7 +159,7 @@ async function classifyText(text) {
     throw new Error("No text provided for classification");
   }
 
-  if (process.env.HUGGINGFACE_API_KEY) {
+  if (process.env.HF_TOKEN) {
     const hfResult = await huggingFaceClassify(text);
     if (hfResult) return hfResult;
   }

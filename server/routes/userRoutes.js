@@ -18,18 +18,73 @@ router.post("/register", async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    console.log("[LOGIN] Request received");
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required.",
+      });
+    }
+
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    if (!user.password) {
+      console.error("[LOGIN] User has no password hash.");
+      return res.status(500).json({
+        message: "Account password data is missing.",
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Invalid credentials.",
+      });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      console.error("[LOGIN] JWT_SECRET is missing.");
+      return res.status(500).json({
+        message: "Server authentication is not configured.",
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id.toString(), role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
     const userObj = user.toObject();
     delete userObj.password;
-    res.status(200).json({ message: "Login successful", token, user: userObj });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+
+    console.log("[LOGIN] Successful login for role:", user.role);
+
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      user: userObj,
+    });
+  } catch (err) {
+    console.error("[LOGIN ERROR]", err.stack || err);
+
+    return res.status(500).json({
+      message: "Login failed due to a server error.",
+      error: err.message,
+    });
+  }
 });
 
 router.get("/me", auth, async (req, res) => {
