@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: "/user-management",  label: "User Management",  icon: "⊙" },
   { to: "/project-showcase", label: "Project Showcase", icon: "⊠" },
   { to: "/knowledge-hub",    label: "Knowledge Hub",    icon: "⊞" },
+  { to: "/ai-classifier",    label: "AI Classifier",     icon: "✦" },
 ];
 
 function AdminLayout() {

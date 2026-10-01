@@ -15,6 +15,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 32px;
+  position: relative;
 }
 
 .navbar-brand {
@@ -40,6 +41,14 @@
   text-transform: uppercase;
   line-height: 1.4;
   max-width: 220px;
+}
+
+/* Wraps links + auth. display:contents on desktop means this wrapper is
+   invisible to layout — .navbar-links and .navbar-auth sit directly in
+   .navbar-inner's flex row exactly as before. Only the mobile media query
+   turns it into an actual dropdown panel. */
+.navbar-menu {
+  display: contents;
 }
 
 .navbar-links {
@@ -103,7 +112,44 @@
   background: #2563eb;
 }
 
-/* ── User dropdown ────────────────────────────── */
+/* ── Hamburger button (hidden on desktop) ────────────────────────────── */
+.navbar-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  z-index: 201;
+}
+
+.navbar-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.15s ease;
+}
+
+.navbar-hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.navbar-hamburger.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── User dropdown (desktop) ────────────────────────────── */
 .navbar-user {
   position: relative;
 }
@@ -238,16 +284,132 @@
   color: #dc2626;
 }
 
+/* ── Mobile-only account block (hidden on desktop) ────────────────────── */
+.navbar-mobile-user {
+  display: none;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+}
+
+.mobile-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.mobile-user-email {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mobile-menu-link {
+  display: block;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  padding: 12px 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.mobile-menu-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mobile-menu-logout {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 500;
+  color: #f87171;
+  background: none;
+  border: none;
+  padding: 12px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.mobile-menu-logout:hover {
+  background: rgba(248, 113, 113, 0.1);
+}
+
 @media (max-width: 1024px) {
-  .navbar-title { display: none; }
+  .navbar-title {
+    display: none;
+  }
 }
 
 @media (max-width: 768px) {
-  .navbar-inner { height: 72px; padding: 0 1.5rem; }
-  .nav-link { font-size: 14px; padding: 8px 12px; }
-}
+  .navbar-inner {
+    height: 72px;
+    padding: 0 1.25rem;
+  }
 
-@media (max-width: 640px) {
-  .navbar-links { display: none; }
-  .navbar-username { display: none; }
+  .navbar-hamburger {
+    display: flex;
+  }
+
+  .navbar-menu {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #0f172a;
+    padding: 10px 1.25rem 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+  }
+
+  .navbar-menu.open {
+    display: flex;
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 14px 8px;
+  }
+
+  .navbar-auth {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-signin,
+  .nav-signup {
+    width: 100%;
+    text-align: center;
+    padding: 13px 20px;
+  }
+
+  .navbar-user {
+    display: none;
+  }
+
+  .navbar-mobile-user {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 }

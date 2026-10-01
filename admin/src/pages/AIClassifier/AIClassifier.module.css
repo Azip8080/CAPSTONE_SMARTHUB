@@ -1,0 +1,163 @@
+
+.page {
+  min-height: 100%;
+  padding: 32px;
+  background: #f5f7fb;
+  color: #17233b;
+  font-family: inherit;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.breadcrumb {
+  margin-bottom: 12px;
+  color: #738198;
+  font-size: 12px;
+}
+
+.breadcrumb span {
+  margin: 0 8px;
+  color: #b5bfce;
+}
+
+.pageHeader h1 {
+  margin: 0 0 9px;
+  color: #17233b;
+  font-size: clamp(25px, 2.3vw, 32px);
+  font-weight: 750;
+  letter-spacing: -0.8px;
+}
+
+.pageHeader p {
+  max-width: 650px;
+  margin: 0;
+  color: #738198;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.headerBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border: 1px solid #dbe7ff;
+  border-radius: 30px;
+  background: #edf4ff;
+  color: #285fc3;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #25ad73;
+}
+
+.introCard {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin-bottom: 25px;
+  padding: 21px 24px;
+  border: 1px solid #dbe7ff;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #edf4ff, #f7f9ff);
+}
+
+.introIcon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 12px;
+  background: #dce9ff;
+  color: #2866d5;
+  font-size: 25px;
+}
+
+.introCard h2 {
+  margin: 0 0 5px;
+  color: #1e3d75;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.introCard p {
+  margin: 0;
+  color: #627795;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 24px;
+}
+
+.pageFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 25px;
+  padding-top: 18px;
+  border-top: 1px solid #e3e8f0;
+  color: #97a2b2;
+  font-size: 10px;
+}
+
+.pageFooter span:first-child {
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 1100px) {
+  .page {
+    padding: 24px;
+  }
+
+  .contentGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 17px;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .introCard {
+    align-items: flex-start;
+    padding: 17px;
+  }
+
+  .pageFooter {
+    align-items: flex-start;
+    flex-direction: column;
+    line-height: 1.6;
+  }
+}

@@ -9,6 +9,7 @@ import EventsProjects from "./pages/EventsProjects/EventsProjects";
 import UserManagement from "./pages/UserManagement/UserManagement";
 import ProjectShowcase from "./pages/ProjectShowcase/ProjectShowcase";
 import KnowledgeHub from "./pages/KnowledgeHub/KnowledgeHub";
+import AIClassifier from "./pages/AIClassifier/AIClassifier";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("adminToken");
@@ -28,6 +29,7 @@ function App() {
             </PrivateRoute>
           }
         >
+          <Route path="/ai-classifier" element={<AIClassifier />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard"       element={<Dashboard />} />
           <Route path="sdg-tracker"     element={<SDGTracker />} />

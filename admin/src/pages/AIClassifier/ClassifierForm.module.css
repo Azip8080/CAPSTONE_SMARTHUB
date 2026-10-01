@@ -1,0 +1,286 @@
+
+.card {
+  min-width: 0;
+  padding: 25px;
+  border: 1px solid #e1e7f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgb(27 48 79 / 3%);
+}
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #8a97ab;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.1px;
+}
+
+.heading h2 {
+  margin: 0 0 8px;
+  color: #17233b;
+  font-size: 19px;
+}
+
+.heading p {
+  margin: 0;
+  color: #7a879b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.step {
+  display: grid;
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 1px solid #e1e8f3;
+  border-radius: 9px;
+  background: #f7f9fc;
+  color: #78869d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 24px;
+  padding: 5px;
+  border-radius: 9px;
+  background: #f2f5fa;
+}
+
+.tab,
+.activeTab {
+  min-height: 42px;
+  padding: 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tab {
+  background: transparent;
+  color: #758198;
+}
+
+.activeTab {
+  border-color: #e3eaf6;
+  background: #fff;
+  color: #285fc3;
+  box-shadow: 0 1px 4px rgb(24 45 78 / 7%);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.field label {
+  color: #34445d;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dce3ed;
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: #26364e;
+  font: inherit;
+  font-size: 13px;
+}
+
+.field input {
+  min-height: 45px;
+}
+
+.field textarea {
+  min-height: 145px;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #3478f6;
+  box-shadow: 0 0 0 3px rgb(52 120 246 / 10%);
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #a1adbd;
+}
+
+.hint {
+  color: #8995a8;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.field .hint {
+  align-self: flex-end;
+}
+
+.primaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 47px;
+  padding: 12px 16px;
+  border: 1px solid #3478f6;
+  border-radius: 9px;
+  background: #3478f6;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: #2468e8;
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.primaryButton span {
+  font-size: 17px;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.dropzone {
+  display: flex;
+  min-height: 245px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  border: 1.5px dashed #cbd8eb;
+  border-radius: 12px;
+  background: #fafcff;
+  cursor: pointer;
+  text-align: center;
+}
+
+.dropzone:hover {
+  border-color: #3478f6;
+  background: #f2f7ff;
+}
+
+.dropzone strong {
+  max-width: 100%;
+  color: #33445d;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.dropzoneSelected {
+  border-color: #4ca77b;
+  background: #f5fcf8;
+}
+
+.uploadIcon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 14px;
+  background: #e9f1ff;
+  color: #3478f6;
+  font-size: 26px;
+}
+
+.dropzoneSelected .uploadIcon {
+  background: #e0f5e9;
+  color: #238454;
+}
+
+.fileTypes {
+  color: #9aa6b7;
+  font-size: 11px;
+}
+
+.removeFile {
+  align-self: flex-end;
+  margin-top: -10px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #d04a4a;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #edf0f5;
+}
+
+.note > span {
+  color: #8c9ab0;
+  font-size: 15px;
+}
+
+.note p {
+  margin: 0;
+  color: #8491a4;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 18px;
+  }
+
+  .tabs {
+    gap: 3px;
+  }
+
+  .tab,
+  .activeTab {
+    padding: 8px 4px;
+    font-size: 11px;
+  }
+}
