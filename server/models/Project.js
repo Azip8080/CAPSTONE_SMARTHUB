@@ -20,6 +20,11 @@ const ProjectSchema = new mongoose.Schema(
       trim: true,
     },
 
+    tags: {
+      type: [String],
+      default: [],
+    },
+
     barangay: {
       type: String,
       required: true,
@@ -54,6 +59,12 @@ const ProjectSchema = new mongoose.Schema(
   }
 );
 
-ProjectSchema.index({ publicationStatus: 1, createdAt: -1 });
+ProjectSchema.index({
+  publicationStatus: 1,
+  createdAt: -1,
+});
 
-module.exports = mongoose.model("Project", ProjectSchema);
+module.exports = mongoose.model(
+  "Project",
+  ProjectSchema
+);

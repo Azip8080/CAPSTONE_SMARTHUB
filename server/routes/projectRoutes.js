@@ -10,6 +10,7 @@ const editableFields = [
   "title",
   "description",
   "sdgTag",
+  "tags",
   "barangay",
   "status",
 ];
@@ -25,6 +26,7 @@ function getEditableFields(body) {
 
   return fields;
 }
+
 router.get("/admin/all", auth, adminOnly, async (req, res) => {
   try {
     const projects = await Project.find().sort({ updatedAt: -1 });

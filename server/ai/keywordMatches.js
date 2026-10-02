@@ -4,11 +4,38 @@ function escapeRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function getSentenceContext(text, start, end) {
+  const before = text.slice(0, start);
+  const after = text.slice(end);
+
+  const sentenceStartMatch = before.match(
+    /(?:^|[.!?]\s+)([^.!?]*)$/
+  );
+
+  const sentenceEndMatch = after.match(
+    /^[^.!?]*(?:[.!?]|$)/
+  );
+
+  const sentenceStart = sentenceStartMatch
+    ? start - sentenceStartMatch[1].length
+    : 0;
+
+  const sentenceEnd = sentenceEndMatch
+    ? end + sentenceEndMatch[0].length
+    : text.length;
+
+  return text
+    .slice(sentenceStart, sentenceEnd)
+    .trim();
+}
+
 function findKeywordMatches(text) {
   const grouped = {};
   const allMatches = [];
 
-  for (const [sdg, keywords] of Object.entries(SDG_KEYWORDS)) {
+  for (const [sdg, keywords] of Object.entries(
+    SDG_KEYWORDS
+  )) {
     const matchesForSDG = [];
 
     for (const keyword of keywords) {
@@ -50,9 +77,10 @@ function findKeywordMatches(text) {
       sdg,
       matches.map((item) => ({
         ...item,
-        context: text.slice(
-          Math.max(0, item.start - 60),
-          Math.min(text.length, item.end + 60)
+        context: getSentenceContext(
+          text,
+          item.start,
+          item.end
         ),
       })),
     ])
