@@ -1,41 +1,52 @@
 import { useState } from "react";
-import styles from "./TabToolbar.module.css";
-import { STATUS_OPTIONS } from "./constants.js";
-import { useProjects } from "./useProjects.js";
-import ProjectCard from "./ProjectCard.jsx";
-import Modal from "./Modal.jsx";
-import ProjectForm from "./ProjectForm.jsx";
 
-function ProjectsTab() {
+import styles from "./TabToolbar.module.css";
+import { useEvents } from "./useEvents.js";
+import EventCard from "./EventCard.jsx";
+import Modal from "./Modal.jsx";
+import EventForm from "./EventForm.jsx";
+
+function EventsTab() {
   const {
     loading,
     search,
     setSearch,
-    filter,
-    setFilter,
-    filteredProjects,
-    createProject,
-    updateProject,
-    deleteProject,
-  } = useProjects();
+    filteredEvents,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+  } = useEvents();
 
-  const [editingProject, setEditingProject] = useState(null); // null = closed, {} = add, row = edit
+  const [editingEvent, setEditingEvent] =
+    useState(null);
 
-  const openAdd = () => setEditingProject({});
-  const openEdit = (p) => setEditingProject(p);
-  const closeForm = () => setEditingProject(null);
+  const openAdd = () =>
+    setEditingEvent({});
+
+  const openEdit = (event) =>
+    setEditingEvent(event);
+
+  const closeForm = () =>
+    setEditingEvent(null);
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this project?")) return;
-    await deleteProject(id);
+    if (!confirm("Delete this event?")) {
+      return;
+    }
+
+    await deleteEvent(id);
   };
 
   const handleFormSubmit = async (form) => {
-    if (editingProject?._id) {
-      await updateProject(editingProject._id, form);
+    if (editingEvent?._id) {
+      await updateEvent(
+        editingEvent._id,
+        form
+      );
     } else {
-      await createProject(form);
+      await createEvent(form);
     }
+
     closeForm();
   };
 
@@ -45,46 +56,76 @@ function ProjectsTab() {
         <div className={styles.toolbarLeft}>
           <input
             className={styles.search}
-            placeholder="Search projects…"
+            placeholder="Search events…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
           />
-          <select className={styles.filterSelect} value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="All">All status</option>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
         </div>
-        <button className={styles.addBtn} onClick={openAdd}>
-          + Add project
+
+        <button
+          className={styles.addBtn}
+          onClick={openAdd}
+        >
+          + Add event
         </button>
       </div>
 
       <p className={styles.resultCount}>
-        {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
+        {filteredEvents.length} event
+        {filteredEvents.length !== 1
+          ? "s"
+          : ""}
       </p>
 
-      {loading && <p className={styles.empty}>Loading…</p>}
-      {!loading && filteredProjects.length === 0 && <p className={styles.empty}>No projects found.</p>}
+      {loading && (
+        <p className={styles.empty}>
+          Loading…
+        </p>
+      )}
+
+      {!loading &&
+        filteredEvents.length === 0 && (
+          <p className={styles.empty}>
+            No events found.
+          </p>
+        )}
 
       <div className={styles.cardGrid}>
-        {filteredProjects.map((p) => (
-          <ProjectCard key={p._id} project={p} onEdit={openEdit} onDelete={handleDelete} />
+        {filteredEvents.map((event) => (
+          <EventCard
+            key={event._id}
+            event={event}
+            onEdit={openEdit}
+            onDelete={handleDelete}
+          />
         ))}
       </div>
 
-      {editingProject && (
-        <Modal title={editingProject._id ? "Edit project" : "Add project"} onClose={closeForm}>
-          <ProjectForm
+      {editingEvent && (
+        <Modal
+          title={
+            editingEvent._id
+              ? "Edit event"
+              : "Add event"
+          }
+          onClose={closeForm}
+        >
+          <EventForm
             initialData={
-              editingProject._id
+              editingEvent._id
                 ? {
-                    title: editingProject.title,
-                    description: editingProject.description,
-                    sdgTag: editingProject.sdgTag,
-                    barangay: editingProject.barangay,
-                    status: editingProject.status,
+                    title:
+                      editingEvent.title,
+                    description:
+                      editingEvent.description,
+                    sdgTag:
+                      editingEvent.sdgTag,
+                    date:
+                      editingEvent.date,
+                    location:
+                      editingEvent.location,
                   }
                 : null
             }
@@ -97,4 +138,4 @@ function ProjectsTab() {
   );
 }
 
-export default ProjectsTab;
+export default EventsTab;

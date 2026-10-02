@@ -4,85 +4,126 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .toolbarLeft {
   display: flex;
+  align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
   flex: 1;
+  min-width: 0;
 }
 
 .search {
-  font-size: 13px;
-  color: #0f172a;
-  background: #f8fafc;
+  width: 280px;
+  max-width: 100%;
+  padding: 9px 13px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 8px 14px;
-  width: 240px;
-  max-width: 100%;
-  transition: border-color 0.15s;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  transition: border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.search::placeholder {
+  color: #94a3b8;
 }
 
 .search:focus {
   outline: none;
-  border-color: #3b82f6;
-  background: #ffffff;
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px
+    rgba(148, 163, 184, 0.15);
 }
 
 .filterSelect {
-  font-size: 13px;
-  color: #0f172a;
-  background: #f8fafc;
+  padding: 9px 32px 9px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 8px 12px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
   cursor: pointer;
-  transition: border-color 0.15s;
 }
 
 .filterSelect:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #94a3b8;
 }
 
 .addBtn {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  background: #0f172a;
+  padding: 9px 15px;
   border: none;
   border-radius: 8px;
-  padding: 9px 16px;
-  cursor: pointer;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
-  transition: background 0.15s;
+  cursor: pointer;
+  transition: background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .addBtn:hover {
   background: #1e293b;
 }
 
+.addBtn:active {
+  transform: translateY(1px);
+}
+
 .resultCount {
-  font-size: 13px;
+  margin: 0 0 16px;
   color: #94a3b8;
-  margin-bottom: 14px;
+  font-size: 12px;
 }
 
 .empty {
-  font-size: 14px;
-  color: #94a3b8;
-  text-align: center;
   padding: 48px 20px;
   border: 1px dashed #e2e8f0;
   border-radius: 10px;
   background: #f8fafc;
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
 }
 
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(280px, 1fr)
+  );
   gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .tabToolbar {
+    align-items: stretch;
+  }
+
+  .toolbarLeft {
+    width: 100%;
+  }
+
+  .search {
+    flex: 1;
+    width: auto;
+  }
+
+  .filterSelect {
+    width: auto;
+  }
+
+  .addBtn {
+    width: 100%;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
 }

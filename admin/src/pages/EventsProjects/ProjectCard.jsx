@@ -1,100 +1,103 @@
 import { useState } from "react";
-import styles from "./Card.module.css";
-import { STATUS_OPTIONS } from "./constants.js";
-import { useProjects } from "./useProjects.js";
-import ProjectCard from "./ProjectCard.jsx";
+import styles from "./ProjectCard.module.css";
 import Modal from "./Modal.jsx";
-import ProjectForm from "./ProjectForm.jsx";
+import ProjectDetails from "./ProjectDetails.jsx";
 
-function ProjectsTab() {
-  const {
-    loading,
-    search,
-    setSearch,
-    filter,
-    setFilter,
-    filteredProjects,
-    createProject,
-    updateProject,
-    deleteProject,
-  } = useProjects();
-
-  const [editingProject, setEditingProject] = useState(null); // null = closed, {} = add, row = edit
-
-  const openAdd = () => setEditingProject({});
-  const openEdit = (p) => setEditingProject(p);
-  const closeForm = () => setEditingProject(null);
-
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this project?")) return;
-    await deleteProject(id);
-  };
-
-  const handleFormSubmit = async (form) => {
-    if (editingProject?._id) {
-      await updateProject(editingProject._id, form);
-    } else {
-      await createProject(form);
-    }
-    closeForm();
-  };
+function ProjectCard({
+  project,
+  onEdit,
+  onDelete,
+}) {
+  const [showDetails, setShowDetails] =
+    useState(false);
 
   return (
-    <div>
-      <div className={styles.tabToolbar}>
-        <div className={styles.toolbarLeft}>
-          <input
-            className={styles.search}
-            placeholder="Search projects…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select className={styles.filterSelect} value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="All">All status</option>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
+    <>
+      <article className={styles.card}>
+        <div className={styles.header}>
+          <div>
+            <h3 className={styles.title}>
+              {project.title}
+            </h3>
+
+            <span className={styles.sdg}>
+              {project.sdgTag}
+            </span>
+          </div>
+
+          <span className={styles.status}>
+            {project.status}
+          </span>
         </div>
-        <button className={styles.addBtn} onClick={openAdd}>
-          + Add project
+
+        <p className={styles.description}>
+          {project.description}
+        </p>
+
+        <button
+          type="button"
+          className={styles.viewBtn}
+          onClick={() =>
+            setShowDetails(true)
+          }
+        >
+          View details
         </button>
-      </div>
 
-      <p className={styles.resultCount}>
-        {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
-      </p>
+        <div className={styles.details}>
+          <span>
+            {project.barangay}
+          </span>
 
-      {loading && <p className={styles.empty}>Loading…</p>}
-      {!loading && filteredProjects.length === 0 && <p className={styles.empty}>No projects found.</p>}
+          {project.tags?.length > 0 && (
+            <div className={styles.tags}>
+              {project.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className={styles.tag}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
-      <div className={styles.cardGrid}>
-        {filteredProjects.map((p) => (
-          <ProjectCard key={p._id} project={p} onEdit={openEdit} onDelete={handleDelete} />
-        ))}
-      </div>
-
-      {editingProject && (
-        <Modal title={editingProject._id ? "Edit project" : "Add project"} onClose={closeForm}>
-          <ProjectForm
-            initialData={
-              editingProject._id
-                ? {
-                    title: editingProject.title,
-                    description: editingProject.description,
-                    sdgTag: editingProject.sdgTag,
-                    barangay: editingProject.barangay,
-                    status: editingProject.status,
-                  }
-                : null
+        <div className={styles.actions}>
+          <button
+            type="button"
+            onClick={() =>
+              onEdit(project)
             }
-            onClose={closeForm}
-            onSubmit={handleFormSubmit}
+          >
+            Edit
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              onDelete(project._id)
+            }
+          >
+            Delete
+          </button>
+        </div>
+      </article>
+
+      {showDetails && (
+        <Modal
+          title="Project details"
+          onClose={() =>
+            setShowDetails(false)
+          }
+        >
+          <ProjectDetails
+            project={project}
           />
         </Modal>
       )}
-    </div>
+    </>
   );
 }
 
-export default ProjectsTab;
+export default ProjectCard;
