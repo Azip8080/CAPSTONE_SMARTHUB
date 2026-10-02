@@ -1,4 +1,9 @@
 import { useMemo, useState } from "react";
+
+import SDGRelevance from "./SDGRelevance";
+import DetectedSDGs from "./DetectedSDGs";
+import ProjectSummary from "./ProjectSummary";
+
 import {
   SDG_COLORS,
   SDG_NAMES,
@@ -34,6 +39,8 @@ function ClassificationResult({
   error,
   onUseResult,
   onReset,
+  selectedSDGs = [],
+  onToggleSDG,
   selectedTags = [],
   onToggleTag,
   onAddTag,
@@ -50,6 +57,13 @@ function ClassificationResult({
         result.tag ||
         result.sdgTag ||
         "Unknown SDG";
+
+      const detectedSDGs =
+        Array.isArray(result.sdgTags)
+          ? result.sdgTags
+          : primaryTag !== "Unknown SDG"
+            ? [primaryTag]
+            : [];
 
       const alternatives =
         Array.isArray(
@@ -98,6 +112,19 @@ function ClassificationResult({
       const missingInformation =
         result.missingInformation ||
         null;
+
+      const sdgRelevance =
+        Array.isArray(
+          result.sdgRelevance
+        )
+          ? result.sdgRelevance
+          : [];
+
+      const projectSummary =
+        typeof result.projectSummary ===
+        "string"
+          ? result.projectSummary
+          : "";
 
       const keywordData =
         result.keywordMatches ||
@@ -160,10 +187,13 @@ function ClassificationResult({
           getSDGName(primaryTag),
         primaryColor:
           getSDGColor(primaryTag),
+        detectedSDGs,
         alternatives,
         relatedSDGs,
         automaticTags,
         missingInformation,
+        sdgRelevance,
+        projectSummary,
         groupedKeywords,
         evidenceBySDG,
         keywordGroups,
@@ -181,7 +211,9 @@ function ClassificationResult({
         aria-live="polite"
       >
         <div
-          className={styles.loadingState}
+          className={
+            styles.loadingState
+          }
         >
           <div
             className={styles.spinner}
@@ -192,8 +224,9 @@ function ClassificationResult({
           </h3>
 
           <p>
-            Extracting text and checking
-            possible SDG connections.
+            Extracting text and
+            checking possible SDG
+            connections.
           </p>
         </div>
       </section>
@@ -248,9 +281,10 @@ function ClassificationResult({
 
           <p>
             Submit a project title,
-            description, or PDF/TXT file
-            to see its suggested SDG and
-            supporting evidence.
+            description, or PDF/TXT
+            file to see its suggested
+            SDG and supporting
+            evidence.
           </p>
         </div>
       </section>
@@ -261,10 +295,13 @@ function ClassificationResult({
     primaryTag,
     primaryName,
     primaryColor,
+    detectedSDGs,
     alternatives,
     relatedSDGs,
     automaticTags,
     missingInformation,
+    sdgRelevance,
+    projectSummary,
     evidenceBySDG,
     keywordGroups,
     allMatches,
@@ -299,6 +336,11 @@ function ClassificationResult({
       id: "missing",
       label: "Missing Information",
       count: missingCount,
+    },
+    {
+      id: "relevance",
+      label: "SDG Relevance",
+      count: sdgRelevance.length,
     },
     {
       id: "text",
@@ -343,7 +385,7 @@ function ClassificationResult({
               styles.resultDescription
             }
           >
-            Review the suggested SDG
+            Review the suggested SDGs
             before saving or publishing
             the project.
           </p>
@@ -387,6 +429,12 @@ function ClassificationResult({
         onUseResult={
           onUseResult
         }
+      />
+
+      <DetectedSDGs
+        sdgTags={detectedSDGs}
+        selectedSDGs={selectedSDGs}
+        onToggleSDG={onToggleSDG}
       />
 
       <div
@@ -502,6 +550,15 @@ function ClassificationResult({
           />
         )}
 
+        {activeTab ===
+          "relevance" && (
+          <SDGRelevance
+            sdgRelevance={
+              sdgRelevance
+            }
+          />
+        )}
+
         {activeTab === "text" && (
           <ExtractedText
             extractedText={
@@ -513,6 +570,10 @@ function ClassificationResult({
           />
         )}
       </div>
+
+      <ProjectSummary
+        summary={projectSummary}
+      />
 
       <div
         className={
@@ -537,7 +598,7 @@ function ClassificationResult({
             Confirm the project's
             actual objectives and
             select the appropriate
-            SDG before saving or
+            SDGs before saving or
             publishing it.
           </p>
         </div>

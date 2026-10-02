@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   classifyText,
   classifyFile,
@@ -12,12 +13,17 @@ function useAIClassification() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [sdgTag, setSdgTag] = useState("");
+  const [selectedSDGs, setSelectedSDGs] = useState([]);
   const [projectTags, setProjectTags] = useState([]);
 
-  const runClassification = async (request, details = {}) => {
+  const runClassification = async (
+    request,
+    details = {}
+  ) => {
     setLoading(true);
     setError("");
     setResult(null);
+    setSelectedSDGs([]);
     setProjectTags([]);
 
     try {
@@ -27,17 +33,44 @@ function useAIClassification() {
 
       setTitle(
         details.title ||
-          data.filename?.replace(/\.[^.]+$/, "") ||
+          data.filename?.replace(
+            /\.[^.]+$/,
+            ""
+          ) ||
           ""
       );
 
-      setDescription(details.description || "");
-      setSdgTag(data.tag || data.sdgTag || "");
+      setDescription(
+        details.description || ""
+      );
+
+      const primarySDG =
+        data.tag ||
+        data.sdgTag ||
+        "";
+
+      const detectedSDGs =
+        Array.isArray(data.sdgTags)
+          ? data.sdgTags
+          : primarySDG
+            ? [primarySDG]
+            : [];
+
+      setSdgTag(primarySDG);
+      setSelectedSDGs(
+        detectedSDGs
+      );
 
       setProjectTags(
-        Array.isArray(data.automaticTags)
+        Array.isArray(
+          data.automaticTags
+        )
           ? data.automaticTags
-              .map((item) => item.tag || item.name)
+              .map(
+                (item) =>
+                  item.tag ||
+                  item.name
+              )
               .filter(Boolean)
           : []
       );
@@ -45,8 +78,10 @@ function useAIClassification() {
       return data;
     } catch (err) {
       setError(
-        err.message || "Unable to classify this content."
+        err.message ||
+          "Unable to classify this content."
       );
+
       return null;
     } finally {
       setLoading(false);
@@ -65,50 +100,137 @@ function useAIClassification() {
         ),
       {
         title: submittedTitle,
-        description: submittedDescription,
+        description:
+          submittedDescription,
       }
     );
 
-  const handleClassifyFile = (file) =>
+  const handleClassifyFile = (
+    file
+  ) =>
     runClassification(
       () => classifyFile(file),
       {
-        title: file.name.replace(/\.[^.]+$/, ""),
+        title: file.name.replace(
+          /\.[^.]+$/,
+          ""
+        ),
         description: "",
       }
     );
 
-  const handleUseResult = (tag, onResult) => {
+  const handleUseResult = (
+    tag,
+    onResult
+  ) => {
     setSdgTag(tag);
+
+    setSelectedSDGs(
+      (currentSDGs) =>
+        currentSDGs.includes(tag)
+          ? currentSDGs
+          : [...currentSDGs, tag]
+    );
 
     if (onResult) {
       onResult(tag);
     }
   };
 
-  const handleToggleTag = (tag) => {
-    setProjectTags((currentTags) =>
-      currentTags.includes(tag)
-        ? currentTags.filter((item) => item !== tag)
-        : [...currentTags, tag]
+  const handleToggleSDG = (
+    tag
+  ) => {
+    setSelectedSDGs(
+      (currentSDGs) =>
+        currentSDGs.includes(tag)
+          ? currentSDGs.filter(
+              (item) =>
+                item !== tag
+            )
+          : [...currentSDGs, tag]
     );
   };
 
-  const handleAddTag = (tag) => {
-    const trimmedTag = tag.trim();
+  const handleAddSDG = (
+    tag
+  ) => {
+    const trimmedTag =
+      tag.trim();
 
     if (!trimmedTag) return;
 
-    setProjectTags((currentTags) =>
-      currentTags.includes(trimmedTag)
-        ? currentTags
-        : [...currentTags, trimmedTag]
+    setSelectedSDGs(
+      (currentSDGs) =>
+        currentSDGs.includes(
+          trimmedTag
+        )
+          ? currentSDGs
+          : [
+              ...currentSDGs,
+              trimmedTag,
+            ]
     );
   };
 
-  const handleRemoveTag = (tag) => {
-    setProjectTags((currentTags) =>
-      currentTags.filter((item) => item !== tag)
+  const handleRemoveSDG = (
+    tag
+  ) => {
+    setSelectedSDGs(
+      (currentSDGs) =>
+        currentSDGs.filter(
+          (item) =>
+            item !== tag
+        )
+    );
+  };
+
+  const handleToggleTag = (
+    tag
+  ) => {
+    setProjectTags(
+      (currentTags) =>
+        currentTags.includes(tag)
+          ? currentTags.filter(
+              (item) =>
+                item !== tag
+            )
+          : [
+              ...currentTags,
+              tag,
+            ]
+    );
+  };
+
+  const handleAddTag = (
+    tag
+  ) => {
+    const trimmedTag =
+      tag.trim();
+
+    if (!trimmedTag) return;
+
+    setProjectTags(
+      (currentTags) =>
+        currentTags.includes(
+          trimmedTag
+        )
+          ? currentTags
+          : [
+              ...currentTags,
+              trimmedTag,
+            ]
+    );
+  };
+
+  const handleRemoveTag = (
+    tag
+  ) => {
+    setProjectTags(
+      (currentTags) =>
+        currentTags.filter(
+          (item) =>
+            item !== tag
+        )
     );
   };
 
@@ -118,6 +240,7 @@ function useAIClassification() {
     setTitle("");
     setDescription("");
     setSdgTag("");
+    setSelectedSDGs([]);
     setProjectTags([]);
   };
 
@@ -128,14 +251,19 @@ function useAIClassification() {
     title,
     description,
     sdgTag,
+    selectedSDGs,
     projectTags,
     setTitle,
     setDescription,
     setSdgTag,
+    setSelectedSDGs,
     runClassification,
     handleClassifyText,
     handleClassifyFile,
     handleUseResult,
+    handleToggleSDG,
+    handleAddSDG,
+    handleRemoveSDG,
     handleToggleTag,
     handleAddTag,
     handleRemoveTag,

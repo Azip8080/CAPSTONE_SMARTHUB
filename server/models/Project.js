@@ -20,6 +20,11 @@ const ProjectSchema = new mongoose.Schema(
       trim: true,
     },
 
+    sdgTags: {
+      type: [String],
+      default: [],
+    },
+
     tags: {
       type: [String],
       default: [],
@@ -33,13 +38,20 @@ const ProjectSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Planned", "Ongoing", "Completed"],
+      enum: [
+        "Planned",
+        "Ongoing",
+        "Completed",
+      ],
       default: "Planned",
     },
 
     publicationStatus: {
       type: String,
-      enum: ["Draft", "Published"],
+      enum: [
+        "Draft",
+        "Published",
+      ],
       default: "Draft",
       index: true,
     },

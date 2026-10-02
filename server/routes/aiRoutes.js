@@ -4,6 +4,10 @@ const multer = require("multer");
 const pdfParse = require("pdf-parse");
 
 const {
+  generateSDGRelevance,
+} = require("../ai/sdgRelevance");
+
+const {
   findKeywordMatches,
 } = require("../ai/keywordMatches");
 
@@ -18,6 +22,10 @@ const {
 const {
   detectMissingInformation,
 } = require("../ai/missinginfo");
+
+const {
+  generateProjectSummary,
+} = require("../ai/projectSummary");
 
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/adminOnly");
@@ -296,6 +304,20 @@ async function buildClassification(
     } ms`
   );
 
+  const sdgRelevance =
+    generateSDGRelevance(
+      extractedText,
+      result.tag ||
+        result.sdgTag,
+      result.relatedSDGs,
+      keywordMatches.evidenceBySDG
+    );
+
+  const projectSummary =
+    generateProjectSummary(
+      extractedText
+    );
+
   console.log(
     `[AI] Total processing time: ${
       Date.now() - startedAt
@@ -309,6 +331,8 @@ async function buildClassification(
     automaticTags,
     missingInformation,
     textTruncated,
+    sdgRelevance,
+    projectSummary,
   };
 }
 

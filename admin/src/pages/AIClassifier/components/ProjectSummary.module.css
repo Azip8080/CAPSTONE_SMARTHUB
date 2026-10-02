@@ -1,0 +1,46 @@
+.container {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: #3478f6;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.header p {
+  margin: 5px 0 0;
+  color: #7a879b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.summaryBox {
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.summaryBox p {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.7;
+}

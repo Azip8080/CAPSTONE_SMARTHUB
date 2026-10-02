@@ -2,21 +2,26 @@ const { HfInference } = require("@huggingface/inference");
 
 const SDG_KEYWORDS = require("./keywords");
 
-const COMPILED_KEYWORDS = Object.entries(SDG_KEYWORDS).map(
-  ([tag, keywords]) => ({
-    tag,
-    patterns: keywords.map((keyword) => {
-      const escaped = String(keyword).replace(
-        /[.*+?^${}()|[\]\\]/g,
-        "\\$&"
-      );
+const COMPILED_KEYWORDS = Object.entries(
+  SDG_KEYWORDS
+).map(([tag, keywords]) => ({
+  tag,
+  patterns: keywords.map((keyword) => {
+    const escaped = String(keyword).replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
 
-      return new RegExp(`\\b${escaped}\\b`, "gi");
-    }),
-  })
+    return new RegExp(
+      `\\b${escaped}\\b`,
+      "gi"
+    );
+  }),
+}));
+
+const hf = new HfInference(
+  process.env.HF_TOKEN
 );
-
-const hf = new HfInference(process.env.HF_TOKEN);
 
 const SDG_LABELS = [
   "No Poverty",
@@ -61,7 +66,10 @@ const SDG_TAGS = [
 function keywordClassify(text) {
   const scores = {};
 
-  for (const { tag, patterns } of COMPILED_KEYWORDS) {
+  for (const {
+    tag,
+    patterns,
+  } of COMPILED_KEYWORDS) {
     let score = 0;
 
     for (const pattern of patterns) {
@@ -87,81 +95,167 @@ function keywordClassify(text) {
 
   const primary = sorted[0];
 
-  const relatedSDGs = sorted.slice(1, 4).map(([tag, score]) => ({
-    tag,
-    score,
-    confidence: Math.min(score / 10, 1),
-  }));
+  const primaryScore = primary[1];
+
+  const detected = sorted
+    .filter(([tag, score]) => {
+      if (tag === primary[0]) {
+        return true;
+      }
+
+      const minimumScore = Math.max(
+        2,
+        primaryScore * 0.35
+      );
+
+      return score >= minimumScore;
+    })
+    .slice(0, 6);
+
+  const sdgTags = detected.map(
+    ([tag]) => tag
+  );
+
+  const relatedSDGs = detected
+    .slice(1)
+    .map(([tag, score]) => ({
+      tag,
+      score,
+      confidence: Math.min(
+        score / 10,
+        1
+      ),
+    }));
+
+  const topMatches = sorted
+    .slice(0, 6)
+    .map(([tag, score]) => ({
+      tag,
+      score,
+      confidence: Math.min(
+        score / 10,
+        1
+      ),
+    }));
 
   return {
     tag: primary[0],
-    confidence: Math.min(primary[1] / 10, 1),
+    sdgTags,
+    confidence: Math.min(
+      primaryScore / 10,
+      1
+    ),
     method: "keyword",
-    score: primary[1],
+    score: primaryScore,
     relatedSDGs,
-    topMatches: sorted.slice(0, 4).map(([tag, score]) => ({
-      tag,
-      score,
-      confidence: Math.min(score / 10, 1),
-    })),
+    topMatches,
   };
 }
 
-async function huggingFaceClassify(text) {
+async function huggingFaceClassify(
+  text
+) {
   try {
-    const result = await hf.zeroShotClassification({
-      model: "facebook/bart-large-mnli",
-      inputs: text.slice(0, 1000),
-      parameters: {
-        candidate_labels: SDG_LABELS,
-      },
-    });
+    const result =
+      await hf.zeroShotClassification({
+        model:
+          "facebook/bart-large-mnli",
+        inputs: text.slice(0, 1000),
+        parameters: {
+          candidate_labels:
+            SDG_LABELS,
+          multi_label: true,
+        },
+      });
 
-    const topIndex = SDG_LABELS.indexOf(result.labels[0]);
-    const tag = SDG_TAGS[topIndex] || "SDG 1";
+    const ranked = result.labels
+      .map((label, index) => ({
+        label,
+        tag:
+          SDG_TAGS[
+            SDG_LABELS.indexOf(label)
+          ],
+        score: result.scores[index],
+      }))
+      .filter(
+        (item) =>
+          item.tag &&
+          item.score >= 0.15
+      )
+      .sort(
+        (a, b) =>
+          b.score - a.score
+      )
+      .slice(0, 6);
 
-    const topMatches = result.labels.slice(0, 4).map((label, i) => ({
-      tag: SDG_TAGS[SDG_LABELS.indexOf(label)],
-      label,
-      score: result.scores[i],
-      confidence: result.scores[i],
-    }));
+    if (!ranked.length) {
+      return null;
+    }
 
-    const relatedSDGs = result.labels.slice(1, 4).map((label, i) => ({
-      tag: SDG_TAGS[SDG_LABELS.indexOf(label)],
-      label,
-      score: result.scores[i + 1],
-      confidence: result.scores[i + 1],
-    }));
+    const primary = ranked[0];
+
+    const sdgTags = ranked.map(
+      (item) => item.tag
+    );
+
+    const relatedSDGs = ranked
+      .slice(1)
+      .map((item) => ({
+        tag: item.tag,
+        label: item.label,
+        score: item.score,
+        confidence: item.score,
+      }));
+
+    const topMatches = ranked.map(
+      (item) => ({
+        tag: item.tag,
+        label: item.label,
+        score: item.score,
+        confidence: item.score,
+      })
+    );
 
     return {
-      tag,
-      confidence: result.scores[0],
+      tag: primary.tag,
+      sdgTags,
+      confidence: primary.score,
       method: "huggingface",
-      score: result.scores[0],
+      score: primary.score,
       relatedSDGs,
       topMatches,
     };
   } catch (err) {
-    console.error("Hugging Face classification error:", err.message);
+    console.error(
+      "Hugging Face classification error:",
+      err.message
+    );
+
     return null;
   }
 }
 
 async function classifyText(text) {
-  if (!text || text.trim().length === 0) {
-    throw new Error("No text provided for classification");
+  if (
+    !text ||
+    text.trim().length === 0
+  ) {
+    throw new Error(
+      "No text provided for classification"
+    );
   }
 
   if (process.env.HF_TOKEN) {
-    const hfResult = await huggingFaceClassify(text);
+    const hfResult =
+      await huggingFaceClassify(text);
 
     if (hfResult) {
       return hfResult;
     }
   }
 
-  const kwResult = keywordClassify(text);
+  const kwResult =
+    keywordClassify(text);
 
   if (kwResult) {
     return kwResult;
@@ -169,6 +263,7 @@ async function classifyText(text) {
 
   return {
     tag: "SDG 1",
+    sdgTags: [],
     confidence: 0,
     method: "default",
     score: 0,
@@ -177,4 +272,6 @@ async function classifyText(text) {
   };
 }
 
-module.exports = { classifyText };
+module.exports = {
+  classifyText,
+};
