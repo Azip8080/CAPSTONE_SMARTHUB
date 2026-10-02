@@ -1,7 +1,7 @@
 const SDG_KEYWORDS = require("./keywords");
 
 function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function findKeywordMatches(text) {
@@ -28,6 +28,7 @@ function findKeywordMatches(text) {
         };
 
         matchesForSDG.push(item);
+
         allMatches.push({
           sdg,
           ...item,
@@ -44,10 +45,24 @@ function findKeywordMatches(text) {
 
   allMatches.sort((a, b) => a.start - b.start);
 
+  const evidenceBySDG = Object.fromEntries(
+    Object.entries(grouped).map(([sdg, matches]) => [
+      sdg,
+      matches.map((item) => ({
+        ...item,
+        context: text.slice(
+          Math.max(0, item.start - 60),
+          Math.min(text.length, item.end + 60)
+        ),
+      })),
+    ])
+  );
+
   return {
     grouped,
     matches: allMatches,
     totalMatches: allMatches.length,
+    evidenceBySDG,
   };
 }
 

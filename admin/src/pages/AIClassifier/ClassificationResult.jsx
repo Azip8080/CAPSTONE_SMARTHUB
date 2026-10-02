@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { SDG_COLORS, SDG_NAMES } from "./sdgConstants";
 import styles from "./ClassificationResult.module.css";
@@ -154,8 +153,15 @@ function ClassificationResult({
       )
     : [];
 
+  const relatedSDGs = Array.isArray(result.relatedSDGs)
+    ? result.relatedSDGs.filter(
+        (item) => item && (item.tag || item.label || item.name)
+      )
+    : [];
+
   const keywordData = result.keywordMatches || {};
   const groupedKeywords = keywordData.grouped || {};
+  const evidenceBySDG = keywordData.evidenceBySDG || {};
 
   const keywordGroups = Object.entries(groupedKeywords)
     .filter(([, matches]) => Array.isArray(matches) && matches.length > 0)
@@ -189,7 +195,7 @@ function ClassificationResult({
     {
       id: "alternatives",
       label: "Other SDGs",
-      count: alternatives.length,
+      count: relatedSDGs.length || alternatives.length,
     },
     {
       id: "text",
@@ -286,6 +292,14 @@ function ClassificationResult({
           </div>
 
           <div className={styles.summaryMetric}>
+            <span className={styles.metricIcon}>◆</span>
+            <div>
+              <strong>{relatedSDGs.length}</strong>
+              <span>Related SDGs</span>
+            </div>
+          </div>
+
+          <div className={styles.summaryMetric}>
             <span className={styles.metricIcon}>▤</span>
             <div>
               <strong>{extractedText ? "Available" : "Unavailable"}</strong>
@@ -302,7 +316,11 @@ function ClassificationResult({
       </div>
 
       <div className={styles.tabSection}>
-        <div className={styles.tabHeader} role="tablist" aria-label="Analysis details">
+        <div
+          className={styles.tabHeader}
+          role="tablist"
+          aria-label="Analysis details"
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -335,8 +353,8 @@ function ClassificationResult({
               <div>
                 <h3>Keyword evidence</h3>
                 <p>
-                  Expand an SDG to inspect the matched keywords. A match is
-                  evidence to review, not proof of relevance.
+                  Expand an SDG to inspect the matched keywords and supporting
+                  text. A match is evidence to review, not proof of relevance.
                 </p>
               </div>
               <span className={styles.countBadge}>{totalMatches} matches</span>
@@ -349,6 +367,9 @@ function ClassificationResult({
                     .slice(0, showAllMatches ? undefined : 4)
                     .map(([tag, matches]) => {
                       const isExpanded = expandedGroups[tag] ?? false;
+                      const evidence = Array.isArray(evidenceBySDG[tag])
+                        ? evidenceBySDG[tag]
+                        : [];
 
                       return (
                         <div className={styles.keywordGroup} key={tag}>
@@ -360,7 +381,9 @@ function ClassificationResult({
                           >
                             <span
                               className={styles.alternativeDot}
-                              style={{ backgroundColor: getSDGColor(tag) }}
+                              style={{
+                                backgroundColor: getSDGColor(tag),
+                              }}
                             />
                             <span className={styles.groupInfo}>
                               <strong>{tag}</strong>
@@ -376,15 +399,31 @@ function ClassificationResult({
 
                           {isExpanded && (
                             <div className={styles.keywordChips}>
-                              {matches.map((match, index) => (
-                                <span
-                                  className={styles.keywordChip}
-                                  key={`${match.keyword}-${match.start}-${index}`}
-                                  title={`Keyword: ${match.keyword || ""}`}
-                                >
-                                  {match.matchedText || match.keyword}
-                                </span>
-                              ))}
+                              {matches.map((match, index) => {
+                                const evidenceItem = evidence[index];
+                                const context =
+                                  evidenceItem?.context || "";
+
+                                return (
+                                  <div
+                                    className={styles.keywordChip}
+                                    key={`${match.keyword}-${match.start}-${index}`}
+                                    title={`Keyword: ${
+                                      match.keyword || ""
+                                    }`}
+                                  >
+                                    <strong>
+                                      {match.matchedText || match.keyword}
+                                    </strong>
+
+                                    {context && (
+                                      <div>
+                                        {context}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -396,7 +435,9 @@ function ClassificationResult({
                   <button
                     type="button"
                     className={styles.textButton}
-                    onClick={() => setShowAllMatches((previous) => !previous)}
+                    onClick={() =>
+                      setShowAllMatches((previous) => !previous)
+                    }
                   >
                     {showAllMatches
                       ? "Show fewer SDGs"
@@ -421,17 +462,17 @@ function ClassificationResult({
           >
             <div className={styles.panelHeading}>
               <div>
-                <h3>Alternative SDGs</h3>
+                <h3>Related SDGs</h3>
                 <p>
-                  Compare other suggested goals before choosing the project's
-                  final SDG tag.
+                  Review other SDGs identified from the project content before
+                  choosing the project's final SDG tag.
                 </p>
               </div>
             </div>
 
-            {alternatives.length > 0 ? (
+            {relatedSDGs.length > 0 ? (
               <div className={styles.alternativesList}>
-                {alternatives.map((item, index) => {
+                {relatedSDGs.map((item, index) => {
                   const tag = item.tag || item.label || item.name;
                   const score =
                     item.confidence ?? item.score ?? item.probability;
@@ -443,17 +484,22 @@ function ClassificationResult({
                     >
                       <span
                         className={styles.alternativeDot}
-                        style={{ backgroundColor: getSDGColor(tag) }}
+                        style={{
+                          backgroundColor: getSDGColor(tag),
+                        }}
                       />
+
                       <div className={styles.alternativeInfo}>
                         <strong>{tag}</strong>
                         <span>{getSDGName(tag)}</span>
                       </div>
+
                       {score !== undefined && score !== null && (
                         <span className={styles.alternativeScore}>
                           {formatConfidence(score)}
                         </span>
                       )}
+
                       {onUseResult && (
                         <button
                           type="button"
@@ -467,9 +513,54 @@ function ClassificationResult({
                   );
                 })}
               </div>
+            ) : alternatives.length > 0 ? (
+              <div className={styles.alternativesList}>
+                {alternatives
+                  .filter((item) => item.tag !== primaryTag)
+                  .map((item, index) => {
+                    const tag = item.tag || item.label || item.name;
+                    const score =
+                      item.confidence ?? item.score ?? item.probability;
+
+                    return (
+                      <div
+                        className={styles.alternativeItem}
+                        key={`${tag}-${index}`}
+                      >
+                        <span
+                          className={styles.alternativeDot}
+                          style={{
+                            backgroundColor: getSDGColor(tag),
+                          }}
+                        />
+
+                        <div className={styles.alternativeInfo}>
+                          <strong>{tag}</strong>
+                          <span>{getSDGName(tag)}</span>
+                        </div>
+
+                        {score !== undefined && score !== null && (
+                          <span className={styles.alternativeScore}>
+                            {formatConfidence(score)}
+                          </span>
+                        )}
+
+                        {onUseResult && (
+                          <button
+                            type="button"
+                            className={styles.smallButton}
+                            onClick={() => onUseResult(tag)}
+                          >
+                            Select
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
             ) : (
               <p className={styles.noEvidence}>
-                No alternative SDGs were returned.
+                No related SDGs were returned.
               </p>
             )}
           </div>
@@ -493,7 +584,10 @@ function ClassificationResult({
             </div>
 
             {extractedText ? (
-              <HighlightedText text={extractedText} matches={allMatches} />
+              <HighlightedText
+                text={extractedText}
+                matches={allMatches}
+              />
             ) : (
               <p className={styles.noEvidence}>
                 No extracted text is available for this result.
