@@ -12,52 +12,106 @@ const SDG_COLORS = {
 };
 
 const STATUS_STYLES = {
-  Planned:   { bg: "#f1f5f9", color: "#475569" },
-  Ongoing:   { bg: "#dcfce7", color: "#166534" },
+  Planned: { bg: "#f1f5f9", color: "#475569" },
+  Ongoing: { bg: "#dcfce7", color: "#166534" },
   Completed: { bg: "#dbeafe", color: "#1d4ed8" },
 };
 
 function FeaturedProject({ project }) {
   const [open, setOpen] = useState(false);
-  const color  = SDG_COLORS[project.sdgTag]    || "#0f172a";
-  const status = STATUS_STYLES[project.status] || STATUS_STYLES.Planned;
+  const color =
+    SDG_COLORS[project.sdgTag] || "#0f172a";
+  const status =
+    STATUS_STYLES[project.status] ||
+    STATUS_STYLES.Planned;
 
   return (
     <>
-      <div className={styles.card} style={{ borderTop: `4px solid ${color}` }}>
+      <div
+        className={styles.card}
+        style={{
+          borderTop: `4px solid ${color}`,
+        }}
+      >
         <div className={styles.left}>
           <div className={styles.badges}>
-            <span className={styles.featuredBadge}>⭐ Featured Project</span>
+            <span className={styles.featuredBadge}>
+              ⭐ Featured Project
+            </span>
+
             {project.sdgTag && (
-              <span className={styles.sdgBadge} style={{ background: color }}>
+              <span
+                className={styles.sdgBadge}
+                style={{
+                  background: color,
+                }}
+              >
                 {project.sdgTag}
               </span>
             )}
+
             <span
               className={styles.statusBadge}
-              style={{ background: status.bg, color: status.color }}
+              style={{
+                background: status.bg,
+                color: status.color,
+              }}
             >
               {project.status}
             </span>
           </div>
 
-          <h2 className={styles.title}>{project.title}</h2>
-          <p className={styles.barangay}>📍 {project.barangay}</p>
-          <p className={styles.description}>{project.description}</p>
+          <h2 className={styles.title}>
+            {project.title}
+          </h2>
 
-          <button className={styles.viewBtn} onClick={() => setOpen(true)}>
+          <p className={styles.barangay}>
+            📍 {project.barangay}
+          </p>
+
+          <p className={styles.description}>
+            {project.description}
+          </p>
+
+          <button
+            className={styles.viewBtn}
+            onClick={() => setOpen(true)}
+          >
             View full project →
           </button>
         </div>
 
         <div className={styles.right}>
-          <div className={styles.imagePlaceholder} style={{ borderColor: color }}>
-            <span className={styles.imagePlaceholderText}>Project Photo</span>
-          </div>
+          {project.photos?.length > 0 ? (
+            <img
+              className={styles.projectImage}
+              src={`http://localhost:5000${project.photos[0]}`}
+              alt={project.title}
+            />
+          ) : (
+            <div
+              className={styles.imagePlaceholder}
+              style={{
+                borderColor: color,
+              }}
+            >
+              <span
+                className={
+                  styles.imagePlaceholderText
+                }
+              >
+                Project Photo
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      <ProjectModal project={project} open={open} onClose={() => setOpen(false)} />
+      <ProjectModal
+        project={project}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
     </>
   );
 }

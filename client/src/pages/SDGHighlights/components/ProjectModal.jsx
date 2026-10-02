@@ -10,43 +10,115 @@ const SDG_COLORS = {
 };
 
 const STATUS_STYLES = {
-  Planned:   { bg: "#f1f5f9", color: "#475569" },
-  Ongoing:   { bg: "#dcfce7", color: "#166534" },
-  Completed: { bg: "#dbeafe", color: "#1d4ed8" },
+  Planned: {
+    bg: "#f1f5f9",
+    color: "#475569",
+  },
+  Ongoing: {
+    bg: "#dcfce7",
+    color: "#166534",
+  },
+  Completed: {
+    bg: "#dbeafe",
+    color: "#1d4ed8",
+  },
 };
 
-function ProjectModal({ project, open, onClose }) {
-  if (!open || !project) return null;
-  const color  = SDG_COLORS[project.sdgTag]    || "#0f172a";
-  const status = STATUS_STYLES[project.status] || STATUS_STYLES.Planned;
+function ProjectModal({
+  project,
+  open,
+  onClose,
+}) {
+  if (!open || !project) {
+    return null;
+  }
+
+  const color =
+    SDG_COLORS[project.sdgTag] ||
+    "#0f172a";
+
+  const status =
+    STATUS_STYLES[project.status] ||
+    STATUS_STYLES.Planned;
 
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader} style={{ borderTop: `4px solid ${color}` }}>
+    <div
+      className={styles.backdrop}
+      onClick={onClose}
+    >
+      <div
+        className={styles.modal}
+        onClick={(e) =>
+          e.stopPropagation()
+        }
+      >
+        <div
+          className={styles.modalHeader}
+          style={{
+            borderTop: `4px solid ${color}`,
+          }}
+        >
           <div className={styles.headerTop}>
             <div className={styles.badges}>
               {project.sdgTag && (
-                <span className={styles.sdgBadge} style={{ background: color }}>
+                <span
+                  className={styles.sdgBadge}
+                  style={{
+                    background: color,
+                  }}
+                >
                   {project.sdgTag}
                 </span>
               )}
+
               <span
                 className={styles.statusBadge}
-                style={{ background: status.bg, color: status.color }}
+                style={{
+                  background: status.bg,
+                  color: status.color,
+                }}
               >
                 {project.status}
               </span>
             </div>
-            <button className={styles.closeBtn} onClick={onClose}>✕</button>
+
+            <button
+              className={styles.closeBtn}
+              onClick={onClose}
+            >
+              ✕
+            </button>
           </div>
-          <h2 className={styles.title}>{project.title}</h2>
-          <p className={styles.barangay}>📍 {project.barangay}</p>
+
+          <h2 className={styles.title}>
+            {project.title}
+          </h2>
+
+          <p className={styles.barangay}>
+            📍 {project.barangay}
+          </p>
         </div>
 
         <div className={styles.modalBody}>
-          <div className={styles.imagePlaceholder}>Project Photo</div>
-          <p className={styles.description}>{project.description}</p>
+          {project.photos?.length > 0 ? (
+            <img
+              className={styles.projectImage}
+              src={`http://localhost:5000${project.photos[0]}`}
+              alt={project.title}
+            />
+          ) : (
+            <div
+              className={
+                styles.imagePlaceholder
+              }
+            >
+              Project Photo
+            </div>
+          )}
+
+          <p className={styles.description}>
+            {project.description}
+          </p>
         </div>
       </div>
     </div>

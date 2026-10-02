@@ -46,6 +46,11 @@ const ProjectSchema = new mongoose.Schema(
       default: "Planned",
     },
 
+    photos: {
+      type: [String],
+      default: [],
+    },
+
     publicationStatus: {
       type: String,
       enum: [

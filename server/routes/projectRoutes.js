@@ -1,10 +1,89 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const router = express.Router();
 
 const Project = require("../models/Project");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/adminOnly");
+
+const uploadDir = path.join(
+  __dirname,
+  "../uploads/projects"
+);
+
+fs.mkdirSync(uploadDir, {
+  recursive: true,
+});
+
+const storage = multer.diskStorage({
+  destination: (
+    req,
+    file,
+    callback
+  ) => {
+    callback(null, uploadDir);
+  },
+
+  filename: (
+    req,
+    file,
+    callback
+  ) => {
+    const extension =
+      path.extname(
+        file.originalname
+      ).toLowerCase();
+
+    const filename =
+      `project-${Date.now()}-${Math.round(
+        Math.random() * 1e9
+      )}${extension}`;
+
+    callback(
+      null,
+      filename
+    );
+  },
+});
+
+const upload = multer({
+  storage,
+
+  limits: {
+    files: 10,
+    fileSize: 10 * 1024 * 1024,
+  },
+
+  fileFilter: (
+    req,
+    file,
+    callback
+  ) => {
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (
+      allowedTypes.includes(
+        file.mimetype
+      )
+    ) {
+      callback(null, true);
+      return;
+    }
+
+    callback(
+      new Error(
+        "Only JPG, PNG, and WebP images are allowed."
+      )
+    );
+  },
+});
 
 const editableFields = [
   "title",
@@ -25,88 +104,211 @@ function getEditableFields(body) {
     }
   }
 
+  if (typeof fields.sdgTags === "string") {
+    try {
+      fields.sdgTags =
+        JSON.parse(fields.sdgTags);
+    } catch {
+      fields.sdgTags = [];
+    }
+  }
+
+  if (typeof fields.tags === "string") {
+    try {
+      fields.tags =
+        JSON.parse(fields.tags);
+    } catch {
+      fields.tags = [];
+    }
+  }
+
   return fields;
 }
 
-router.get("/admin/all", auth, adminOnly, async (req, res) => {
-  try {
-    const projects = await Project.find().sort({
-      updatedAt: -1,
-    });
+function getPhotoPaths(files) {
+  return files.map(
+    (file) =>
+      `/uploads/projects/${file.filename}`
+  );
+}
 
-    res.json({
-      success: true,
-      data: projects,
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to retrieve projects.",
-    });
+function removePhotoFile(photoPath) {
+  if (!photoPath) {
+    return;
   }
-});
 
-router.post("/", auth, adminOnly, async (req, res) => {
-  try {
-    const fields = getEditableFields(req.body);
+  const filename =
+    path.basename(photoPath);
 
-    const project = await Project.create({
-      ...fields,
-      publicationStatus: "Draft",
-      publishedAt: null,
-      createdBy: req.user.id,
-    });
+  const filePath =
+    path.join(
+      uploadDir,
+      filename
+    );
 
-    res.status(201).json({
-      success: true,
-      message: "Project saved as a draft.",
-      data: project,
-    });
-  } catch (err) {
-    res.status(400).json({
-      success: false,
-      message:
-        err.message ||
-        "Failed to create project.",
-    });
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
   }
-});
+}
 
-router.put("/:id", auth, adminOnly, async (req, res) => {
-  try {
-    const fields = getEditableFields(req.body);
+router.get(
+  "/admin/all",
+  auth,
+  adminOnly,
+  async (req, res) => {
+    try {
+      const projects =
+        await Project.find().sort({
+          updatedAt: -1,
+        });
 
-    const project =
-      await Project.findByIdAndUpdate(
-        req.params.id,
-        { $set: fields },
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
-
-    if (!project) {
-      return res.status(404).json({
+      res.json({
+        success: true,
+        data: projects,
+      });
+    } catch (err) {
+      res.status(500).json({
         success: false,
-        message: "Project not found.",
+        message:
+          "Failed to retrieve projects.",
       });
     }
-
-    res.json({
-      success: true,
-      message: "Project details updated.",
-      data: project,
-    });
-  } catch (err) {
-    res.status(400).json({
-      success: false,
-      message:
-        err.message ||
-        "Failed to update project.",
-    });
   }
-});
+);
+
+router.post(
+  "/",
+  auth,
+  adminOnly,
+  upload.array("photos", 10),
+  async (req, res) => {
+    try {
+      const fields =
+        getEditableFields(
+          req.body
+        );
+
+      const photos =
+        getPhotoPaths(
+          req.files || []
+        );
+
+      const project =
+        await Project.create({
+          ...fields,
+          photos,
+          publicationStatus:
+            "Draft",
+          publishedAt: null,
+          createdBy:
+            req.user.id,
+        });
+
+      res.status(201).json({
+        success: true,
+        message:
+          "Project saved as a draft.",
+        data: project,
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message:
+          err.message ||
+          "Failed to create project.",
+      });
+    }
+  }
+);
+
+router.put(
+  "/:id",
+  auth,
+  adminOnly,
+  upload.array("photos", 10),
+  async (req, res) => {
+    try {
+      const project =
+        await Project.findById(
+          req.params.id
+        );
+
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Project not found.",
+        });
+      }
+
+      const fields =
+        getEditableFields(
+          req.body
+        );
+
+      let existingPhotos = [];
+
+      if (
+        req.body.existingPhotos
+      ) {
+        try {
+          existingPhotos =
+            JSON.parse(
+              req.body.existingPhotos
+            );
+        } catch {
+          existingPhotos = [];
+        }
+      }
+
+      const uploadedPhotos =
+        getPhotoPaths(
+          req.files || []
+        );
+
+      const oldPhotos =
+        project.photos || [];
+
+      const removedPhotos =
+        oldPhotos.filter(
+          (photo) =>
+            !existingPhotos.includes(
+              photo
+            )
+        );
+
+      removedPhotos.forEach(
+        removePhotoFile
+      );
+
+      fields.photos = [
+        ...existingPhotos,
+        ...uploadedPhotos,
+      ];
+
+      Object.assign(
+        project,
+        fields
+      );
+
+      await project.save();
+
+      res.json({
+        success: true,
+        message:
+          "Project details updated.",
+        data: project,
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message:
+          err.message ||
+          "Failed to update project.",
+      });
+    }
+  }
+);
 
 router.patch(
   "/:id/publish",
@@ -115,12 +317,15 @@ router.patch(
   async (req, res) => {
     try {
       const project =
-        await Project.findById(req.params.id);
+        await Project.findById(
+          req.params.id
+        );
 
       if (!project) {
         return res.status(404).json({
           success: false,
-          message: "Project not found.",
+          message:
+            "Project not found.",
         });
       }
 
@@ -136,10 +341,14 @@ router.patch(
           (field) =>
             typeof project[field] !==
               "string" ||
-            project[field].trim().length === 0
+            project[field]
+              .trim()
+              .length === 0
         );
 
-      if (missingFields.length > 0) {
+      if (
+        missingFields.length > 0
+      ) {
         return res.status(400).json({
           success: false,
           message:
@@ -180,12 +389,15 @@ router.patch(
   async (req, res) => {
     try {
       const project =
-        await Project.findById(req.params.id);
+        await Project.findById(
+          req.params.id
+        );
 
       if (!project) {
         return res.status(404).json({
           success: false,
-          message: "Project not found.",
+          message:
+            "Project not found.",
         });
       }
 
@@ -227,9 +439,14 @@ router.delete(
       if (!project) {
         return res.status(404).json({
           success: false,
-          message: "Project not found.",
+          message:
+            "Project not found.",
         });
       }
+
+      project.photos?.forEach(
+        removePhotoFile
+      );
 
       res.json({
         success: true,
@@ -247,63 +464,75 @@ router.delete(
   }
 );
 
-router.get("/", async (req, res) => {
-  try {
-    const projects =
-      await Project.find({
-        publicationStatus: "Published",
-      }).sort({
-        publishedAt: -1,
-        createdAt: -1,
+router.get(
+  "/",
+  async (req, res) => {
+    try {
+      const projects =
+        await Project.find({
+          publicationStatus:
+            "Published",
+        }).sort({
+          publishedAt: -1,
+          createdAt: -1,
+        });
+
+      res.json({
+        success: true,
+        data: projects,
       });
-
-    res.json({
-      success: true,
-      data: projects,
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message:
-        "Failed to retrieve published projects.",
-    });
-  }
-});
-
-router.get("/:id", async (req, res) => {
-  try {
-    const project =
-      await Project.findOne({
-        _id: req.params.id,
-        publicationStatus: "Published",
-      });
-
-    if (!project) {
-      return res.status(404).json({
+    } catch (err) {
+      res.status(500).json({
         success: false,
         message:
-          "Published project not found.",
+          "Failed to retrieve published projects.",
       });
     }
-
-    res.json({
-      success: true,
-      data: project,
-    });
-  } catch (err) {
-    if (err.name === "CastError") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid project ID.",
-      });
-    }
-
-    res.status(500).json({
-      success: false,
-      message:
-        "Failed to retrieve project.",
-    });
   }
-});
+);
+
+router.get(
+  "/:id",
+  async (req, res) => {
+    try {
+      const project =
+        await Project.findOne({
+          _id: req.params.id,
+          publicationStatus:
+            "Published",
+        });
+
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Published project not found.",
+        });
+      }
+
+      res.json({
+        success: true,
+        data: project,
+      });
+    } catch (err) {
+      if (
+        err.name ===
+        "CastError"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid project ID.",
+        });
+      }
+
+      res.status(500).json({
+        success: false,
+        message:
+          "Failed to retrieve project.",
+      });
+    }
+  }
+);
 
 module.exports = router;

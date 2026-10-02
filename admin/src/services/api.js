@@ -1,29 +1,98 @@
-const BASE = "http://localhost:5000/api";
+const BASE =
+  "http://localhost:5000/api";
 
-function getHeaders() {
-  const token = localStorage.getItem("adminToken");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+function getToken() {
+  return localStorage.getItem(
+    "adminToken"
+  );
 }
 
-async function request(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: getHeaders(),
-  });
+function getHeaders() {
+  const token = getToken();
+
+  return token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {};
+}
+
+async function request(
+  path,
+  options = {}
+) {
+  const res = await fetch(
+    `${BASE}${path}`,
+    {
+      ...options,
+      headers: {
+        ...getHeaders(),
+        ...options.headers,
+      },
+    }
+  );
+
   if (res.status === 401) {
-    localStorage.removeItem("adminToken");
+    localStorage.removeItem(
+      "adminToken"
+    );
+
     window.location.href = "/login";
   }
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+
+  if (!res.ok) {
+    const data =
+      await res.json().catch(
+        () => ({})
+      );
+
+    throw new Error(
+      data.message ||
+        `Request failed: ${res.status}`
+    );
+  }
+
   return res.json();
 }
 
 export const api = {
-  get:    (path)       => request(path),
-  post:   (path, body) => request(path, { method: "POST",   body: JSON.stringify(body) }),
-  put:    (path, body) => request(path, { method: "PUT",    body: JSON.stringify(body) }),
-  delete: (path)       => request(path, { method: "DELETE" }),
+  get: (path) =>
+    request(path),
+
+  post: (path, body) =>
+    request(path, {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify(body),
+    }),
+
+  put: (path, body) =>
+    request(path, {
+      method: "PUT",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify(body),
+    }),
+
+  postForm: (path, formData) =>
+    request(path, {
+      method: "POST",
+      body: formData,
+    }),
+
+  putForm: (path, formData) =>
+    request(path, {
+      method: "PUT",
+      body: formData,
+    }),
+
+  delete: (path) =>
+    request(path, {
+      method: "DELETE",
+    }),
 };
