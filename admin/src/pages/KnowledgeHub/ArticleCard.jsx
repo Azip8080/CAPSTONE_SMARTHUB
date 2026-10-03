@@ -1,22 +1,71 @@
 import styles from "./ArticleCard.module.css";
 import { getSdgInfo } from "./constants.js";
 
-function ArticleCard({ article, onView, onEdit, onDelete }) {
-  const sdg = getSdgInfo(article.sdgTag);
+function ArticleCard({
+  article,
+  onView,
+  onEdit,
+  onDelete,
+}) {
+  const sdg = getSdgInfo(
+    article.sdgTag
+  );
 
   return (
-    <div className={styles.card} onClick={() => onView(article)}>
-      <div className={styles.cardTop} style={{ borderTop: `3px solid ${sdg.color || "#e2e8f0"}` }}>
+    <div
+      className={styles.card}
+      onClick={() => onView(article)}
+    >
+      <div
+        className={styles.cardTop}
+        style={{
+          borderTop: `3px solid ${
+            sdg.color || "#e2e8f0"
+          }`,
+        }}
+      >
         <div className={styles.cardBadges}>
-          <span className={styles.sdgChip} style={{ background: sdg.color || "#888" }}>
+          <span
+            className={styles.sdgChip}
+            style={{
+              background:
+                sdg.color || "#888",
+            }}
+          >
             {article.sdgTag}
           </span>
-          <span className={styles.catChip}>{article.category}</span>
+
+          <span className={styles.catChip}>
+            {article.category}
+          </span>
         </div>
       </div>
+
+      {article.photos?.length > 0 ? (
+        <img
+          className={styles.cardImage}
+          src={`http://localhost:5000${article.photos[0]}`}
+          alt={article.title}
+        />
+      ) : (
+        <div
+          className={
+            styles.cardImagePlaceholder
+          }
+        >
+          No photo
+        </div>
+      )}
+
       <div className={styles.cardBody}>
-        <h3 className={styles.cardTitle}>{article.title}</h3>
-        <p className={styles.cardContent}>{article.content}</p>
+        <h3 className={styles.cardTitle}>
+          {article.title}
+        </h3>
+
+        <p className={styles.cardContent}>
+          {article.content}
+        </p>
+
         <div className={styles.cardFooter}>
           <button
             className={styles.editBtn}
@@ -27,6 +76,7 @@ function ArticleCard({ article, onView, onEdit, onDelete }) {
           >
             Edit
           </button>
+
           <button
             className={styles.deleteBtn}
             onClick={(e) => {

@@ -1,4 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { api } from "../../services/api";
 
 export function useArticles() {
@@ -10,11 +15,16 @@ export function useArticles() {
 
   const load = useCallback(() => {
     setLoading(true);
+
     api
       .get("/knowledge")
-      .then((d) => setArticles(d.data ?? d))
+      .then((d) =>
+        setArticles(d.data ?? d)
+      )
       .catch(() => setArticles([]))
-      .finally(() => setLoading(false));
+      .finally(() =>
+        setLoading(false)
+      );
   }, []);
 
   useEffect(() => {
@@ -23,7 +33,61 @@ export function useArticles() {
 
   const createArticle = useCallback(
     async (form) => {
-      await api.post("/knowledge", form);
+      const formData = new FormData();
+
+      formData.append(
+        "title",
+        form.title
+      );
+
+      formData.append(
+        "summary",
+        form.summary
+      );
+
+      formData.append(
+        "content",
+        form.content
+      );
+
+      formData.append(
+        "sdgTag",
+        form.sdgTag
+      );
+
+      formData.append(
+        "category",
+        form.category
+      );
+
+      formData.append(
+        "readTime",
+        form.readTime
+      );
+
+      const photos = Array.isArray(
+        form.photos
+      )
+        ? form.photos
+        : [];
+
+      photos
+        .filter(
+          (photo) =>
+            photo instanceof File
+        )
+        .forEach((photo) => {
+          formData.append(
+            "photos",
+            photo
+          );
+        });
+
+      await api.postForm(
+        "/knowledge",
+        formData
+      );
+
       load();
     },
     [load]
@@ -31,7 +95,74 @@ export function useArticles() {
 
   const updateArticle = useCallback(
     async (id, form) => {
-      await api.put(`/knowledge/${id}`, form);
+      const formData = new FormData();
+
+      formData.append(
+        "title",
+        form.title
+      );
+
+      formData.append(
+        "summary",
+        form.summary
+      );
+
+      formData.append(
+        "content",
+        form.content
+      );
+
+      formData.append(
+        "sdgTag",
+        form.sdgTag
+      );
+
+      formData.append(
+        "category",
+        form.category
+      );
+
+      formData.append(
+        "readTime",
+        form.readTime
+      );
+
+      const existingPhotos =
+        Array.isArray(form.photos)
+          ? form.photos.filter(
+              (photo) =>
+                typeof photo ===
+                "string"
+            )
+          : [];
+
+      formData.append(
+        "existingPhotos",
+        JSON.stringify(
+          existingPhotos
+        )
+      );
+
+      const newPhotos =
+        Array.isArray(form.photos)
+          ? form.photos.filter(
+              (photo) =>
+                photo instanceof File
+            )
+          : [];
+
+      newPhotos.forEach((photo) => {
+        formData.append(
+          "photos",
+          photo
+        );
+      });
+
+      await api.putForm(
+        `/knowledge/${id}`,
+        formData
+      );
+
       load();
     },
     [load]
@@ -39,21 +170,45 @@ export function useArticles() {
 
   const deleteArticle = useCallback(
     async (id) => {
-      await api.delete(`/knowledge/${id}`);
+      await api.delete(
+        `/knowledge/${id}`
+      );
+
       load();
     },
     [load]
   );
 
   const filteredArticles = useMemo(() => {
-    const q = search.toLowerCase();
+    const q =
+      search.toLowerCase();
+
     return articles.filter((a) => {
-      const matchSearch = a.title?.toLowerCase().includes(q);
-      const matchSdg = sdgFilter === "All" || a.sdgTag === sdgFilter;
-      const matchCat = catFilter === "All" || a.category === catFilter;
-      return matchSearch && matchSdg && matchCat;
+      const matchSearch =
+        a.title
+          ?.toLowerCase()
+          .includes(q);
+
+      const matchSdg =
+        sdgFilter === "All" ||
+        a.sdgTag === sdgFilter;
+
+      const matchCat =
+        catFilter === "All" ||
+        a.category === catFilter;
+
+      return (
+        matchSearch &&
+        matchSdg &&
+        matchCat
+      );
     });
-  }, [articles, search, sdgFilter, catFilter]);
+  }, [
+    articles,
+    search,
+    sdgFilter,
+    catFilter,
+  ]);
 
   return {
     loading,

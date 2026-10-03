@@ -23,20 +23,53 @@ const SDG_COLORS = {
 };
 
 function GuideCard({ guide, onRead }) {
-  const tagColor = SDG_COLORS[guide.sdgTag] || "#3b82f6";
+  const tagColor =
+    SDG_COLORS[guide.sdgTag] || "#3b82f6";
+
   return (
-    <div className={styles.card} onClick={() => onRead(guide)}>
+    <div
+      className={styles.card}
+      onClick={() => onRead(guide)}
+    >
       <div className={styles.cardImage}>
-        <span className={styles.cardTag} style={{ background: tagColor }}>
-          {guide.sdgTag}
-        </span>
-        <span className={styles.cardCat}>{guide.category}</span>
+        {guide.photos?.length > 0 && (
+          <img
+            src={`http://localhost:5000${guide.photos[0]}`}
+            alt={guide.title}
+            className={styles.guideImage}
+          />
+        )}
+
+        <div className={styles.cardOverlay}>
+          <span
+            className={styles.cardTag}
+            style={{
+              background: tagColor,
+            }}
+          >
+            {guide.sdgTag}
+          </span>
+
+          <span className={styles.cardCat}>
+            {guide.category}
+          </span>
+        </div>
       </div>
+
       <div className={styles.cardBody}>
-        <h3 className={styles.cardTitle}>{guide.title}</h3>
-        <p className={styles.cardDescription}>{guide.summary}</p>
+        <h3 className={styles.cardTitle}>
+          {guide.title}
+        </h3>
+
+        <p className={styles.cardDescription}>
+          {guide.summary}
+        </p>
+
         <div className={styles.cardFooter}>
-          <span className={styles.readTime}>{guide.readTime}</span>
+          <span className={styles.readTime}>
+            {guide.readTime}
+          </span>
+
           <button
             className={styles.readBtn}
             type="button"
@@ -54,70 +87,151 @@ function GuideCard({ guide, onRead }) {
 }
 
 function GuideModal({ guide, onClose }) {
-  const tagColor = SDG_COLORS[guide.sdgTag] || "#3b82f6";
+  const tagColor =
+    SDG_COLORS[guide.sdgTag] || "#3b82f6";
+
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+    <div
+      className={styles.backdrop}
+      onClick={onClose}
+    >
+      <div
+        className={styles.modal}
+        onClick={(e) =>
+          e.stopPropagation()
+        }
+      >
         <div className={styles.modalHeader}>
           <div className={styles.modalTop}>
             <div className={styles.modalBadges}>
-              <span className={styles.modalSdgTag} style={{ background: tagColor }}>
+              <span
+                className={styles.modalSdgTag}
+                style={{
+                  background: tagColor,
+                }}
+              >
                 {guide.sdgTag}
               </span>
-              <span className={styles.modalCatTag}>{guide.category}</span>
+
+              <span
+                className={styles.modalCatTag}
+              >
+                {guide.category}
+              </span>
             </div>
-            <button className={styles.modalClose} type="button" onClick={onClose}>✕</button>
+
+            <button
+              className={styles.modalClose}
+              type="button"
+              onClick={onClose}
+            >
+              ✕
+            </button>
           </div>
-          <h2 className={styles.modalTitle}>{guide.title}</h2>
+
+          <h2 className={styles.modalTitle}>
+            {guide.title}
+          </h2>
         </div>
+
         <div className={styles.modalBody}>
-          <p className={styles.modalContent}>{guide.content}</p>
+          {guide.photos?.length > 0 && (
+            <img
+              src={`http://localhost:5000${guide.photos[0]}`}
+              alt={guide.title}
+              className={styles.modalImage}
+            />
+          )}
+
+          <p className={styles.modalContent}>
+            {guide.content}
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-function FeaturedGuides({ sdgFilter = "All" }) {
-  const [guides, setGuides] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeGuide, setActiveGuide] = useState(null);
+function FeaturedGuides({
+  sdgFilter = "All",
+}) {
+  const [guides, setGuides] =
+    useState([]);
+  const [loading, setLoading] =
+    useState(true);
+  const [error, setError] =
+    useState(null);
+  const [activeGuide, setActiveGuide] =
+    useState(null);
 
   useEffect(() => {
     fetchGuides()
       .then(setGuides)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch((e) =>
+        setError(e.message)
+      )
+      .finally(() =>
+        setLoading(false)
+      );
   }, []);
 
   const filtered =
-    sdgFilter === "All" ? guides : guides.filter((g) => g.sdgTag === sdgFilter);
+    sdgFilter === "All"
+      ? guides
+      : guides.filter(
+          (g) =>
+            g.sdgTag === sdgFilter
+        );
 
   return (
     <section>
-      <h2 className={styles.sectionTitle}>Featured Guides</h2>
+      <h2 className={styles.sectionTitle}>
+        Featured Guides
+      </h2>
+
       <p className={styles.sectionSubtitle}>
-        Curated resources to help you understand and act on the SDGs.
+        Curated resources to help you
+        understand and act on the SDGs.
       </p>
 
-      {loading && <p className={styles.status}>Loading guides…</p>}
-      {error && <p className={styles.statusError}>{error}</p>}
+      {loading && (
+        <p className={styles.status}>
+          Loading guides…
+        </p>
+      )}
 
-      {!loading && !error && (
-        filtered.length === 0 ? (
-          <p className={styles.status}>No guides yet for {sdgFilter}.</p>
+      {error && (
+        <p className={styles.statusError}>
+          {error}
+        </p>
+      )}
+
+      {!loading &&
+        !error &&
+        (filtered.length === 0 ? (
+          <p className={styles.status}>
+            No guides yet for{" "}
+            {sdgFilter}.
+          </p>
         ) : (
           <div className={styles.grid}>
             {filtered.map((guide) => (
-              <GuideCard key={guide._id} guide={guide} onRead={setActiveGuide} />
+              <GuideCard
+                key={guide._id}
+                guide={guide}
+                onRead={setActiveGuide}
+              />
             ))}
           </div>
-        )
-      )}
+        ))}
 
       {activeGuide && (
-        <GuideModal guide={activeGuide} onClose={() => setActiveGuide(null)} />
+        <GuideModal
+          guide={activeGuide}
+          onClose={() =>
+            setActiveGuide(null)
+          }
+        />
       )}
     </section>
   );
