@@ -7,6 +7,7 @@
   flex-direction: column;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
   transition: box-shadow 0.15s, transform 0.15s;
+  min-width: 0;
 }
 
 .card:hover {
@@ -20,6 +21,7 @@
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 12px;
+  min-width: 0;
 }
 
 .sdgChip {
@@ -29,6 +31,7 @@
   padding: 3px 9px;
   border-radius: 6px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .statusChip {
@@ -37,6 +40,7 @@
   padding: 3px 9px;
   border-radius: 20px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .planned {
@@ -62,6 +66,7 @@
   padding: 3px 9px;
   border-radius: 20px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cardTitle {
@@ -70,12 +75,16 @@
   color: #0f172a;
   line-height: 1.3;
   margin-bottom: 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cardBarangay {
   font-size: 12.5px;
   color: #64748b;
   margin-bottom: 8px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cardDesc {
@@ -88,6 +97,8 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cardActions {

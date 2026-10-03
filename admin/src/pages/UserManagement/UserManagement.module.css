@@ -24,3 +24,17 @@
   padding: 10px 14px;
   margin-bottom: 16px;
 }
+.createBtn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.createBtn:hover {
+  opacity: 0.9;
+}
