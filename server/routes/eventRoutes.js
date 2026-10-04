@@ -5,34 +5,30 @@ const router = express.Router();
 const Event = require("../models/Event");
 
 const auth = require("../middleware/auth");
-
 const adminOnly = require("../middleware/adminOnly");
 
 const {
   logActivity,
 } = require("../utils/activityLogger");
 
-router.get(
-  "/",
-  async (req, res) => {
-    try {
-      const events =
-        await Event.find().sort({
-          date: 1,
-        });
+router.get("/", async (req, res) => {
+  try {
+    const events =
+      await Event.find().sort({
+        date: 1,
+      });
 
-      res.json({
-        success: true,
-        data: events,
-      });
-    } catch (err) {
-      res.status(500).json({
-        success: false,
-        message: err.message,
-      });
-    }
+    res.json({
+      success: true,
+      data: events,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
-);
+});
 
 router.get(
   "/:id",
@@ -46,7 +42,7 @@ router.get(
       if (!event) {
         return res.status(404).json({
           success: false,
-          message: "Event not found",
+          message: "Event not found.",
         });
       }
 
@@ -89,7 +85,7 @@ router.post(
         data: event,
       });
     } catch (err) {
-      res.status(500).json({
+      res.status(400).json({
         success: false,
         message: err.message,
       });
@@ -109,13 +105,14 @@ router.put(
           req.body,
           {
             new: true,
+            runValidators: true,
           }
         );
 
       if (!event) {
         return res.status(404).json({
           success: false,
-          message: "Event not found",
+          message: "Event not found.",
         });
       }
 
@@ -134,7 +131,7 @@ router.put(
         data: event,
       });
     } catch (err) {
-      res.status(500).json({
+      res.status(400).json({
         success: false,
         message: err.message,
       });
@@ -156,7 +153,7 @@ router.delete(
       if (!event) {
         return res.status(404).json({
           success: false,
-          message: "Event not found",
+          message: "Event not found.",
         });
       }
 
@@ -172,10 +169,10 @@ router.delete(
 
       res.json({
         success: true,
-        message: "Event deleted",
+        message: "Event deleted.",
       });
     } catch (err) {
-      res.status(500).json({
+      res.status(400).json({
         success: false,
         message: err.message,
       });

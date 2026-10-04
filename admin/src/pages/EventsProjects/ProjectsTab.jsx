@@ -19,16 +19,20 @@ function ProjectsTab() {
     deleteProject,
   } = useProjects();
 
-  const [editingProject, setEditingProject] = useState(null);
+  const [editingProject, setEditingProject] =
+    useState(null);
 
-  const openAdd = () =>
+  const openAdd = () => {
     setEditingProject({});
+  };
 
-  const openEdit = (p) =>
-    setEditingProject(p);
+  const openEdit = (project) => {
+    setEditingProject(project);
+  };
 
-  const closeForm = () =>
+  const closeForm = () => {
     setEditingProject(null);
+  };
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this project?")) {
@@ -39,35 +43,18 @@ function ProjectsTab() {
   };
 
   const handleFormSubmit = async (form) => {
-  console.log(
-    "PROJECTS TAB FORM:",
-    form
-  );
+    if (editingProject?._id) {
+      await updateProject(
+        editingProject._id,
+        form
+      );
+    } else {
+      await createProject(form);
+    }
 
-  console.log(
-    "PROJECTS TAB PHOTOS:",
-    form.photos
-  );
+    closeForm();
+  };
 
-  console.log(
-    "CALLING CREATE PROJECT"
-  );
-
-  if (editingProject?._id) {
-    await updateProject(
-      editingProject._id,
-      form
-    );
-  } else {
-    await createProject(form);
-  }
-
-  console.log(
-    "CREATE PROJECT FINISHED"
-  );
-
-  closeForm();
-};
   return (
     <div>
       <div className={styles.tabToolbar}>
@@ -92,15 +79,19 @@ function ProjectsTab() {
               All status
             </option>
 
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s}>
-                {s}
+            {STATUS_OPTIONS.map((status) => (
+              <option
+                key={status}
+                value={status}
+              >
+                {status}
               </option>
             ))}
           </select>
         </div>
 
         <button
+          type="button"
           className={styles.addBtn}
           onClick={openAdd}
         >
@@ -129,10 +120,10 @@ function ProjectsTab() {
         )}
 
       <div className={styles.cardGrid}>
-        {filteredProjects.map((p) => (
+        {filteredProjects.map((project) => (
           <ProjectCard
-            key={p._id}
-            project={p}
+            key={project._id}
+            project={project}
             onEdit={openEdit}
             onDelete={handleDelete}
           />

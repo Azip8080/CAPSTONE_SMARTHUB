@@ -34,9 +34,12 @@ const STATUS_FILTERS = [
 
 function SDGHighlights() {
   const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [sdgFilter, setSdgFilter] = useState("All");
+  const [loading, setLoading] =
+    useState(true);
+  const [error, setError] =
+    useState(null);
+  const [sdgFilter, setSdgFilter] =
+    useState("All");
   const [statusFilter, setStatusFilter] =
     useState("All");
   const [visibleCount, setVisibleCount] =
@@ -48,13 +51,17 @@ function SDGHighlights() {
     fetchProjects()
       .then(setProjects)
       .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+      .finally(() =>
+        setLoading(false)
+      );
   }, []);
 
   const filtered = projects.filter((p) => {
-    const sdgs = Array.isArray(p.sdgTags)
-      ? p.sdgTags
-      : [p.sdgTag];
+    const sdgs =
+      Array.isArray(p.sdgTags) &&
+      p.sdgTags.length > 0
+        ? p.sdgTags
+        : [p.sdgTag];
 
     const matchSDG =
       sdgFilter === "All" ||
@@ -64,17 +71,34 @@ function SDGHighlights() {
       statusFilter === "All" ||
       p.status === statusFilter;
 
-    return matchSDG && matchStatus;
+    return (
+      matchSDG &&
+      matchStatus
+    );
   });
 
-  const featured = filtered[0] || null;
-  const rest = filtered.slice(
-    1,
-    visibleCount + 1
-  );
+  const featured =
+    filtered.find(
+      (project) => project.featured
+    ) || null;
+
+  const rest = filtered
+    .filter(
+      (project) =>
+        project._id !==
+        featured?._id
+    )
+    .slice(
+      0,
+      visibleCount
+    );
 
   const hasMore =
-    filtered.length - 1 > visibleCount;
+    filtered.filter(
+      (project) =>
+        project._id !==
+        featured?._id
+    ).length > visibleCount;
 
   return (
     <main className={styles.page}>
@@ -100,7 +124,9 @@ function SDGHighlights() {
               className={styles.select}
               value={sdgFilter}
               onChange={(e) => {
-                setSdgFilter(e.target.value);
+                setSdgFilter(
+                  e.target.value
+                );
                 setVisibleCount(6);
               }}
             >
@@ -124,7 +150,9 @@ function SDGHighlights() {
               className={styles.select}
               value={statusFilter}
               onChange={(e) => {
-                setStatusFilter(e.target.value);
+                setStatusFilter(
+                  e.target.value
+                );
                 setVisibleCount(6);
               }}
             >
@@ -141,7 +169,9 @@ function SDGHighlights() {
 
           <span className={styles.count}>
             {filtered.length} project
-            {filtered.length !== 1 ? "s" : ""}
+            {filtered.length !== 1
+              ? "s"
+              : ""}
             {" "}found
           </span>
         </div>
@@ -170,23 +200,32 @@ function SDGHighlights() {
 
         {!loading &&
           !error &&
-          featured && (
+          filtered.length > 0 && (
             <>
-              <FeaturedProject
-                project={featured}
-              />
+              {featured && (
+                <FeaturedProject
+                  project={featured}
+                />
+              )}
 
               <ProjectGrid
                 projects={rest}
               />
 
               {hasMore && (
-                <div className={styles.moreRow}>
+                <div
+                  className={
+                    styles.moreRow
+                  }
+                >
                   <button
-                    className={styles.moreBtn}
+                    className={
+                      styles.moreBtn
+                    }
                     onClick={() =>
                       setVisibleCount(
-                        (c) => c + 6
+                        (count) =>
+                          count + 6
                       )
                     }
                   >

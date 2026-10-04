@@ -1,17 +1,36 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
+
 import { api } from "../../services/api";
 
 export function useEvents() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [events, setEvents] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [sdgFilter, setSdgFilter] =
+    useState("All");
 
   const load = useCallback(() => {
     setLoading(true);
+
     api
       .get("/events")
-      .then((d) => setEvents(d.data ?? d))
-      .finally(() => setLoading(false));
+      .then((data) =>
+        setEvents(data.data ?? data)
+      )
+      .finally(() =>
+        setLoading(false)
+      );
   }, []);
 
   useEffect(() => {
@@ -20,7 +39,11 @@ export function useEvents() {
 
   const createEvent = useCallback(
     async (form) => {
-      await api.post("/events", form);
+      await api.post(
+        "/events",
+        form
+      );
+
       load();
     },
     [load]
@@ -28,7 +51,11 @@ export function useEvents() {
 
   const updateEvent = useCallback(
     async (id, form) => {
-      await api.put(`/events/${id}`, form);
+      await api.put(
+        `/events/${id}`,
+        form
+      );
+
       load();
     },
     [load]
@@ -36,21 +63,50 @@ export function useEvents() {
 
   const deleteEvent = useCallback(
     async (id) => {
-      await api.delete(`/events/${id}`);
+      await api.delete(
+        `/events/${id}`
+      );
+
       load();
     },
     [load]
   );
 
-  const filteredEvents = useMemo(() => {
-    const q = search.toLowerCase();
-    return events.filter((e) => e.title?.toLowerCase().includes(q) || e.location?.toLowerCase().includes(q));
-  }, [events, search]);
+  const filteredEvents =
+    useMemo(() => {
+      const query =
+        search.toLowerCase();
+
+      return events.filter((event) => {
+        const matchSearch =
+          event.title
+            ?.toLowerCase()
+            .includes(query) ||
+          event.location
+            ?.toLowerCase()
+            .includes(query);
+
+        const matchSDG =
+          sdgFilter === "All" ||
+          event.sdgTag === sdgFilter;
+
+        return (
+          matchSearch &&
+          matchSDG
+        );
+      });
+    }, [
+      events,
+      search,
+      sdgFilter,
+    ]);
 
   return {
     loading,
     search,
     setSearch,
+    sdgFilter,
+    setSdgFilter,
     filteredEvents,
     createEvent,
     updateEvent,

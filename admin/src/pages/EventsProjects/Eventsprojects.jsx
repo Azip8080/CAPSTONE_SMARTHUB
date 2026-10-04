@@ -9,27 +9,50 @@ function EventsProjects() {
   return (
     <div>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Events & Projects</h1>
-        <p className={styles.pageSubtitle}>Manage all SDG-related projects and community events</p>
+        <h1 className={styles.pageTitle}>
+          Events & Projects
+        </h1>
+
+        <p className={styles.pageSubtitle}>
+          Manage all SDG-related projects and community events
+        </p>
       </div>
 
       <div className={styles.tabs}>
         <button
-          className={`${styles.tabBtn} ${tab === "projects" ? styles.activeTab : ""}`}
-          onClick={() => setTab("projects")}
+          className={`${styles.tabBtn} ${
+            tab === "projects"
+              ? styles.activeTab
+              : ""
+          }`}
+          onClick={() =>
+            setTab("projects")
+          }
         >
           Projects
         </button>
+
         <button
-          className={`${styles.tabBtn} ${tab === "events" ? styles.activeTab : ""}`}
-          onClick={() => setTab("events")}
+          className={`${styles.tabBtn} ${
+            tab === "events"
+              ? styles.activeTab
+              : ""
+          }`}
+          onClick={() =>
+            setTab("events")
+          }
         >
           Events
         </button>
       </div>
 
-      {tab === "projects" && <ProjectsTab />}
-      {tab === "events" && <EventsTab />}
+      {tab === "projects" && (
+        <ProjectsTab />
+      )}
+
+      {tab === "events" && (
+        <EventsTab />
+      )}
     </div>
   );
 }

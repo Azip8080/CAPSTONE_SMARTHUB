@@ -243,6 +243,61 @@ router.post(
   }
 );
 
+router.patch(
+  "/:id/featured",
+  auth,
+  adminOnly,
+  async (req, res) => {
+    try {
+      const project =
+        await Project.findById(
+          req.params.id
+        );
+
+      if (!project) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Project not found.",
+        });
+      }
+
+      project.featured =
+        Boolean(req.body.featured);
+
+      await project.save();
+
+      await logActivity({
+        actor: req.user.id,
+        action: "updated",
+        entityType: "project",
+        entityId: project._id,
+        entityTitle: project.title,
+        details:
+          project.featured
+            ? "Added project to showcase."
+            : "Removed project from showcase.",
+      });
+
+      res.json({
+        success: true,
+        message:
+          project.featured
+            ? "Project added to showcase."
+            : "Project removed from showcase.",
+        data: project,
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        message:
+          err.message ||
+          "Failed to update showcase status.",
+      });
+    }
+  }
+);
+
 router.put(
   "/:id",
   auth,

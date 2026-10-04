@@ -50,6 +50,11 @@ function ProjectModal({
       ? project.sdgTags
       : [project.sdgTag];
 
+  const tags =
+    Array.isArray(project.tags)
+      ? project.tags
+      : [];
+
   const color =
     SDG_COLORS[project.sdgTag] ||
     "#0f172a";
@@ -72,15 +77,32 @@ function ProjectModal({
         <div
           className={styles.modalHeader}
           style={{
-            borderTop: `4px solid ${color}`,
+            borderTop:
+              `4px solid ${color}`,
           }}
         >
-          <div className={styles.headerTop}>
-            <div className={styles.badges}>
+          <div
+            className={styles.headerTop}
+          >
+            <div
+              className={styles.badges}
+            >
+              {project.featured && (
+                <span
+                  className={
+                    styles.featuredBadge
+                  }
+                >
+                  ⭐ Featured
+                </span>
+              )}
+
               {sdgs.map((sdg) => (
                 <span
                   key={sdg}
-                  className={styles.sdgBadge}
+                  className={
+                    styles.sdgBadge
+                  }
                   style={{
                     background:
                       SDG_COLORS[sdg] ||
@@ -92,10 +114,14 @@ function ProjectModal({
               ))}
 
               <span
-                className={styles.statusBadge}
+                className={
+                  styles.statusBadge
+                }
                 style={{
-                  background: status.bg,
-                  color: status.color,
+                  background:
+                    status.bg,
+                  color:
+                    status.color,
                 }}
               >
                 {project.status}
@@ -103,7 +129,9 @@ function ProjectModal({
             </div>
 
             <button
-              className={styles.closeBtn}
+              className={
+                styles.closeBtn
+              }
               onClick={onClose}
             >
               ✕
@@ -114,14 +142,25 @@ function ProjectModal({
             {project.title}
           </h2>
 
-          <p className={styles.barangay}>
+          <p
+            className={
+              styles.barangay
+            }
+          >
             📍 {project.barangay}
           </p>
         </div>
 
-        <div className={styles.modalBody}>
-          {project.photos?.length > 0 ? (
-            <div className={styles.photoGrid}>
+        <div
+          className={styles.modalBody}
+        >
+          {project.photos?.length >
+          0 ? (
+            <div
+              className={
+                styles.photoGrid
+              }
+            >
               {project.photos.map(
                 (photo, index) => (
                   <img
@@ -147,13 +186,19 @@ function ProjectModal({
             </div>
           )}
 
-          <p className={styles.description}>
+          <p
+            className={
+              styles.description
+            }
+          >
             {project.description}
           </p>
 
-          {project.tags?.length > 0 && (
-            <div className={styles.tags}>
-              {project.tags.map((tag) => (
+          {tags.length > 0 && (
+            <div
+              className={styles.tags}
+            >
+              {tags.map((tag) => (
                 <span
                   key={tag}
                   className={styles.tag}

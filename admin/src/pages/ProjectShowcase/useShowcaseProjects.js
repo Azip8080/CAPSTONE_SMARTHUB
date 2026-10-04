@@ -8,15 +8,21 @@ import {
 import { api } from "../../services/api";
 
 export function useShowcaseProjects() {
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] =
+    useState([]);
+
   const [loading, setLoading] =
     useState(true);
+
   const [search, setSearch] =
     useState("");
+
   const [sdgFilter, setSdgFilter] =
     useState("All");
+
   const [statusFilter, setStatusFilter] =
     useState("All");
+
   const [view, setView] =
     useState("all");
 
@@ -83,13 +89,6 @@ export function useShowcaseProjects() {
         )
       );
 
-      formData.append(
-        "featured",
-        String(
-          form.featured || false
-        )
-      );
-
       const existingPhotos =
         Array.isArray(form.photos)
           ? form.photos.filter(
@@ -134,8 +133,8 @@ export function useShowcaseProjects() {
   const toggleFeatured =
     useCallback(
       async (project) => {
-        await api.put(
-          `/projects/${project._id}`,
+        await api.patch(
+          `/projects/${project._id}/featured`,
           {
             featured:
               !project.featured,

@@ -38,13 +38,19 @@ const STATUS_STYLES = {
 };
 
 function FeaturedProject({ project }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] =
+    useState(false);
 
   const sdgs =
     Array.isArray(project.sdgTags) &&
     project.sdgTags.length > 0
       ? project.sdgTags
       : [project.sdgTag];
+
+  const tags =
+    Array.isArray(project.tags)
+      ? project.tags
+      : [];
 
   const primaryColor =
     SDG_COLORS[project.sdgTag] ||
@@ -59,13 +65,16 @@ function FeaturedProject({ project }) {
       <div
         className={styles.card}
         style={{
-          borderTop: `4px solid ${primaryColor}`,
+          borderTop:
+            `4px solid ${primaryColor}`,
         }}
       >
         <div className={styles.left}>
           <div className={styles.badges}>
             <span
-              className={styles.featuredBadge}
+              className={
+                styles.featuredBadge
+              }
             >
               ⭐ Featured Project
             </span>
@@ -73,7 +82,9 @@ function FeaturedProject({ project }) {
             {sdgs.map((sdg) => (
               <span
                 key={sdg}
-                className={styles.sdgBadge}
+                className={
+                  styles.sdgBadge
+                }
                 style={{
                   background:
                     SDG_COLORS[sdg] ||
@@ -85,48 +96,93 @@ function FeaturedProject({ project }) {
             ))}
 
             <span
-              className={styles.statusBadge}
+              className={
+                styles.statusBadge
+              }
               style={{
-                background: status.bg,
-                color: status.color,
+                background:
+                  status.bg,
+                color:
+                  status.color,
               }}
             >
               {project.status}
             </span>
           </div>
 
-          <h2 className={styles.title}>
+          <h2
+            className={styles.title}
+          >
             {project.title}
           </h2>
 
-          <p className={styles.barangay}>
+          <p
+            className={
+              styles.barangay
+            }
+          >
             📍 {project.barangay}
           </p>
 
-          <p className={styles.description}>
+          <p
+            className={
+              styles.description
+            }
+          >
             {project.description}
           </p>
 
+          {tags.length > 0 && (
+            <div
+              className={
+                styles.tags
+              }
+            >
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className={
+                    styles.tag
+                  }
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
           <button
-            className={styles.viewBtn}
-            onClick={() => setOpen(true)}
+            className={
+              styles.viewBtn
+            }
+            onClick={() =>
+              setOpen(true)
+            }
           >
             View full project →
           </button>
         </div>
 
-        <div className={styles.right}>
-          {project.photos?.length > 0 ? (
+        <div
+          className={styles.right}
+        >
+          {project.photos?.length >
+          0 ? (
             <img
-              className={styles.projectImage}
+              className={
+                styles.projectImage
+              }
               src={`http://localhost:5000${project.photos[0]}`}
               alt={project.title}
             />
           ) : (
             <div
-              className={styles.imagePlaceholder}
+              className={
+                styles.imagePlaceholder
+              }
               style={{
-                borderColor: primaryColor,
+                borderColor:
+                  primaryColor,
               }}
             >
               <span
@@ -144,7 +200,9 @@ function FeaturedProject({ project }) {
       <ProjectModal
         project={project}
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={() =>
+          setOpen(false)
+        }
       />
     </>
   );

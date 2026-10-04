@@ -126,8 +126,7 @@
 .select:focus,
 .textarea:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px
-    rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
 .select {
@@ -135,6 +134,12 @@
 }
 
 .twoColumn {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
@@ -152,10 +157,7 @@
 
 .photoUploadArea {
   display: grid;
-  grid-template-columns: repeat(
-    4,
-    minmax(0, 1fr)
-  );
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -283,7 +285,8 @@
   line-height: 1.5;
 }
 
-.formFooter {
+.formFooter,
+.modalFooter {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -363,32 +366,29 @@
     padding: 22px 20px;
   }
 
-  .formFooter {
+  .formFooter,
+  .modalFooter {
     padding: 15px 20px;
   }
 
-  .twoColumn {
+  .twoColumn,
+  .row {
     grid-template-columns: 1fr;
     gap: 0;
   }
 
   .photoUploadArea {
-    grid-template-columns: repeat(
-      3,
-      minmax(0, 1fr)
-    );
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 420px) {
   .photoUploadArea {
-    grid-template-columns: repeat(
-      2,
-      minmax(0, 1fr)
-    );
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .formFooter {
+  .formFooter,
+  .modalFooter {
     flex-direction: column-reverse;
   }
 
