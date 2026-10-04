@@ -79,6 +79,16 @@ export const api = {
       body: JSON.stringify(body),
     }),
 
+  patch: (path, body) =>
+    request(path, {
+      method: "PATCH",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      body: JSON.stringify(body),
+    }),
+
   postForm: (path, formData) =>
     request(path, {
       method: "POST",

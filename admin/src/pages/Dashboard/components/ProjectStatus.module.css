@@ -1,0 +1,206 @@
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.total strong {
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.total span {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: repeat(
+    3,
+    minmax(0, 1fr)
+  );
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.statusCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.statusCard:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+.statusCard.selected {
+  background: #ffffff;
+  border-color: #0f172a;
+}
+
+.statusIcon {
+  width: 10px;
+  height: 40px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.statusInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.statusLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.statusCount {
+  margin-top: 3px;
+  font-size: 22px;
+  line-height: 1;
+  color: #0f172a;
+}
+
+.statusPercentage {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.details {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.detailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detailsTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.detailsSubtitle {
+  margin-top: 3px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.clearButton {
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.projectList {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+}
+
+.project {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.project:last-child {
+  border-bottom: none;
+}
+
+.projectInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.projectTitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projectSub {
+  margin-top: 3px;
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.projectStatus {
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 16px 0 4px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+@media (max-width: 700px) {
+  .card {
+    padding: 16px 18px;
+  }
+
+  .statusGrid {
+    grid-template-columns: 1fr;
+  }
+}

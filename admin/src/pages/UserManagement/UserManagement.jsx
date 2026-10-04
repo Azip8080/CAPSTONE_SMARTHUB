@@ -1,6 +1,9 @@
 import { useState } from "react";
+
 import styles from "./UserManagement.module.css";
+
 import { useUsers } from "./useUsers.js";
+
 import SummaryRow from "./SummaryRow.jsx";
 import UserToolbar from "./UserToolbar.jsx";
 import UserTable from "./UserTable.jsx";
@@ -35,10 +38,6 @@ function UserManagement() {
 
   const closeModal = () => {
     setSelected(null);
-  };
-
-  const openCreate = () => {
-    setCreating(true);
   };
 
   const closeCreate = () => {
@@ -91,15 +90,22 @@ function UserManagement() {
             User Management
           </h1>
 
-          <p className={styles.pageSubtitle}>
-            Manage registered users and their roles
+          <p
+            className={
+              styles.pageSubtitle
+            }
+          >
+            Manage registered users and
+            their roles
           </p>
         </div>
 
         <button
           type="button"
           className={styles.createBtn}
-          onClick={openCreate}
+          onClick={() =>
+            setCreating(true)
+          }
         >
           + Create Account
         </button>
@@ -115,7 +121,9 @@ function UserManagement() {
         onSearch={setSearch}
         roleFilter={roleFilter}
         onRoleFilter={setRoleFilter}
-        resultCount={filteredUsers.length}
+        resultCount={
+          filteredUsers.length
+        }
       />
 
       {error && (

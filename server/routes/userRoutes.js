@@ -3,23 +3,19 @@ const router = express.Router();
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const { Resend } = require("resend");
 
 const User = require("../models/User");
-const RegistrationOTP =
-  require("../models/RegistrationOTP");
 
 const auth = require("../middleware/auth");
 const adminOnly =
   require("../middleware/adminOnly");
 
-const resend = new Resend(
-  process.env.RESEND_API_KEY
-);
+const {
+  logActivity,
+} = require("../utils/activityLogger");
 
 router.post(
-  "/send-otp",
+  "/register",
   async (req, res) => {
     try {
       const {
@@ -55,285 +51,21 @@ router.post(
         });
       }
 
-      const existingOTP =
-        await RegistrationOTP.findOne({
-          email: normalizedEmail,
-        });
-
-      if (existingOTP) {
-        const elapsed =
-          Date.now() -
-          existingOTP.lastSentAt.getTime();
-
-        if (elapsed < 60000) {
-          const remaining = Math.ceil(
-            (60000 - elapsed) / 1000
-          );
-
-          return res.status(429).json({
-            message:
-              `Please wait ${remaining} seconds before requesting another OTP.`,
-          });
-        }
-      }
-
-      const otp = crypto
-        .randomInt(100000, 1000000)
-        .toString();
-
-      const otpHash = crypto
-        .createHash("sha256")
-        .update(otp)
-        .digest("hex");
-
-      const passwordHash =
+      const hashedPassword =
         await bcrypt.hash(
           password,
           12
         );
 
-      const expiresAt = new Date(
-        Date.now() + 10 * 60 * 1000
-      );
-
-      await RegistrationOTP.findOneAndUpdate(
-        {
-          email: normalizedEmail,
-        },
-        {
-          fullName:
-            fullName.trim(),
-
-          email: normalizedEmail,
-
-          password: passwordHash,
-
-          barangay:
-            barangay?.trim() || "",
-
-          otpHash,
-
-          expiresAt,
-
-          attempts: 0,
-
-          lastSentAt: new Date(),
-        },
-        {
-          upsert: true,
-          new: true,
-        }
-      );
-
-      if (!process.env.RESEND_API_KEY) {
-        console.error(
-          "[OTP] RESEND_API_KEY is missing."
-        );
-
-        return res.status(500).json({
-          message:
-            "Email service is not configured.",
-        });
-      }
-
-      const { data, error } =
-        await resend.emails.send({
-          from:
-            "SDG Smart Hub <onboarding@resend.dev>",
-
-          to: [normalizedEmail],
-
-          subject:
-            "Your SDG Smart Hub verification code",
-
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px;">
-              <h2 style="color: #2563eb;">
-                SDG Smart Hub
-              </h2>
-
-              <p>
-                Hello ${fullName.trim()},
-              </p>
-
-              <p>
-                Use the verification code below
-                to complete your account registration.
-              </p>
-
-              <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 24px 0;">
-                ${otp}
-              </div>
-
-              <p>
-                This code expires in 10 minutes.
-              </p>
-
-              <p>
-                Do not share this code with anyone.
-              </p>
-
-              <p>
-                If you did not request this code,
-                you can ignore this email.
-              </p>
-            </div>
-          `,
-        });
-
-      if (error) {
-        console.error(
-          "[OTP EMAIL ERROR]",
-          error
-        );
-
-        await RegistrationOTP.deleteOne({
-          email: normalizedEmail,
-        });
-
-        return res.status(502).json({
-          message:
-            "Failed to send verification email.",
-        });
-      }
-
-      console.log(
-        "[OTP] Email sent:",
-        data?.id
-      );
-
-      return res.status(200).json({
-        message:
-          "Verification code sent to your email.",
-      });
-    } catch (err) {
-      console.error(
-        "[SEND OTP ERROR]",
-        err
-      );
-
-      return res.status(500).json({
-        message:
-          "Failed to send verification code.",
-      });
-    }
-  }
-);
-
-router.post(
-  "/verify-otp",
-  async (req, res) => {
-    try {
-      const {
-        email,
-        otp,
-      } = req.body;
-
-      if (!email || !otp) {
-        return res.status(400).json({
-          message:
-            "Email and OTP are required.",
-        });
-      }
-
-      const normalizedEmail =
-        email.toLowerCase().trim();
-
-      const registration =
-        await RegistrationOTP.findOne({
-          email: normalizedEmail,
-        });
-
-      if (!registration) {
-        return res.status(400).json({
-          message:
-            "OTP expired or registration not found.",
-        });
-      }
-
-      if (
-        registration.expiresAt <
-        new Date()
-      ) {
-        await RegistrationOTP.deleteOne({
-          _id: registration._id,
-        });
-
-        return res.status(400).json({
-          message:
-            "OTP has expired. Please request a new one.",
-        });
-      }
-
-      if (
-        registration.attempts >= 5
-      ) {
-        await RegistrationOTP.deleteOne({
-          _id: registration._id,
-        });
-
-        return res.status(429).json({
-          message:
-            "Too many incorrect attempts. Please request a new OTP.",
-        });
-      }
-
-      const otpHash = crypto
-        .createHash("sha256")
-        .update(String(otp))
-        .digest("hex");
-
-      if (
-        otpHash !==
-        registration.otpHash
-      ) {
-        registration.attempts += 1;
-
-        await registration.save();
-
-        return res.status(400).json({
-          message:
-            "Incorrect OTP.",
-        });
-      }
-
-      const existing =
-        await User.findOne({
-          email: registration.email,
-        });
-
-      if (existing) {
-        await RegistrationOTP.deleteOne({
-          _id: registration._id,
-        });
-
-        return res.status(400).json({
-          message:
-            "Email is already registered.",
-        });
-      }
-
       const newUser =
         await User.create({
-          fullName:
-            registration.fullName,
-
-          email:
-            registration.email,
-
-          password:
-            registration.password,
-
+          fullName: fullName.trim(),
+          email: normalizedEmail,
+          password: hashedPassword,
           barangay:
-            registration.barangay,
-
-          role:
-            "community_member",
+            barangay?.trim() || "",
+          role: "community_member",
         });
-
-      await RegistrationOTP.deleteOne({
-        _id: registration._id,
-      });
 
       const userObj =
         newUser.toObject();
@@ -342,19 +74,18 @@ router.post(
 
       return res.status(201).json({
         message:
-          "Account verified and created successfully.",
-
+          "Account created successfully.",
         user: userObj,
       });
     } catch (err) {
       console.error(
-        "[VERIFY OTP ERROR]",
+        "[REGISTER ERROR]",
         err
       );
 
       return res.status(500).json({
         message:
-          "Failed to verify OTP.",
+          "Failed to create account.",
       });
     }
   }
@@ -368,10 +99,6 @@ router.post(
         email,
         password,
       } = req.body;
-
-      console.log(
-        "[LOGIN] Request received"
-      );
 
       if (!email || !password) {
         return res.status(400).json({
@@ -389,20 +116,9 @@ router.post(
         });
 
       if (!user) {
-        return res.status(404).json({
+        return res.status(401).json({
           message:
-            "User not found.",
-        });
-      }
-
-      if (!user.password) {
-        console.error(
-          "[LOGIN] User has no password hash."
-        );
-
-        return res.status(500).json({
-          message:
-            "Account password data is missing.",
+            "Invalid email or password.",
         });
       }
 
@@ -413,63 +129,43 @@ router.post(
         );
 
       if (!isMatch) {
-        return res.status(400).json({
+        return res.status(401).json({
           message:
-            "Invalid credentials.",
+            "Invalid email or password.",
         });
       }
 
-      if (!process.env.JWT_SECRET) {
-        console.error(
-          "[LOGIN] JWT_SECRET is missing."
+      const token =
+        jwt.sign(
+          {
+            id: user._id,
+            role: user.role,
+          },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "7d",
+          }
         );
-
-        return res.status(500).json({
-          message:
-            "Server authentication is not configured.",
-        });
-      }
-
-      const token = jwt.sign(
-        {
-          id: user._id.toString(),
-          role: user.role,
-        },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "1d",
-        }
-      );
 
       const userObj =
         user.toObject();
 
       delete userObj.password;
 
-      console.log(
-        "[LOGIN] Successful login for role:",
-        user.role
-      );
-
-      return res.status(200).json({
-        message:
-          "Login successful",
-
+      return res.json({
+        message: "Login successful.",
         token,
-
         user: userObj,
       });
     } catch (err) {
       console.error(
         "[LOGIN ERROR]",
-        err.stack || err
+        err
       );
 
       return res.status(500).json({
         message:
-          "Login failed due to a server error.",
-
-        error: err.message,
+          "Login failed.",
       });
     }
   }
@@ -522,21 +218,24 @@ router.post(
 
       const newUser =
         await User.create({
-          fullName:
-            fullName.trim(),
-
-          email:
-            normalizedEmail,
-
-          password:
-            hashedPassword,
-
+          fullName: fullName.trim(),
+          email: normalizedEmail,
+          password: hashedPassword,
           role: "admin",
-
           barangay:
             barangay?.trim() ||
             undefined,
         });
+
+      await logActivity({
+        actor: req.user.id,
+        action: "created",
+        entityType: "user",
+        entityId: newUser._id,
+        entityTitle: newUser.fullName,
+        details:
+          "Created a new admin account.",
+      });
 
       const userObj =
         newUser.toObject();
@@ -546,7 +245,6 @@ router.post(
       return res.status(201).json({
         message:
           "Admin account created successfully.",
-
         user: userObj,
       });
     } catch (err) {
@@ -576,17 +274,22 @@ router.get(
       if (!user) {
         return res.status(404).json({
           message:
-            "User not found",
+            "User not found.",
         });
       }
 
-      res.json({
-        success: true,
-        data: user,
+      return res.json({
+        user,
       });
     } catch (err) {
-      res.status(500).json({
-        error: err.message,
+      console.error(
+        "[GET ME ERROR]",
+        err
+      );
+
+      return res.status(500).json({
+        message:
+          "Failed to get user.",
       });
     }
   }
@@ -595,22 +298,11 @@ router.get(
 router.put(
   "/:id",
   auth,
+  adminOnly,
   async (req, res) => {
     try {
-      if (
-        req.user.id !==
-          req.params.id &&
-        req.user.role !== "admin"
-      ) {
-        return res.status(403).json({
-          message:
-            "Access denied",
-        });
-      }
-
       const {
         password,
-        role,
         ...safeFields
       } = req.body;
 
@@ -618,23 +310,43 @@ router.put(
         await User.findByIdAndUpdate(
           req.params.id,
           safeFields,
-          { new: true }
+          {
+            new: true,
+            runValidators: true,
+          }
         ).select("-password");
 
       if (!user) {
         return res.status(404).json({
           message:
-            "User not found",
+            "User not found.",
         });
       }
 
-      res.json({
-        success: true,
-        data: user,
+      await logActivity({
+        actor: req.user.id,
+        action: "updated",
+        entityType: "user",
+        entityId: user._id,
+        entityTitle: user.fullName,
+        details:
+          "Updated user account details.",
+      });
+
+      return res.json({
+        message:
+          "User updated successfully.",
+        user,
       });
     } catch (err) {
-      res.status(500).json({
-        error: err.message,
+      console.error(
+        "[UPDATE USER ERROR]",
+        err
+      );
+
+      return res.status(500).json({
+        message:
+          "Failed to update user.",
       });
     }
   }
@@ -645,20 +357,20 @@ router.put(
   auth,
   async (req, res) => {
     try {
-      if (
-        req.user.id !==
-        req.params.id
-      ) {
-        return res.status(403).json({
-          message:
-            "Access denied",
-        });
-      }
-
       const {
         currentPassword,
         newPassword,
       } = req.body;
+
+      if (
+        !currentPassword ||
+        !newPassword
+      ) {
+        return res.status(400).json({
+          message:
+            "Current password and new password are required.",
+        });
+      }
 
       const user =
         await User.findById(
@@ -668,7 +380,7 @@ router.put(
       if (!user) {
         return res.status(404).json({
           message:
-            "User not found",
+            "User not found.",
         });
       }
 
@@ -681,26 +393,41 @@ router.put(
       if (!isMatch) {
         return res.status(400).json({
           message:
-            "Current password is incorrect",
+            "Current password is incorrect.",
         });
       }
 
       user.password =
         await bcrypt.hash(
           newPassword,
-          10
+          12
         );
 
       await user.save();
 
-      res.json({
-        success: true,
+      await logActivity({
+        actor: req.user.id,
+        action: "updated",
+        entityType: "user",
+        entityId: user._id,
+        entityTitle: user.fullName,
+        details:
+          "Changed account password.",
+      });
+
+      return res.json({
         message:
-          "Password updated successfully",
+          "Password updated successfully.",
       });
     } catch (err) {
-      res.status(500).json({
-        error: err.message,
+      console.error(
+        "[UPDATE PASSWORD ERROR]",
+        err
+      );
+
+      return res.status(500).json({
+        message:
+          "Failed to update password.",
       });
     }
   }
@@ -719,13 +446,18 @@ router.get(
             createdAt: -1,
           });
 
-      res.json({
-        success: true,
-        data: users,
+      return res.json({
+        users,
       });
     } catch (err) {
-      res.status(500).json({
-        error: err.message,
+      console.error(
+        "[GET USERS ERROR]",
+        err
+      );
+
+      return res.status(500).json({
+        message:
+          "Failed to get users.",
       });
     }
   }
@@ -745,18 +477,33 @@ router.delete(
       if (!user) {
         return res.status(404).json({
           message:
-            "User not found",
+            "User not found.",
         });
       }
 
-      res.json({
-        success: true,
+      await logActivity({
+        actor: req.user.id,
+        action: "deleted",
+        entityType: "user",
+        entityId: user._id,
+        entityTitle: user.fullName,
+        details:
+          "Deleted a user account.",
+      });
+
+      return res.json({
         message:
-          "User deleted",
+          "User deleted successfully.",
       });
     } catch (err) {
-      res.status(500).json({
-        error: err.message,
+      console.error(
+        "[DELETE USER ERROR]",
+        err
+      );
+
+      return res.status(500).json({
+        message:
+          "Failed to delete user.",
       });
     }
   }

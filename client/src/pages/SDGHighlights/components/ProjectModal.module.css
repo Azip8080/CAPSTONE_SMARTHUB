@@ -127,3 +127,42 @@
   line-height: 1.75;
   margin: 0;
 }
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.projectPhoto {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .photoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .projectPhoto {
+    height: 200px;
+  }
+}

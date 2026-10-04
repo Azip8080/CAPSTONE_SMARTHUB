@@ -120,3 +120,22 @@
   padding: 40px;
   text-align: center;
 }
+.publishBtn {
+  border: none;
+  background: #dcfce7;
+  color: #166534;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.unpublishBtn {
+  border: none;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}

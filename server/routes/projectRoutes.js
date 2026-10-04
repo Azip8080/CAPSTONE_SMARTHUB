@@ -9,6 +9,10 @@ const Project = require("../models/Project");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/adminOnly");
 
+const {
+  logActivity,
+} = require("../utils/activityLogger");
+
 const uploadDir = path.join(
   __dirname,
   "../uploads/projects"
@@ -93,6 +97,7 @@ const editableFields = [
   "tags",
   "barangay",
   "status",
+  "featured",
 ];
 
 function getEditableFields(body) {
@@ -120,6 +125,13 @@ function getEditableFields(body) {
     } catch {
       fields.tags = [];
     }
+  }
+
+  if (
+    typeof fields.featured === "string"
+  ) {
+    fields.featured =
+      fields.featured === "true";
   }
 
   return fields;
@@ -203,6 +215,16 @@ router.post(
           createdBy:
             req.user.id,
         });
+
+      await logActivity({
+        actor: req.user.id,
+        action: "created",
+        entityType: "project",
+        entityId: project._id,
+        entityTitle: project.title,
+        details:
+          "Created a new project draft.",
+      });
 
       res.status(201).json({
         success: true,
@@ -293,6 +315,16 @@ router.put(
 
       await project.save();
 
+      await logActivity({
+        actor: req.user.id,
+        action: "updated",
+        entityType: "project",
+        entityId: project._id,
+        entityTitle: project.title,
+        details:
+          "Updated project details.",
+      });
+
       res.json({
         success: true,
         message:
@@ -365,6 +397,16 @@ router.patch(
 
       await project.save();
 
+      await logActivity({
+        actor: req.user.id,
+        action: "published",
+        entityType: "project",
+        entityId: project._id,
+        entityTitle: project.title,
+        details:
+          "Published a project.",
+      });
+
       res.json({
         success: true,
         message:
@@ -408,6 +450,16 @@ router.patch(
 
       await project.save();
 
+      await logActivity({
+        actor: req.user.id,
+        action: "unpublished",
+        entityType: "project",
+        entityId: project._id,
+        entityTitle: project.title,
+        details:
+          "Returned a project to draft status.",
+      });
+
       res.json({
         success: true,
         message:
@@ -447,6 +499,16 @@ router.delete(
       project.photos?.forEach(
         removePhotoFile
       );
+
+      await logActivity({
+        actor: req.user.id,
+        action: "deleted",
+        entityType: "project",
+        entityId: project._id,
+        entityTitle: project.title,
+        details:
+          "Deleted a project.",
+      });
 
       res.json({
         success: true,

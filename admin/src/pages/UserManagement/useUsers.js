@@ -4,30 +4,57 @@ import {
   useMemo,
   useCallback,
 } from "react";
+
 import { api } from "../../services/api";
 
 export function useUsers() {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("All");
+  const [search, setSearch] =
+    useState("");
+  const [roleFilter, setRoleFilter] =
+    useState("All");
 
-  const load = useCallback(() => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    api
-      .get("/users")
-      .then((d) =>
-        setUsers(d.data ?? d)
-      )
-      .catch((e) =>
-        setError(e.message)
-      )
-      .finally(() =>
-        setLoading(false)
+      const response =
+        await api.get("/users");
+
+      const payload =
+        response?.data ?? response;
+
+      const userData =
+        Array.isArray(payload)
+          ? payload
+          : payload?.users ??
+            payload?.data?.users ??
+            payload?.data ??
+            [];
+
+      setUsers(
+        Array.isArray(userData)
+          ? userData
+          : []
       );
+    } catch (e) {
+      console.error(
+        "[USERS ERROR]",
+        e
+      );
+
+      setUsers([]);
+      setError(
+        e.message ||
+          "Failed to load users."
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -36,8 +63,12 @@ export function useUsers() {
 
   const createUser = useCallback(
     async (form) => {
-      await api.post("/users/admin", form);
-      load();
+      await api.post(
+        "/users/admin",
+        form
+      );
+
+      await load();
     },
     [load]
   );
@@ -49,7 +80,7 @@ export function useUsers() {
         form
       );
 
-      load();
+      await load();
     },
     [load]
   );
@@ -60,7 +91,7 @@ export function useUsers() {
         `/users/${id}`
       );
 
-      load();
+      await load();
     },
     [load]
   );

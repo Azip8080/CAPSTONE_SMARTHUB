@@ -51,6 +51,11 @@ const ProjectSchema = new mongoose.Schema(
       default: [],
     },
 
+    featured: {
+      type: Boolean,
+      default: false,
+    },
+
     publicationStatus: {
       type: String,
       enum: [

@@ -20,13 +20,28 @@ function ProjectShowcase() {
     filteredProjects,
     featuredCount,
     toggleFeatured,
+    updateProject,
   } = useShowcaseProjects();
 
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] =
+    useState(null);
 
-  const handleFeatureToggle = async (project) => {
+  const handleFeatureToggle =
+    async (project) => {
+      try {
+        await toggleFeatured(project);
+        setSelected(null);
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+
+  const handleUpdate = async (
+    id,
+    form
+  ) => {
     try {
-      await toggleFeatured(project);
+      await updateProject(id, form);
       setSelected(null);
     } catch (e) {
       alert(e.message);
@@ -37,10 +52,26 @@ function ProjectShowcase() {
     <div>
       <div className={styles.pageHeader}>
         <div>
-          <h1 className={styles.pageTitle}>Project Showcase</h1>
-          <p className={styles.pageSubtitle}>Highlight outstanding SDG projects from Manila's barangays</p>
+          <h1 className={styles.pageTitle}>
+            Project Showcase
+          </h1>
+
+          <p
+            className={
+              styles.pageSubtitle
+            }
+          >
+            Highlight outstanding SDG
+            projects from Manila's
+            barangays
+          </p>
         </div>
-        <ViewToggle view={view} onChange={setView} featuredCount={featuredCount} />
+
+        <ViewToggle
+          view={view}
+          onChange={setView}
+          featuredCount={featuredCount}
+        />
       </div>
 
       <ShowcaseToolbar
@@ -49,18 +80,33 @@ function ProjectShowcase() {
         sdgFilter={sdgFilter}
         onSdgFilter={setSdgFilter}
         statusFilter={statusFilter}
-        onStatusFilter={setStatusFilter}
-        resultCount={filteredProjects.length}
+        onStatusFilter={
+          setStatusFilter
+        }
+        resultCount={
+          filteredProjects.length
+        }
       />
 
       <ProjectGrid
         loading={loading}
         projects={filteredProjects}
         onView={setSelected}
-        onFeatureToggle={handleFeatureToggle}
+        onFeatureToggle={
+          handleFeatureToggle
+        }
       />
 
-      <ProjectDetailModal project={selected} onClose={() => setSelected(null)} onFeatureToggle={handleFeatureToggle} />
+      <ProjectDetailModal
+        project={selected}
+        onClose={() =>
+          setSelected(null)
+        }
+        onFeatureToggle={
+          handleFeatureToggle
+        }
+        onUpdate={handleUpdate}
+      />
     </div>
   );
 }

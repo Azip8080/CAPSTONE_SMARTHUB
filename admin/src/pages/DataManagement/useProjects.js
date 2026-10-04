@@ -4,15 +4,25 @@ import {
   useMemo,
   useCallback,
 } from "react";
+
 import { api } from "../../services/api";
 
 export function useProjects() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [projects, setProjects] =
+    useState([]);
 
-  const [search, setSearch] = useState("");
-  const [filterSDG, setFilterSDG] = useState("All");
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState(null);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [filterSDG, setFilterSDG] =
+    useState("All");
+
   const [filterStatus, setFilterStatus] =
     useState("All");
 
@@ -23,10 +33,16 @@ export function useProjects() {
     api
       .get("/projects/admin/all")
       .then((data) =>
-        setProjects(data.data ?? data)
+        setProjects(
+          data.data ?? data
+        )
       )
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+      .catch((e) =>
+        setError(e.message)
+      )
+      .finally(() =>
+        setLoading(false)
+      );
   }, []);
 
   useEffect(() => {
@@ -35,7 +51,8 @@ export function useProjects() {
 
   const createProject = useCallback(
     async (form) => {
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
       formData.append(
         "title",
@@ -65,22 +82,25 @@ export function useProjects() {
       if (form.sdgTags) {
         formData.append(
           "sdgTags",
-          JSON.stringify(form.sdgTags)
+          JSON.stringify(
+            form.sdgTags
+          )
         );
       }
 
       if (form.tags) {
         formData.append(
           "tags",
-          JSON.stringify(form.tags)
+          JSON.stringify(
+            form.tags
+          )
         );
       }
 
-      const photos = Array.isArray(
-        form.photos
-      )
-        ? form.photos
-        : [];
+      const photos =
+        Array.isArray(form.photos)
+          ? form.photos
+          : [];
 
       photos
         .filter(
@@ -94,24 +114,6 @@ export function useProjects() {
           );
         });
 
-      console.log(
-        "PHOTOS:",
-        photos
-      );
-
-      console.log(
-        "FILES:",
-        photos.filter(
-          (photo) =>
-            photo instanceof File
-        )
-      );
-
-      console.log(
-        "FORM DATA PHOTOS:",
-        formData.getAll("photos")
-      );
-
       await api.postForm(
         "/projects",
         formData
@@ -124,7 +126,8 @@ export function useProjects() {
 
   const updateProject = useCallback(
     async (id, form) => {
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
       formData.append(
         "title",
@@ -154,14 +157,18 @@ export function useProjects() {
       if (form.sdgTags) {
         formData.append(
           "sdgTags",
-          JSON.stringify(form.sdgTags)
+          JSON.stringify(
+            form.sdgTags
+          )
         );
       }
 
       if (form.tags) {
         formData.append(
           "tags",
-          JSON.stringify(form.tags)
+          JSON.stringify(
+            form.tags
+          )
         );
       }
 
@@ -206,49 +213,81 @@ export function useProjects() {
     [load]
   );
 
-  const deleteProject = useCallback(
-    async (id) => {
-      await api.delete(
-        `/projects/${id}`
+  const deleteProject =
+    useCallback(
+      async (id) => {
+        await api.delete(
+          `/projects/${id}`
+        );
+
+        load();
+      },
+      [load]
+    );
+
+  const publishProject =
+    useCallback(
+      async (id) => {
+        await api.patch(
+          `/projects/${id}/publish`
+        );
+
+        load();
+      },
+      [load]
+    );
+
+  const unpublishProject =
+    useCallback(
+      async (id) => {
+        await api.patch(
+          `/projects/${id}/unpublish`
+        );
+
+        load();
+      },
+      [load]
+    );
+
+  const filteredProjects =
+    useMemo(() => {
+      const q =
+        search.toLowerCase();
+
+      return projects.filter(
+        (p) => {
+          const matchSearch =
+            p.title
+              ?.toLowerCase()
+              .includes(q) ||
+            p.barangay
+              ?.toLowerCase()
+              .includes(q);
+
+          const matchSDG =
+            filterSDG === "All" ||
+            p.sdgTag ===
+              filterSDG;
+
+          const matchStatus =
+            filterStatus ===
+              "All" ||
+            p.status ===
+              filterStatus;
+
+          return (
+            matchSearch &&
+            matchSDG &&
+            matchStatus
+          );
+        }
       );
-
-      load();
-    },
-    [load]
-  );
-
-  const filteredProjects = useMemo(() => {
-    const q = search.toLowerCase();
-
-    return projects.filter((p) => {
-      const matchSearch =
-        p.title
-          ?.toLowerCase()
-          .includes(q) ||
-        p.barangay
-          ?.toLowerCase()
-          .includes(q);
-
-      const matchSDG =
-        filterSDG === "All" ||
-        p.sdgTag === filterSDG;
-
-      const matchStatus =
-        filterStatus === "All" ||
-        p.status === filterStatus;
-
-      return (
-        matchSearch &&
-        matchSDG &&
-        matchStatus
-      );
-    });
-  }, [
-    projects,
-    search,
-    filterSDG,
-    filterStatus,
-  ]);
+    }, [
+      projects,
+      search,
+      filterSDG,
+      filterStatus,
+    ]);
 
   return {
     projects,
@@ -264,5 +303,7 @@ export function useProjects() {
     createProject,
     updateProject,
     deleteProject,
+    publishProject,
+    unpublishProject,
   };
 }
