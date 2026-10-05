@@ -45,123 +45,156 @@ const SDG_LIST = [
     label: "No Poverty",
     color: "#E5243B",
     description:
-      "End poverty in all its forms everywhere. This goal aims to eradicate extreme poverty and reduce overall poverty rates by half.",
+      "No Poverty focuses on reducing poverty and improving access to basic needs, opportunities, and social protection.",
+    community:
+      "Community programs may include livelihood assistance, financial support, housing initiatives, and services for vulnerable families.",
   },
   {
     number: 2,
     label: "Zero Hunger",
     color: "#DDA63A",
     description:
-      "End hunger, achieve food security and improved nutrition, and promote sustainable agriculture.",
+      "Zero Hunger focuses on ending hunger, improving nutrition, ensuring food security, and supporting sustainable agriculture.",
+    community:
+      "Community efforts may include feeding programs, food assistance, community gardens, nutrition programs, and support for local farmers.",
   },
   {
     number: 3,
     label: "Good Health",
     color: "#4C9F38",
     description:
-      "Ensure healthy lives and promote well-being for all at all ages.",
+      "Good Health promotes healthy lives and well-being for people of all ages through accessible and effective health services.",
+    community:
+      "Examples include medical missions, vaccination programs, health education, mental health support, and community wellness activities.",
   },
   {
     number: 4,
     label: "Quality Education",
     color: "#C5192D",
     description:
-      "Ensure inclusive and equitable quality education and promote lifelong learning opportunities for all.",
+      "Quality Education promotes inclusive and equitable learning opportunities and encourages lifelong learning for everyone.",
+    community:
+      "Community initiatives may include scholarships, literacy programs, skills training, digital learning, and educational assistance.",
   },
   {
     number: 5,
     label: "Gender Equality",
     color: "#FF3A21",
     description:
-      "Achieve gender equality and empower all women and girls.",
+      "Gender Equality promotes equal rights, opportunities, and participation for women and girls while addressing discrimination and inequality.",
+    community:
+      "Programs may include women's empowerment, gender awareness, livelihood opportunities, and protection against discrimination and violence.",
   },
   {
     number: 6,
     label: "Clean Water",
     color: "#26BDE2",
     description:
-      "Ensure availability and sustainable management of water and sanitation for all communities.",
+      "Clean Water focuses on ensuring access to safe water, sanitation, and proper hygiene while protecting water resources.",
+    community:
+      "Examples include clean water projects, sanitation facilities, drainage improvements, and community hygiene programs.",
   },
   {
     number: 7,
     label: "Clean Energy",
     color: "#FCC30B",
     description:
-      "Ensure access to affordable, reliable, sustainable, and modern energy for all.",
+      "Clean Energy promotes affordable, reliable, sustainable, and modern energy for communities.",
+    community:
+      "Community projects may include solar energy systems, energy-saving programs, renewable energy projects, and improved access to electricity.",
   },
   {
     number: 8,
     label: "Decent Work",
     color: "#A21942",
     description:
-      "Promote sustained, inclusive, and sustainable economic growth and decent work.",
+      "Decent Work promotes inclusive economic growth, productive employment, fair working conditions, and opportunities for sustainable livelihoods.",
+    community:
+      "Examples include job training, employment programs, livelihood projects, entrepreneurship support, and small business development.",
   },
   {
     number: 9,
     label: "Industry & Innovation",
     color: "#FD6925",
     description:
-      "Build resilient infrastructure, promote inclusive industrialization, and foster innovation.",
+      "Industry and Innovation focuses on resilient infrastructure, sustainable industries, technological development, and innovation.",
+    community:
+      "Community initiatives may include digital infrastructure, technology programs, improved facilities, and innovation-based projects.",
   },
   {
     number: 10,
     label: "Reduced Inequalities",
     color: "#DD1367",
     description:
-      "Reduce inequality within and among countries.",
+      "Reduced Inequalities promotes social and economic inclusion and works toward reducing inequalities within communities.",
+    community:
+      "Examples include programs supporting persons with disabilities, vulnerable groups, equal access to services, and social inclusion.",
   },
   {
     number: 11,
     label: "Sustainable Cities",
     color: "#FD9D24",
     description:
-      "Make cities and human settlements inclusive, safe, resilient, and sustainable.",
+      "Sustainable Cities promotes inclusive, safe, resilient, and sustainable communities and human settlements.",
+    community:
+      "Projects may include public transportation, housing, disaster preparedness, community infrastructure, and safer public spaces.",
   },
   {
     number: 12,
     label: "Responsible Consumption",
     color: "#BF8B2E",
     description:
-      "Ensure sustainable consumption and production patterns.",
+      "Responsible Consumption encourages communities to use resources efficiently and reduce waste throughout production and consumption.",
+    community:
+      "Examples include recycling programs, waste reduction, responsible purchasing, plastic reduction, and sustainable production.",
   },
   {
     number: 13,
     label: "Climate Action",
     color: "#3F7E44",
     description:
-      "Take urgent action to combat climate change and its impacts.",
+      "Climate Action focuses on reducing the effects of climate change and strengthening communities' ability to respond to climate-related risks.",
+    community:
+      "Community activities may include disaster preparedness, tree planting, climate education, and environmental protection programs.",
   },
   {
     number: 14,
     label: "Life Below Water",
     color: "#0A97D9",
     description:
-      "Conserve and sustainably use the oceans and marine resources.",
+      "Life Below Water focuses on protecting oceans, seas, rivers, and other aquatic ecosystems and using marine resources responsibly.",
+    community:
+      "Examples include coastal cleanups, marine conservation, sustainable fishing, and programs that reduce pollution entering waterways.",
   },
   {
     number: 15,
     label: "Life on Land",
     color: "#56C02B",
     description:
-      "Protect and restore terrestrial ecosystems and biodiversity.",
+      "Life on Land promotes the protection, restoration, and sustainable use of forests, ecosystems, and biodiversity.",
+    community:
+      "Community projects may include tree planting, forest conservation, wildlife protection, habitat restoration, and environmental education.",
   },
   {
     number: 16,
     label: "Peace & Justice",
     color: "#00689D",
     description:
-      "Promote peaceful and inclusive societies and provide access to justice.",
+      "Peace and Justice promotes peaceful and inclusive communities, access to justice, accountability, and effective institutions.",
+    community:
+      "Examples include community safety programs, legal assistance, conflict resolution, transparent governance, and peace-building activities.",
   },
   {
     number: 17,
     label: "Partnerships",
     color: "#19486A",
     description:
-      "Strengthen the means of implementation and revitalize global partnerships.",
+      "Partnerships for the Goals emphasizes collaboration between communities, governments, organizations, institutions, and other partners.",
+    community:
+      "Community partnerships may bring together barangays, schools, government agencies, organizations, businesses, and residents to achieve shared goals.",
   },
 ];
 
-// Attach images automatically
 SDG_LIST.forEach((sdg, index) => {
   sdg.image = images[index];
 });
@@ -170,14 +203,21 @@ function SDGModal({ sdg, onClose }) {
   if (!sdg) return null;
 
   return (
-    <div className={styles.modalBackdrop} onClick={onClose}>
+    <div
+      className={styles.modalBackdrop}
+      onClick={onClose}
+    >
       <div
         className={styles.modal}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) =>
+          e.stopPropagation()
+        }
       >
         <div
           className={styles.modalHeader}
-          style={{ background: sdg.color }}
+          style={{
+            background: sdg.color,
+          }}
         >
           <span className={styles.modalNumber}>
             SDG {sdg.number}
@@ -189,25 +229,36 @@ function SDGModal({ sdg, onClose }) {
 
           <button
             className={styles.modalClose}
+            type="button"
             onClick={onClose}
+            aria-label="Close"
           >
             ✕
           </button>
         </div>
 
         <div className={styles.modalBody}>
-          <p className={styles.modalDescription}>
-            {sdg.description}
-          </p>
+          <img
+            src={sdg.image}
+            alt={sdg.label}
+            className={styles.modalImage}
+          />
 
-          <a
-            href={`https://sdgs.un.org/goals/goal${sdg.number}`}
-            target="_blank"
-            rel="noreferrer"
-            className={styles.modalLink}
-          >
-            Learn more on UN website →
-          </a>
+          <div className={styles.modalSection}>
+            <h3>What is this goal?</h3>
+
+            <p>
+              {sdg.description}
+            </p>
+          </div>
+
+          <div className={styles.modalSection}>
+            <h3>Community application</h3>
+
+            <p>
+              {sdg.community}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -215,24 +266,30 @@ function SDGModal({ sdg, onClose }) {
 }
 
 export default function SDGGoals() {
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] =
+    useState(null);
 
   return (
     <section>
       <h2 className={styles.sectionTitle}>
-        The 17 Goals
+        The 17 Sustainable Development Goals
       </h2>
 
       <p className={styles.sectionSubtitle}>
-        Click on any goal to learn more about it.
+        Explore each goal to understand its
+        purpose and how it can support
+        sustainable community development.
       </p>
 
       <div className={styles.grid}>
         {SDG_LIST.map((sdg) => (
           <button
             key={sdg.number}
+            type="button"
             className={styles.sdgCard}
-            onClick={() => setSelected(sdg)}
+            onClick={() =>
+              setSelected(sdg)
+            }
           >
             <img
               src={sdg.image}
@@ -245,7 +302,9 @@ export default function SDGGoals() {
 
       <SDGModal
         sdg={selected}
-        onClose={() => setSelected(null)}
+        onClose={() =>
+          setSelected(null)
+        }
       />
     </section>
   );

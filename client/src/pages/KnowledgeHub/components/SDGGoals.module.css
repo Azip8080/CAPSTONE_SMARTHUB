@@ -130,7 +130,36 @@
 .modalLink:hover {
   color: #2563eb;
 }
+.modalImage {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  display: block;
+  margin: 0 auto 24px;
+  border-radius: 10px;
+}
 
+.modalSection {
+  margin-bottom: 24px;
+}
+
+.modalSection:last-child {
+  margin-bottom: 0;
+}
+
+.modalSection h3 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.modalSection p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.75;
+}
 @media (max-width: 1100px) {
   .grid {
     grid-template-columns: repeat(5, 160px);
