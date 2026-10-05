@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./FeaturedGuides.module.css";
 import { fetchGuides } from "../../../services/knowledgeService";
 
@@ -22,22 +22,64 @@ const SDG_COLORS = {
   "SDG 17": "#19486A",
 };
 
+const SDG_FILTERS = [
+  "All",
+  "SDG 1",
+  "SDG 2",
+  "SDG 3",
+  "SDG 4",
+  "SDG 5",
+  "SDG 6",
+  "SDG 7",
+  "SDG 8",
+  "SDG 9",
+  "SDG 10",
+  "SDG 11",
+  "SDG 12",
+  "SDG 13",
+  "SDG 14",
+  "SDG 15",
+  "SDG 16",
+  "SDG 17",
+];
+
+function getGuideSDGs(guide) {
+  if (
+    Array.isArray(guide.sdgTags) &&
+    guide.sdgTags.length > 0
+  ) {
+    return guide.sdgTags;
+  }
+
+  return guide.sdgTag
+    ? [guide.sdgTag]
+    : [];
+}
+
 function GuideCard({ guide, onRead }) {
+  const sdgs = getGuideSDGs(guide);
+  const primarySDG =
+    sdgs[0] || "SDG";
+
   const tagColor =
-    SDG_COLORS[guide.sdgTag] || "#3b82f6";
+    SDG_COLORS[primarySDG] || "#3b82f6";
 
   return (
-    <div
+    <article
       className={styles.card}
       onClick={() => onRead(guide)}
     >
       <div className={styles.cardImage}>
-        {guide.photos?.length > 0 && (
+        {guide.photos?.length > 0 ? (
           <img
             src={`http://localhost:5000${guide.photos[0]}`}
             alt={guide.title}
             className={styles.guideImage}
           />
+        ) : (
+          <div className={styles.imagePlaceholder}>
+            <span>Knowledge Hub</span>
+          </div>
         )}
 
         <div className={styles.cardOverlay}>
@@ -47,28 +89,59 @@ function GuideCard({ guide, onRead }) {
               background: tagColor,
             }}
           >
-            {guide.sdgTag}
+            {primarySDG}
           </span>
 
-          <span className={styles.cardCat}>
-            {guide.category}
-          </span>
+          {guide.category && (
+            <span className={styles.cardCat}>
+              {guide.category}
+            </span>
+          )}
         </div>
       </div>
 
       <div className={styles.cardBody}>
+        <div className={styles.cardMeta}>
+          <span>
+            {guide.category || "Resource"}
+          </span>
+
+          {guide.readTime && (
+            <span>
+              {guide.readTime}
+            </span>
+          )}
+        </div>
+
         <h3 className={styles.cardTitle}>
           {guide.title}
         </h3>
 
         <p className={styles.cardDescription}>
-          {guide.summary}
+          {guide.summary ||
+            guide.description ||
+            "Explore this resource to learn more about sustainable community development."}
         </p>
 
-        <div className={styles.cardFooter}>
-          <span className={styles.readTime}>
-            {guide.readTime}
-          </span>
+        <div className={styles.cardBottom}>
+          <div className={styles.sdgList}>
+            {sdgs.slice(0, 3).map((sdg) => (
+              <span
+                key={sdg}
+                className={styles.sdgBadge}
+                style={{
+                  borderColor:
+                    SDG_COLORS[sdg] ||
+                    "#cbd5e1",
+                  color:
+                    SDG_COLORS[sdg] ||
+                    "#64748b",
+                }}
+              >
+                {sdg}
+              </span>
+            ))}
+          </div>
 
           <button
             className={styles.readBtn}
@@ -78,17 +151,16 @@ function GuideCard({ guide, onRead }) {
               onRead(guide);
             }}
           >
-            Read guide →
+            Read →
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
 function GuideModal({ guide, onClose }) {
-  const tagColor =
-    SDG_COLORS[guide.sdgTag] || "#3b82f6";
+  const sdgs = getGuideSDGs(guide);
 
   return (
     <div
@@ -104,34 +176,48 @@ function GuideModal({ guide, onClose }) {
         <div className={styles.modalHeader}>
           <div className={styles.modalTop}>
             <div className={styles.modalBadges}>
-              <span
-                className={styles.modalSdgTag}
-                style={{
-                  background: tagColor,
-                }}
-              >
-                {guide.sdgTag}
-              </span>
+              {sdgs.map((sdg) => (
+                <span
+                  key={sdg}
+                  className={styles.modalSdgTag}
+                  style={{
+                    background:
+                      SDG_COLORS[sdg] ||
+                      "#3b82f6",
+                  }}
+                >
+                  {sdg}
+                </span>
+              ))}
 
-              <span
-                className={styles.modalCatTag}
-              >
-                {guide.category}
-              </span>
+              {guide.category && (
+                <span
+                  className={styles.modalCatTag}
+                >
+                  {guide.category}
+                </span>
+              )}
             </div>
 
             <button
               className={styles.modalClose}
               type="button"
               onClick={onClose}
+              aria-label="Close resource"
             >
-              ✕
+              ×
             </button>
           </div>
 
           <h2 className={styles.modalTitle}>
             {guide.title}
           </h2>
+
+          {guide.summary && (
+            <p className={styles.modalSummary}>
+              {guide.summary}
+            </p>
+          )}
         </div>
 
         <div className={styles.modalBody}>
@@ -143,9 +229,55 @@ function GuideModal({ guide, onClose }) {
             />
           )}
 
-          <p className={styles.modalContent}>
+          <div className={styles.modalInfo}>
+            {guide.category && (
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>
+                  Category
+                </span>
+                <span className={styles.infoValue}>
+                  {guide.category}
+                </span>
+              </div>
+            )}
+
+            {guide.readTime && (
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>
+                  Reading time
+                </span>
+                <span className={styles.infoValue}>
+                  {guide.readTime}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.modalContent}>
             {guide.content}
-          </p>
+          </div>
+
+          {Array.isArray(guide.tags) &&
+            guide.tags.length > 0 && (
+              <div className={styles.modalTags}>
+                <span
+                  className={styles.tagsTitle}
+                >
+                  Topics
+                </span>
+
+                <div className={styles.tagsList}>
+                  {guide.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={styles.topicTag}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
         </div>
       </div>
     </div>
@@ -154,15 +286,25 @@ function GuideModal({ guide, onClose }) {
 
 function FeaturedGuides({
   sdgFilter = "All",
+  onSdgFilter,
 }) {
   const [guides, setGuides] =
     useState([]);
+
   const [loading, setLoading] =
     useState(true);
+
   const [error, setError] =
     useState(null);
+
   const [activeGuide, setActiveGuide] =
     useState(null);
+
+  const [search, setSearch] =
+    useState("");
+
+  const [categoryFilter, setCategoryFilter] =
+    useState("All");
 
   useEffect(() => {
     fetchGuides()
@@ -175,28 +317,151 @@ function FeaturedGuides({
       );
   }, []);
 
-  const filtered =
-    sdgFilter === "All"
-      ? guides
-      : guides.filter(
-          (g) =>
-            g.sdgTag === sdgFilter
-        );
+  const categories = useMemo(() => {
+    const values = guides
+      .map((guide) => guide.category)
+      .filter(Boolean);
+
+    return [
+      "All",
+      ...Array.from(new Set(values)),
+    ];
+  }, [guides]);
+
+  const filtered = useMemo(() => {
+    const query =
+      search.trim().toLowerCase();
+
+    return guides.filter((guide) => {
+      const sdgs = getGuideSDGs(guide);
+
+      const matchesSDG =
+        sdgFilter === "All" ||
+        sdgs.includes(sdgFilter);
+
+      const matchesCategory =
+        categoryFilter === "All" ||
+        guide.category ===
+          categoryFilter;
+
+      const searchableText = [
+        guide.title,
+        guide.summary,
+        guide.description,
+        guide.content,
+        guide.category,
+        ...(guide.tags || []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch =
+        !query ||
+        searchableText.includes(query);
+
+      return (
+        matchesSDG &&
+        matchesCategory &&
+        matchesSearch
+      );
+    });
+  }, [
+    guides,
+    search,
+    categoryFilter,
+    sdgFilter,
+  ]);
 
   return (
     <section>
-      <h2 className={styles.sectionTitle}>
-        Featured Guides
-      </h2>
+      <div className={styles.sectionHeader}>
+        <div>
+          <h2 className={styles.sectionTitle}>
+            Featured Resources
+          </h2>
 
-      <p className={styles.sectionSubtitle}>
-        Curated resources to help you
-        understand and act on the SDGs.
-      </p>
+          <p className={styles.sectionSubtitle}>
+            Explore guides and learning
+            materials to help your community
+            understand and act on the SDGs.
+          </p>
+        </div>
+
+        <span className={styles.resultCount}>
+          {filtered.length} resource
+          {filtered.length !== 1
+            ? "s"
+            : ""}
+        </span>
+      </div>
+
+      <div className={styles.toolbar}>
+        <div className={styles.searchBox}>
+          <span className={styles.searchIcon}>
+            ⌕
+          </span>
+
+          <input
+            type="text"
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            placeholder="Search resources..."
+            aria-label="Search resources"
+          />
+        </div>
+
+        <select
+          className={styles.filter}
+          value={categoryFilter}
+          onChange={(e) =>
+            setCategoryFilter(
+              e.target.value
+            )
+          }
+        >
+          {categories.map((category) => (
+            <option
+              key={category}
+              value={category}
+            >
+              {category === "All"
+                ? "All categories"
+                : category}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={styles.filter}
+          value={sdgFilter}
+          onChange={(e) => {
+            const value =
+              e.target.value;
+
+            if (onSdgFilter) {
+              onSdgFilter(value);
+            }
+          }}
+        >
+          {SDG_FILTERS.map((sdg) => (
+            <option
+              key={sdg}
+              value={sdg}
+            >
+              {sdg === "All"
+                ? "All SDGs"
+                : sdg}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {loading && (
         <p className={styles.status}>
-          Loading guides…
+          Loading resources…
         </p>
       )}
 
@@ -208,12 +473,38 @@ function FeaturedGuides({
 
       {!loading &&
         !error &&
-        (filtered.length === 0 ? (
-          <p className={styles.status}>
-            No guides yet for{" "}
-            {sdgFilter}.
-          </p>
-        ) : (
+        filtered.length === 0 && (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>
+              ⌕
+            </div>
+
+            <h3>No resources found</h3>
+
+            <p>
+              Try changing your search or
+              filters.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setCategoryFilter("All");
+
+                if (onSdgFilter) {
+                  onSdgFilter("All");
+                }
+              }}
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+
+      {!loading &&
+        !error &&
+        filtered.length > 0 && (
           <div className={styles.grid}>
             {filtered.map((guide) => (
               <GuideCard
@@ -223,7 +514,7 @@ function FeaturedGuides({
               />
             ))}
           </div>
-        ))}
+        )}
 
       {activeGuide && (
         <GuideModal
