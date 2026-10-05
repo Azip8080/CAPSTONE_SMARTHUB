@@ -1,16 +1,89 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import {
+  Outlet,
+  NavLink,
+  useNavigate,
+} from "react-router-dom";
+import {
+  LayoutDashboard,
+  Target,
+  ChartNoAxesCombined,
+  Database,
+  CalendarDays,
+  FolderKanban,
+  BookOpen,
+  Users,
+  Sparkles,
+  LogOut,
+} from "lucide-react";
 import styles from "./AdminLayout.module.css";
+import logo from "../../assets/sdg-smarthub-admin.png";
 
-const NAV_ITEMS = [
-  { to: "/dashboard",        label: "Dashboard",        icon: "⊞" },
-  { to: "/sdg-tracker",      label: "SDG Tracker",      icon: "◎" },
-  { to: "/analytics",        label: "Analytics",        icon: "▦" },
-  { to: "/data-management",  label: "Data Management",  icon: "⊟" },
-  { to: "/events-projects",  label: "Events & Projects", icon: "⊡" },
-  { to: "/user-management",  label: "User Management",  icon: "⊙" },
-  { to: "/project-showcase", label: "Project Showcase", icon: "⊠" },
-  { to: "/knowledge-hub",    label: "Knowledge Hub",    icon: "⊞" },
-  { to: "/ai-classifier",    label: "AI Classifier",     icon: "✦" },
+const NAV_SECTIONS = [
+  {
+    title: "Overview",
+    items: [
+      {
+        to: "/dashboard",
+        label: "Dashboard",
+        icon: LayoutDashboard,
+      },
+      {
+        to: "/sdg-tracker",
+        label: "SDG Tracker",
+        icon: Target,
+      },
+      {
+        to: "/analytics",
+        label: "Analytics",
+        icon: ChartNoAxesCombined,
+      },
+    ],
+  },
+  {
+    title: "Management",
+    items: [
+      {
+        to: "/data-management",
+        label: "Data Management",
+        icon: Database,
+      },
+      {
+        to: "/events-projects",
+        label: "Events & Projects",
+        icon: CalendarDays,
+      },
+      {
+        to: "/project-showcase",
+        label: "Project Showcase",
+        icon: FolderKanban,
+      },
+    ],
+  },
+  {
+    title: "Resources",
+    items: [
+      {
+        to: "/knowledge-hub",
+        label: "Knowledge Hub",
+        icon: BookOpen,
+      },
+    ],
+  },
+  {
+    title: "Administration",
+    items: [
+      {
+        to: "/user-management",
+        label: "User Management",
+        icon: Users,
+      },
+      {
+        to: "/ai-classifier",
+        label: "AI Classifier",
+        icon: Sparkles,
+      },
+    ],
+  },
 ];
 
 function AdminLayout() {
@@ -21,53 +94,192 @@ function AdminLayout() {
     navigate("/login");
   };
 
-  const user = JSON.parse(localStorage.getItem("adminUser") || "{}");
+  const user = JSON.parse(
+    localStorage.getItem("adminUser") || "{}"
+  );
+
+  const adminName =
+    user.fullName || "Admin";
+
+  const adminInitial =
+    adminName.charAt(0).toUpperCase();
 
   return (
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <div className={styles.brand}>
-            <div className={styles.brandIcon}>SDG</div>
-            <div className={styles.brandText}>
-              <p className={styles.brandName}>Smart Hub</p>
-            </div>
+            <img
+              src={logo}
+              alt="SDG Smart Hub Admin"
+              className={styles.brandLogo}
+            />
           </div>
 
           <nav className={styles.nav}>
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.active : ""}`
-                }
-              >
-                <span className={styles.navIcon}>{item.icon}</span>
-                {item.label}
-              </NavLink>
-            ))}
+            {NAV_SECTIONS.map(
+              (section) => (
+                <div
+                  key={section.title}
+                  className={styles.navSection}
+                >
+                  <p
+                    className={
+                      styles.navSectionTitle
+                    }
+                  >
+                    {section.title}
+                  </p>
+
+                  <div
+                    className={
+                      styles.navSectionItems
+                    }
+                  >
+                    {section.items.map(
+                      (item) => {
+                        const Icon =
+                          item.icon;
+
+                        return (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            className={({
+                              isActive,
+                            }) =>
+                              `${styles.navItem} ${
+                                isActive
+                                  ? styles.active
+                                  : ""
+                              }`
+                            }
+                          >
+                            <Icon
+                              className={
+                                styles.navIcon
+                              }
+                              size={16}
+                              strokeWidth={1.8}
+                            />
+
+                            <span>
+                              {item.label}
+                            </span>
+                          </NavLink>
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+              )
+            )}
           </nav>
         </div>
 
-        <button className={styles.logoutBtn} onClick={handleLogout}>
-          ⊗ Sign out
-        </button>
+        <div className={styles.sidebarBottom}>
+          <div className={styles.sidebarAdmin}>
+            <div
+              className={
+                styles.sidebarAvatar
+              }
+            >
+              {adminInitial}
+            </div>
+
+            <div
+              className={
+                styles.sidebarAdminInfo
+              }
+            >
+              <span
+                className={
+                  styles.sidebarAdminName
+                }
+              >
+                {adminName}
+              </span>
+
+              <span
+                className={
+                  styles.sidebarAdminRole
+                }
+              >
+                Administrator
+              </span>
+            </div>
+          </div>
+
+          <button
+            className={styles.logoutBtn}
+            onClick={handleLogout}
+          >
+            <LogOut
+              className={styles.logoutIcon}
+              size={15}
+              strokeWidth={1.8}
+            />
+
+            <span>Sign out</span>
+          </button>
+        </div>
       </aside>
 
       <div className={styles.mainWrapper}>
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            <p className={styles.headerGreeting}>
-              Welcome back, Admin. Here's what's happening in your community.
+            <p
+              className={
+                styles.headerEyebrow
+              }
+            >
+              SDG SMART HUB
+            </p>
+
+            <p
+              className={
+                styles.headerGreeting
+              }
+            >
+              Welcome back, Admin. Here's
+              what's happening in your
+              community.
             </p>
           </div>
+
           <div className={styles.headerRight}>
-            <div className={styles.adminBadge}>
-              <div className={styles.adminAvatar}>
-                {user.fullName ? user.fullName.charAt(0) : "A"}
+            <div
+              className={styles.adminBadge}
+            >
+              <div
+                className={
+                  styles.adminAvatar
+                }
+              >
+                {adminInitial}
               </div>
-              <span className={styles.adminName}>{user.fullName || "Admin"}</span>
+
+              <div
+                className={
+                  styles.adminInfo
+                }
+              >
+                <span
+                  className={
+                    styles.adminName
+                  }
+                >
+                  {adminName}
+                </span>
+
+                <span
+                  className={
+                    styles.adminRole
+                  }
+                >
+                  Administrator
+                </span>
+              </div>
             </div>
           </div>
         </header>

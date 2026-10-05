@@ -2,12 +2,16 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
+  box-sizing: border-box;
   background: #0f172a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .navbar-inner {
+  width: 100%;
   max-width: 1280px;
+  min-width: 0;
   margin: 0 auto;
   padding: 0 3rem;
   height: 96px;
@@ -16,42 +20,44 @@
   justify-content: space-between;
   gap: 32px;
   position: relative;
+  box-sizing: border-box;
 }
 
 .navbar-brand {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 18px;
-  flex-shrink: 0;
+  flex-shrink: 1;
   text-decoration: none;
 }
 
 .navbar-logo {
   width: 68px;
   height: 68px;
+  flex-shrink: 0;
   object-fit: contain;
   border-radius: 50%;
 }
 
 .navbar-title {
+  max-width: 220px;
+  min-width: 0;
   font-size: 14px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.6);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   line-height: 1.4;
-  max-width: 220px;
+  overflow-wrap: anywhere;
 }
 
-/* Wraps links + auth. display:contents on desktop means this wrapper is
-   invisible to layout — .navbar-links and .navbar-auth sit directly in
-   .navbar-inner's flex row exactly as before. Only the mobile media query
-   turns it into an actual dropdown panel. */
 .navbar-menu {
   display: contents;
 }
 
 .navbar-links {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -93,7 +99,7 @@
 }
 
 .nav-signin:hover {
-  color: #fff;
+  color: #ffffff;
   background: rgba(255, 255, 255, 0.07);
 }
 
@@ -112,7 +118,6 @@
   background: #2563eb;
 }
 
-/* ── Hamburger button (hidden on desktop) ────────────────────────────── */
 .navbar-hamburger {
   display: none;
   flex-direction: column;
@@ -121,6 +126,7 @@
   gap: 5px;
   width: 40px;
   height: 40px;
+  padding: 0;
   background: none;
   border: none;
   cursor: pointer;
@@ -149,7 +155,6 @@
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* ── User dropdown (desktop) ────────────────────────────── */
 .navbar-user {
   position: relative;
 }
@@ -173,6 +178,7 @@
 .navbar-avatar {
   width: 34px;
   height: 34px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: #3b82f6;
   color: #ffffff;
@@ -181,7 +187,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .navbar-username {
@@ -199,12 +204,13 @@
   position: absolute;
   top: calc(100% + 12px);
   right: 0;
+  width: 240px;
+  max-width: calc(100vw - 20px);
+  overflow: hidden;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
-  width: 240px;
-  overflow: hidden;
   z-index: 200;
 }
 
@@ -218,6 +224,7 @@
 .dropdown-avatar {
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: #0f172a;
   color: #ffffff;
@@ -226,7 +233,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .dropdown-info {
@@ -268,6 +274,7 @@
   text-align: left;
   cursor: pointer;
   transition: background 0.15s;
+  box-sizing: border-box;
 }
 
 .dropdown-item:hover {
@@ -284,7 +291,6 @@
   color: #dc2626;
 }
 
-/* ── Mobile-only account block (hidden on desktop) ────────────────────── */
 .navbar-mobile-user {
   display: none;
 }
@@ -300,11 +306,13 @@
   font-size: 14px;
   font-weight: 600;
   color: #ffffff;
+  overflow-wrap: anywhere;
 }
 
 .mobile-user-email {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
+  overflow-wrap: anywhere;
 }
 
 .mobile-menu-link {
@@ -334,6 +342,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.15s;
+  box-sizing: border-box;
 }
 
 .mobile-menu-logout:hover {
@@ -344,6 +353,15 @@
   .navbar-title {
     display: none;
   }
+
+  .navbar-inner {
+    padding: 0 2rem;
+  }
+
+  .nav-link {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -352,24 +370,37 @@
     padding: 0 1.25rem;
   }
 
+  .navbar-brand {
+    flex: 1;
+  }
+
+  .navbar-logo {
+    width: 48px;
+    height: 48px;
+  }
+
   .navbar-hamburger {
     display: flex;
   }
 
   .navbar-menu {
     display: none;
-    flex-direction: column;
-    align-items: stretch;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: #0f172a;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    flex-direction: column;
+    align-items: stretch;
     padding: 10px 1.25rem 24px;
+    background: #0f172a;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
     max-height: calc(100vh - 72px);
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .navbar-menu.open {
@@ -377,6 +408,7 @@
   }
 
   .navbar-links {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
@@ -384,10 +416,13 @@
   }
 
   .nav-link {
+    width: 100%;
+    box-sizing: border-box;
     padding: 14px 8px;
   }
 
   .navbar-auth {
+    width: 100%;
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
@@ -399,6 +434,7 @@
   .nav-signin,
   .nav-signup {
     width: 100%;
+    box-sizing: border-box;
     text-align: center;
     padding: 13px 20px;
   }
@@ -411,5 +447,21 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+  }
+}
+
+@media (max-width: 400px) {
+  .navbar-inner {
+    padding: 0 1rem;
+  }
+
+  .navbar-logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  .navbar-menu {
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }

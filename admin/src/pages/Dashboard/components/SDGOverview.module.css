@@ -1,4 +1,7 @@
 .card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -14,18 +17,20 @@
 }
 
 .title {
+  margin: 0;
   font-size: 14px;
   font-weight: 600;
   color: #0f172a;
 }
 
 .subtitle {
-  margin-top: 4px;
+  margin: 4px 0 0;
   font-size: 12px;
   color: #94a3b8;
 }
 
 .clearButton {
+  flex-shrink: 0;
   border: 1px solid #e2e8f0;
   background: #ffffff;
   color: #64748b;
@@ -36,6 +41,8 @@
 }
 
 .sdgGrid {
+  width: 100%;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(
     17,
@@ -47,16 +54,19 @@
 
 .sdgItem {
   position: relative;
+  width: 100%;
+  min-width: 0;
   aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
   border: 2px solid transparent;
   border-radius: 7px;
   background: var(--sdg-color);
-  color: #ffffff;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   transition:
     transform 0.15s ease,
     border-color 0.15s ease;
@@ -71,15 +81,25 @@
   transform: translateY(-2px);
 }
 
-.number {
-  font-size: 12px;
-  font-weight: 700;
+.sdgImage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .count {
-  margin-top: 2px;
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  min-width: 16px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
   font-size: 9px;
-  opacity: 0.85;
+  font-weight: 600;
+  text-align: center;
 }
 
 .details {
@@ -92,29 +112,26 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
-.detailsNumber {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
+.detailsImage {
+  width: 52px;
+  height: 52px;
   flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .detailsTitle {
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: #0f172a;
 }
 
 .detailsName {
-  margin-top: 2px;
+  margin: 2px 0 0;
   font-size: 11px;
   color: #64748b;
 }
@@ -124,6 +141,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  flex-shrink: 0;
 }
 
 .projectCount strong {
@@ -146,6 +164,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   padding: 12px 0;
   border-bottom: 1px solid #f1f5f9;
 }
@@ -160,6 +179,7 @@
 }
 
 .projectTitle {
+  margin: 0;
   font-size: 13px;
   font-weight: 500;
   color: #0f172a;
@@ -169,12 +189,13 @@
 }
 
 .projectSub {
-  margin-top: 3px;
+  margin: 3px 0 0;
   font-size: 11px;
   color: #94a3b8;
 }
 
 .status {
+  flex-shrink: 0;
   font-size: 10px;
   font-weight: 600;
   padding: 4px 8px;
@@ -199,6 +220,7 @@
 
 .empty {
   padding: 18px 0 4px;
+  margin: 0;
   font-size: 12px;
   color: #94a3b8;
 }
@@ -230,5 +252,45 @@
 
   .projectCount {
     display: none;
+  }
+
+  .detailsImage {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+@media (max-width: 400px) {
+  .card {
+    padding: 14px;
+  }
+
+  .sdgGrid {
+    grid-template-columns: repeat(
+      4,
+      minmax(32px, 1fr)
+    );
+  }
+
+  .detailsHeader {
+    gap: 10px;
+  }
+
+  .detailsImage {
+    width: 42px;
+    height: 42px;
+  }
+
+  .projectTitle {
+    font-size: 12px;
+  }
+
+  .projectSub {
+    font-size: 10px;
+  }
+
+  .status {
+    font-size: 9px;
+    padding: 3px 6px;
   }
 }

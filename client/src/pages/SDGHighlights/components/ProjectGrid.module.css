@@ -1,18 +1,29 @@
 .grid {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(
+    3,
+    minmax(0, 1fr)
+  );
   gap: 20px;
 }
 
 .card {
-  background: #ffffff;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
   cursor: pointer;
   text-align: left;
-  transition: transform 0.15s, box-shadow 0.15s;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 
 .card:hover {
@@ -21,81 +32,96 @@
 }
 
 .cardImage {
+  width: 100%;
+  min-width: 0;
   background: #f1f5f9;
 }
 
 .imagePlaceholder {
+  width: 100%;
   aspect-ratio: 16 / 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
   color: #94a3b8;
+  font-size: 13px;
   font-weight: 500;
 }
 
 .cardBody {
-  padding: 18px 20px 20px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  padding: 18px 20px 20px;
 }
 
 .badges {
   display: flex;
-  gap: 6px;
   flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sdgBadge,
+.statusBadge {
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .sdgBadge {
-  font-size: 10px;
-  font-weight: 700;
-  color: #ffffff;
   padding: 3px 8px;
-  border-radius: 20px;
+  color: #ffffff;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .statusBadge {
-  font-size: 10px;
-  font-weight: 600;
   padding: 3px 8px;
-  border-radius: 20px;
   letter-spacing: 0.04em;
 }
 
 .title {
+  min-width: 0;
+  margin: 0;
+  color: #0f172a;
   font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.2px;
   line-height: 1.3;
-  margin: 0;
+  letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
 }
 
 .barangay {
-  font-size: 12px;
-  color: #64748b;
   margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .description {
-  font-size: 13px;
-  color: #94a3b8;
-  line-height: 1.6;
+  min-width: 0;
   margin: 0;
   display: -webkit-box;
+  overflow: hidden;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.6;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
+
 .projectImage {
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 16 / 10;
-  object-fit: cover;
   display: block;
+  object-fit: cover;
 }
 
 .tags {
@@ -103,21 +129,40 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 10px;
+  min-width: 0;
 }
 
 .tag {
+  max-width: 100%;
   padding: 4px 8px;
   border-radius: 999px;
   background: #f1f5f9;
   color: #475569;
   font-size: 11px;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 900px) {
-  .grid { grid-template-columns: repeat(2, 1fr); }
+  .grid {
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  }
 }
 
 @media (max-width: 560px) {
-  .grid { grid-template-columns: 1fr; }
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .cardBody {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
 }

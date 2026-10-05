@@ -22,12 +22,13 @@ function Home() {
           </h1>
 
           <p className="hero-subtitle">
-            Connecting communities with sustainable projects, events, and
-            educational resources.
+            Connecting communities with sustainable
+            projects, events, and educational resources.
           </p>
 
           <div className="hero-buttons">
             <button
+              type="button"
               className="primary-btn"
               onClick={() =>
                 navigate("/highlights")
@@ -37,6 +38,7 @@ function Home() {
             </button>
 
             <button
+              type="button"
               className="secondary-btn"
               onClick={() =>
                 navigate("/about")
@@ -45,12 +47,32 @@ function Home() {
               Learn More
             </button>
           </div>
+
+          <button
+            type="button"
+            className="scroll-down-btn"
+            onClick={() =>
+              document
+                .getElementById("analytics")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                })
+            }
+            aria-label="Scroll to SDG Analytics"
+          >
+            <span>Explore Analytics</span>
+            <span className="scroll-down-icon">
+              ↓
+            </span>
+          </button>
         </div>
       </section>
 
       <SummaryCards />
 
-      <SDGCharts />
+      <div id="analytics">
+        <SDGCharts />
+      </div>
     </main>
   );
 }

@@ -8,9 +8,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .title {
+  margin: 0;
   font-size: 18px;
   font-weight: 700;
   color: #0f172a;
@@ -18,13 +20,14 @@
 }
 
 .clearBtn {
-  font-size: 13px;
-  color: #3b82f6;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
+  flex-shrink: 0;
   padding: 0;
+  border: none;
+  background: none;
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
   transition: color 0.15s;
 }
 
@@ -57,22 +60,23 @@
 }
 
 .status {
+  padding: 60px 20px;
+  color: #94a3b8;
   font-size: 14px;
-  color: #cbd5e1;
-  padding: 60px 0;
   text-align: center;
 }
 
 .statusError {
-  font-size: 14px;
+  padding: 60px 20px;
   color: #f87171;
-  padding: 60px 0;
+  font-size: 14px;
   text-align: center;
 }
 
 .scrollHint {
-  font-size: 12px;
+  margin: 0;
   color: #94a3b8;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -82,9 +86,9 @@
   align-items: center;
   gap: 16px;
   padding: 18px 20px;
-  background: transparent;
   border: none;
   border-bottom: 1px solid #f1f5f9;
+  background: transparent;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s;
@@ -102,26 +106,26 @@
   flex-shrink: 0;
   width: 48px;
   height: 52px;
-  background: #f1f5f9;
-  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1px;
+  background: #f1f5f9;
+  border-radius: 10px;
 }
 
 .dateDay {
+  color: #0f172a;
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
   line-height: 1;
 }
 
 .dateMonth {
+  color: #94a3b8;
   font-size: 10px;
   font-weight: 600;
-  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -135,12 +139,13 @@
 }
 
 .cardTitle {
+  margin: 0;
+  overflow: hidden;
+  color: #0f172a;
   font-size: 14px;
   font-weight: 600;
-  color: #0f172a;
   letter-spacing: -0.1px;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
 }
 
@@ -151,88 +156,95 @@
 }
 
 .cardMeta span {
-  font-size: 12px;
   color: #64748b;
+  font-size: 12px;
 }
 
 .sdgTag {
-  font-size: 10px;
-  font-weight: 700;
-  color: #ffffff;
+  width: fit-content;
+  display: inline-block;
   padding: 2px 8px;
   border-radius: 20px;
-  letter-spacing: 0.05em;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  display: inline-block;
-  width: fit-content;
+  letter-spacing: 0.05em;
 }
 
 .arrow {
-  font-size: 18px;
-  color: #cbd5e1;
   flex-shrink: 0;
+  color: #cbd5e1;
+  font-size: 18px;
 }
 
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(4px);
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
 }
 
 .modal {
-  background: #ffffff;
-  border-radius: 16px;
   width: 100%;
   max-width: 480px;
-  overflow: hidden;
+  max-height: calc(100vh - 48px);
+  margin: auto;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 16px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
 }
 
 .modalHeader {
-  padding: 24px 24px 20px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding: 24px 24px 20px;
 }
 
 .modalDate {
+  margin: 0 0 6px;
+  color: #94a3b8;
   font-size: 12px;
   font-weight: 600;
-  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  margin-bottom: 6px;
 }
 
 .modalTitle {
+  margin: 0;
+  color: #0f172a;
   font-size: 22px;
   font-weight: 700;
-  color: #0f172a;
   letter-spacing: -0.4px;
-  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .modalClose {
   flex-shrink: 0;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #e2e8f0;
+  border-radius: 50%;
   background: #f8fafc;
   color: #64748b;
   font-size: 13px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .modalClose:hover {
@@ -242,9 +254,8 @@
 }
 
 .modalBody {
-  padding: 0 24px 28px;
+  padding: 20px 24px 28px;
   border-top: 1px solid #f1f5f9;
-  padding-top: 20px;
 }
 
 .modalMeta {
@@ -255,13 +266,130 @@
 }
 
 .modalMeta span {
-  font-size: 13px;
   color: #64748b;
+  font-size: 13px;
 }
 
 .modalDesc {
-  font-size: 14px;
+  margin: 0 0 20px;
   color: #475569;
+  font-size: 14px;
   line-height: 1.75;
-  margin-bottom: 20px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .listBox {
+    max-height: 480px;
+  }
+
+  .card {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .cardMeta {
+    gap: 8px;
+  }
+
+  .backdrop {
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .clearBtn {
+    font-size: 12px;
+  }
+
+  .listBox {
+    max-height: 460px;
+    border-radius: 12px;
+  }
+
+  .card {
+    gap: 10px;
+    padding: 14px 12px;
+  }
+
+  .dateBlock {
+    width: 42px;
+    height: 46px;
+    border-radius: 8px;
+  }
+
+  .dateDay {
+    font-size: 16px;
+  }
+
+  .dateMonth {
+    font-size: 9px;
+  }
+
+  .cardTitle {
+    font-size: 13px;
+  }
+
+  .cardMeta {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cardMeta span {
+    font-size: 11px;
+  }
+
+  .sdgTag {
+    padding: 2px 7px;
+    font-size: 9px;
+  }
+
+  .arrow {
+    font-size: 16px;
+  }
+
+  .backdrop {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 24px);
+    border-radius: 14px;
+  }
+
+  .modalHeader {
+    padding: 20px 18px 16px;
+  }
+
+  .modalTitle {
+    font-size: 19px;
+  }
+
+  .modalBody {
+    padding: 16px 18px 22px;
+  }
+
+  .modalMeta {
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .modalDesc {
+    font-size: 13px;
+    line-height: 1.65;
+  }
 }

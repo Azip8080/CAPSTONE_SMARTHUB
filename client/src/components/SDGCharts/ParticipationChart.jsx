@@ -6,8 +6,10 @@ import styles from "./SDGCharts.module.css";
 function ParticipationChart({ range }) {
   const canvasRef = useRef(null);
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] =
+    useState(true);
+  const [error, setError] =
+    useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -19,18 +21,28 @@ function ParticipationChart({ range }) {
       .finally(() => setLoading(false));
   }, [range]);
 
-  const total = data.reduce((sum, d) => sum + d.count, 0);
+  const total = data.reduce(
+    (sum, d) => sum + d.count,
+    0
+  );
 
   const config =
     data.length > 0
       ? {
           type: "doughnut",
           data: {
-            labels: data.map((d) => d.label),
+            labels: data.map(
+              (d) => d.label
+            ),
             datasets: [
               {
-                data: data.map((d) => d.count),
-                backgroundColor: data.map((d) => d.color),
+                data: data.map(
+                  (d) => d.count
+                ),
+                backgroundColor:
+                  data.map(
+                    (d) => d.color
+                  ),
                 borderWidth: 3,
                 borderColor: "#fff",
                 hoverOffset: 6,
@@ -48,7 +60,8 @@ function ParticipationChart({ range }) {
               tooltip: {
                 backgroundColor: "#111",
                 titleColor: "#fff",
-                bodyColor: "rgba(255,255,255,0.7)",
+                bodyColor:
+                  "rgba(255,255,255,0.7)",
                 padding: 10,
                 cornerRadius: 8,
                 callbacks: {
@@ -72,38 +85,55 @@ function ParticipationChart({ range }) {
       </p>
 
       {loading && (
-        <p className={styles.chartStatus}>Loading...</p>
+        <p className={styles.chartStatus}>
+          Loading...
+        </p>
       )}
 
       {error && (
-        <p className={`${styles.chartStatus} ${styles.error}`}>
+        <p
+          className={
+            styles.chartStatusError
+          }
+        >
           {error}
         </p>
       )}
 
-      {!loading && !error && data.length === 0 && (
-        <p className={styles.chartStatus}>
-          No data available yet.
-        </p>
-      )}
+      {!loading &&
+        !error &&
+        data.length === 0 && (
+          <p className={styles.chartStatus}>
+            No data available yet.
+          </p>
+        )}
 
       <div
-        className={styles.chartCanvasWrapper}
-        style={{ height: "200px" }}
+        className={
+          styles.participationCanvasWrapper
+        }
       >
-        <canvas ref={canvasRef}></canvas>
+        <canvas ref={canvasRef} />
       </div>
 
       <div className={styles.chartLegend}>
         {data.map((d) => (
-          <span key={d.tag} className={styles.legendItem}>
+          <span
+            key={d.tag}
+            className={styles.legendItem}
+          >
             <span
               className={styles.legendDot}
-              style={{ background: d.color }}
+              style={{
+                background: d.color,
+              }}
             />
+
             {d.label} —{" "}
             {total > 0
-              ? `${Math.round((d.count / total) * 100)}%`
+              ? `${Math.round(
+                  (d.count / total) * 100
+                )}%`
               : "—"}
           </span>
         ))}

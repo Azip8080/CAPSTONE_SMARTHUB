@@ -1,19 +1,24 @@
 .footer {
+  width: 100%;
+  box-sizing: border-box;
   background: #0f172a;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .inner {
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 36px 2.5rem 32px;
   display: grid;
-  grid-template-columns: 2fr 1.5fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
   gap: 64px;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .brand {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -34,11 +39,12 @@
 }
 
 .brandDesc {
+  max-width: 300px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
   line-height: 1.7;
   margin: 0;
-  max-width: 300px;
+  overflow-wrap: anywhere;
 }
 
 .socials {
@@ -50,6 +56,7 @@
 .socialBtn {
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.5);
@@ -66,6 +73,7 @@
 }
 
 .about {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -85,13 +93,17 @@
   color: rgba(255, 255, 255, 0.4);
   line-height: 1.7;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .bottom {
+  width: 100%;
+  box-sizing: border-box;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .bottomInner {
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
   padding: 14px 2.5rem;
@@ -99,16 +111,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  box-sizing: border-box;
 }
 
 .copyright {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.3);
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .bottomLinks {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
 }
 
@@ -125,7 +140,7 @@
 
 @media (max-width: 640px) {
   .inner {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 28px 1.5rem 24px;
     gap: 24px;
   }
@@ -135,5 +150,16 @@
     align-items: flex-start;
     padding: 12px 1.5rem;
     gap: 6px;
+  }
+}
+
+@media (max-width: 400px) {
+  .inner {
+    padding: 24px 1rem 20px;
+    gap: 20px;
+  }
+
+  .bottomInner {
+    padding: 12px 1rem;
   }
 }

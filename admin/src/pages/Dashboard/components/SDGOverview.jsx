@@ -1,6 +1,24 @@
 import { useMemo, useState } from "react";
 import styles from "./SDGOverview.module.css";
 
+import sdg1 from "../../../assets/1.jpg";
+import sdg2 from "../../../assets/2.jpg";
+import sdg3 from "../../../assets/3.jpg";
+import sdg4 from "../../../assets/4.jpg";
+import sdg5 from "../../../assets/5.jpg";
+import sdg6 from "../../../assets/6.jpg";
+import sdg7 from "../../../assets/7.jpg";
+import sdg8 from "../../../assets/8.jpg";
+import sdg9 from "../../../assets/9.jpg";
+import sdg10 from "../../../assets/10.jpg";
+import sdg11 from "../../../assets/11.jpg";
+import sdg12 from "../../../assets/12.jpg";
+import sdg13 from "../../../assets/13.jpg";
+import sdg14 from "../../../assets/14.jpg";
+import sdg15 from "../../../assets/15.jpg";
+import sdg16 from "../../../assets/16.jpg";
+import sdg17 from "../../../assets/17.jpg";
+
 const SDG_COLORS = [
   "#E5243B",
   "#DDA63A",
@@ -41,6 +59,26 @@ const SDG_NAMES = [
   "Partnerships for the Goals",
 ];
 
+const SDG_IMAGES = [
+  sdg1,
+  sdg2,
+  sdg3,
+  sdg4,
+  sdg5,
+  sdg6,
+  sdg7,
+  sdg8,
+  sdg9,
+  sdg10,
+  sdg11,
+  sdg12,
+  sdg13,
+  sdg14,
+  sdg15,
+  sdg16,
+  sdg17,
+];
+
 function SDGOverview({ projects }) {
   const [selectedSDG, setSelectedSDG] =
     useState(null);
@@ -70,6 +108,7 @@ function SDGOverview({ projects }) {
           tag,
           name: SDG_NAMES[index],
           color: SDG_COLORS[index],
+          image: SDG_IMAGES[index],
           projects: relatedProjects,
         };
       }
@@ -125,9 +164,11 @@ function SDGOverview({ projects }) {
               setSelectedSDG(sdg.number)
             }
           >
-            <span className={styles.number}>
-              {sdg.number}
-            </span>
+            <img
+              src={sdg.image}
+              alt={sdg.tag}
+              className={styles.sdgImage}
+            />
 
             <span className={styles.count}>
               {sdg.projects.length}
@@ -145,15 +186,11 @@ function SDGOverview({ projects }) {
           }}
         >
           <div className={styles.detailsHeader}>
-            <div
-              className={styles.detailsNumber}
-              style={{
-                background:
-                  selected.color,
-              }}
-            >
-              {selected.number}
-            </div>
+            <img
+              src={selected.image}
+              alt={selected.tag}
+              className={styles.detailsImage}
+            />
 
             <div>
               <p className={styles.detailsTitle}>

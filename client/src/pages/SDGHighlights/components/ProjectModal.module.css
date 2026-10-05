@@ -1,24 +1,24 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(4px);
   z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
 }
 
 .modal {
-  background: #ffffff;
-  border-radius: 16px;
   width: 100%;
   max-width: 480px;
-  overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
   max-height: 90vh;
   overflow-y: auto;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
 }
 
 .modalHeader {
@@ -29,104 +29,112 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
 }
 
 .badges {
   display: flex;
-  gap: 8px;
   flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sdgBadge,
+.statusBadge {
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .sdgBadge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
   padding: 4px 10px;
-  border-radius: 20px;
+  color: #ffffff;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .statusBadge {
-  font-size: 11px;
-  font-weight: 600;
   padding: 4px 10px;
-  border-radius: 20px;
 }
 
 .closeBtn {
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #e2e8f0;
+  border-radius: 50%;
   background: #f8fafc;
   color: #64748b;
   font-size: 13px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-  flex-shrink: 0;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .closeBtn:hover {
+  border-color: #0f172a;
   background: #0f172a;
   color: #ffffff;
-  border-color: #0f172a;
 }
 
 .title {
+  margin: 0 0 6px;
+  color: #0f172a;
   font-size: 24px;
   font-weight: 700;
-  color: #0f172a;
   letter-spacing: -0.4px;
-  margin: 0 0 6px;
+  overflow-wrap: anywhere;
 }
 
 .barangay {
-  font-size: 13px;
-  color: #64748b;
   margin: 0;
+  color: #64748b;
+  font-size: 13px;
 }
 
 .modalBody {
-  padding: 0 24px 28px;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 20px 24px 28px;
+  border-top: 1px solid #f1f5f9;
 }
 
 .imagePlaceholder {
   width: 100%;
   height: 200px;
-  background: #f1f5f9;
-  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  border-radius: 10px;
+  background: #f1f5f9;
   color: #94a3b8;
+  font-size: 13px;
   font-weight: 500;
 }
 
 .projectImage {
   width: 100%;
   height: 240px;
-  object-fit: cover;
   display: block;
   border-radius: 10px;
+  object-fit: cover;
 }
 
 .description {
-  font-size: 14px;
-  color: #475569;
-  line-height: 1.75;
   margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
 }
+
 .photoGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -137,9 +145,9 @@
 .projectPhoto {
   width: 100%;
   height: 220px;
-  object-fit: cover;
-  border-radius: 10px;
   display: block;
+  border-radius: 10px;
+  object-fit: cover;
 }
 
 .tags {
@@ -156,6 +164,7 @@
   color: #475569;
   font-size: 12px;
 }
+
 .featuredBadge {
   padding: 5px 9px;
   border-radius: 999px;
@@ -166,11 +175,83 @@
 }
 
 @media (max-width: 640px) {
+  .backdrop {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 32px);
+    border-radius: 14px;
+  }
+
+  .modalHeader {
+    padding: 20px 18px 16px;
+  }
+
+  .headerTop {
+    align-items: flex-start;
+  }
+
+  .title {
+    font-size: 21px;
+  }
+
+  .modalBody {
+    padding: 16px 18px 22px;
+  }
+
+  .imagePlaceholder {
+    height: 190px;
+  }
+
+  .projectImage {
+    height: 200px;
+  }
+
   .photoGrid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .projectPhoto {
     height: 200px;
+  }
+
+  .tags {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .backdrop {
+    padding: 10px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .modalHeader {
+    padding: 18px 14px 14px;
+  }
+
+  .modalBody {
+    padding: 14px 14px 20px;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+
+  .description {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .projectImage,
+  .imagePlaceholder,
+  .projectPhoto {
+    height: 180px;
   }
 }

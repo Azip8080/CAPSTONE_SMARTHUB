@@ -19,9 +19,9 @@ export default function SDGCharts() {
   return (
     <section className={styles.sdgCharts}>
       <div className={styles.sdgChartsInner}>
-
         <div className={styles.chartsHeading}>
           <h2>SDG Analytics</h2>
+
           <p>
             Track progress across all 17 Sustainable Development Goals
           </p>
@@ -35,9 +35,12 @@ export default function SDGCharts() {
           <div className={styles.rangePills}>
             {RANGE_OPTIONS.map((r) => (
               <button
+                type="button"
                 key={r.value}
                 className={`${styles.rangePill} ${
-                  range === r.value ? styles.active : ""
+                  range === r.value
+                    ? styles.active
+                    : ""
                 }`}
                 onClick={() => setRange(r.value)}
               >
@@ -53,7 +56,6 @@ export default function SDGCharts() {
           <ParticipationChart range={range} />
           <TrendChart range={range} />
         </div>
-
       </div>
     </section>
   );

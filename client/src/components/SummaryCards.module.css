@@ -1,54 +1,112 @@
 .summaryContainer {
-    width: 100%;
-    max-width: 1200px;
-    margin: 50px auto;
-    padding: 0 20px;
-
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  min-width: 0;
+  margin: 50px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  box-sizing: border-box;
 }
 
 .summaryCard {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    padding: 30px;
-    text-align: center;
-    transition: .3s;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 30px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  text-align: center;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .summaryCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 .summaryCard h2 {
-    font-size: 42px;
-    color: #0f172a;
-    margin-bottom: 10px;
+  margin: 0 0 10px;
+  color: #0f172a;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .summaryCard h4 {
-    font-size: 14px;
-    letter-spacing: 1px;
-    color: #64748b;
-    margin-bottom: 8px;
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  overflow-wrap: anywhere;
 }
 
 .summaryCard p {
-    color: #94a3b8;
-    font-size: 14px;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 900px) {
-    .summaryContainer {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  .summaryContainer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin: 40px auto;
+  }
+
+  .summaryCard {
+    padding: 26px 20px;
+  }
+
+  .summaryCard h2 {
+    font-size: 36px;
+  }
 }
 
 @media (max-width: 600px) {
-    .summaryContainer {
-        grid-template-columns: 1fr;
-    }
+  .summaryContainer {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    margin: 32px auto;
+    padding: 0 16px;
+  }
+
+  .summaryCard {
+    padding: 24px 18px;
+  }
+
+  .summaryCard h2 {
+    font-size: 34px;
+  }
+
+  .summaryCard h4 {
+    font-size: 12px;
+  }
+
+  .summaryCard p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 380px) {
+  .summaryContainer {
+    padding: 0 12px;
+    margin: 28px auto;
+  }
+
+  .summaryCard {
+    padding: 22px 16px;
+  }
+
+  .summaryCard h2 {
+    font-size: 32px;
+  }
 }
