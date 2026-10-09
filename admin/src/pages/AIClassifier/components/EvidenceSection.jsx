@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SDG_COLORS, SDG_NAMES } from "../sdgConstants";
-import styles from "./ClassificationResult.module.css";
+import styles from "./EvidenceSection.module.css";
 
 function getSDGName(tag) {
   return SDG_NAMES?.[tag] || tag || "Unknown SDG";
@@ -11,9 +11,9 @@ function getSDGColor(tag) {
 }
 
 function EvidenceSection({
-  keywordGroups,
-  evidenceBySDG,
-  totalMatches,
+  keywordGroups = [],
+  evidenceBySDG = {},
+  totalMatches = 0,
 }) {
   const [expandedGroups, setExpandedGroups] = useState({});
   const [showAllMatches, setShowAllMatches] = useState(false);
@@ -30,107 +30,145 @@ function EvidenceSection({
       id="panel-evidence"
       role="tabpanel"
       aria-labelledby="tab-evidence"
-      className={styles.tabPanel}
+      className={styles.evidenceSection}
     >
-      <div className={styles.panelHeading}>
+      <div className={styles.evidenceHeader}>
         <div>
-          <h3>Keyword evidence</h3>
-
-          <p>
-            Expand an SDG to inspect the matched keywords and supporting
-            text. A match is evidence to review, not proof of relevance.
+          <h3 className={styles.evidenceTitle}>
+            Keyword Evidence
+          </h3>
+          <p className={styles.evidenceDescription}>
+            Review the keywords detected for each Sustainable
+            Development Goal and the text supporting each match.
           </p>
         </div>
 
-        <span className={styles.countBadge}>
+        <span className={styles.matchBadge}>
           {totalMatches} matches
+        </span>
+      </div>
+
+      <div className={styles.evidenceNotice}>
+        <span className={styles.noticeIcon} aria-hidden="true">
+          i
+        </span>
+        <span>
+          Keyword matches are supporting evidence for review,
+          not proof that a project directly addresses an SDG.
         </span>
       </div>
 
       {keywordGroups.length > 0 ? (
         <>
-          <div className={styles.keywordGroups}>
+          <div className={styles.evidenceList}>
             {keywordGroups
-              .slice(
-                0,
-                showAllMatches ? undefined : 4
-              )
+              .slice(0, showAllMatches ? undefined : 4)
               .map(([tag, matches]) => {
-                const isExpanded =
-                  expandedGroups[tag] ?? false;
+                const isExpanded = expandedGroups[tag] ?? false;
 
-                const evidence = Array.isArray(
-                  evidenceBySDG[tag]
-                )
+                const evidence = Array.isArray(evidenceBySDG?.[tag])
                   ? evidenceBySDG[tag]
                   : [];
 
                 return (
                   <div
-                    className={styles.keywordGroup}
+                    className={`${styles.evidenceCard} ${
+                      isExpanded ? styles.evidenceCardOpen : ""
+                    }`}
                     key={tag}
                   >
                     <button
                       type="button"
-                      className={styles.groupToggle}
+                      className={styles.evidenceToggle}
                       onClick={() => toggleGroup(tag)}
                       aria-expanded={isExpanded}
                     >
                       <span
-                        className={styles.alternativeDot}
+                        className={styles.sdgMarker}
                         style={{
-                          backgroundColor:
-                            getSDGColor(tag),
+                          backgroundColor: getSDGColor(tag),
                         }}
-                      />
+                      >
+                        {String(tag).match(/\d+/)?.[0] || "SDG"}
+                      </span>
 
-                      <span className={styles.groupInfo}>
-                        <strong>{tag}</strong>
-
-                        <span>
+                      <span className={styles.sdgInfo}>
+                        <span className={styles.sdgLabel}>
+                          Sustainable Development Goal
+                        </span>
+                        <span className={styles.sdgName}>
                           {getSDGName(tag)}
                         </span>
                       </span>
 
-                      <span className={styles.groupCount}>
+                      <span className={styles.sdgMatchCount}>
                         {matches.length}
                       </span>
 
-                      <span className={styles.chevron}>
+                      <span
+                        className={styles.evidenceChevron}
+                        aria-hidden="true"
+                      >
                         {isExpanded ? "−" : "+"}
                       </span>
                     </button>
 
                     {isExpanded && (
-                      <div className={styles.keywordChips}>
-                        {matches.map((match, index) => {
-                          const evidenceItem =
-                            evidence[index];
+                      <div className={styles.evidenceDetails}>
+                        <div className={styles.detailsDivider} />
 
-                          const context =
-                            evidenceItem?.context || "";
+                        <div>
+                          <p className={styles.detailsHeading}>
+                            Matched keywords
+                          </p>
 
-                          return (
-                            <div
-                              className={
-                                styles.keywordChip
-                              }
-                              key={`${match.keyword}-${match.start}-${index}`}
-                              title={`Keyword: ${
-                                match.keyword || ""
-                              }`}
-                            >
-                              <strong>
-                                {match.matchedText ||
-                                  match.keyword}
-                              </strong>
+                          <div className={styles.keywordList}>
+                            {matches.map((match, index) => {
+                              const keyword =
+                                match.matchedText ||
+                                match.keyword ||
+                                "";
 
-                              {context && (
-                                <div>{context}</div>
-                              )}
+                              return (
+                                <span
+                                  className={styles.keywordTag}
+                                  key={`${match.keyword}-${match.start}-${index}`}
+                                  title={`Keyword: ${match.keyword || ""}`}
+                                >
+                                  {keyword}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {matches.some(
+                          (_, index) => evidence[index]?.context
+                        ) && (
+                          <div>
+                            <p className={styles.detailsHeading}>
+                              Supporting text
+                            </p>
+
+                            <div className={styles.keywordList}>
+                              {matches.map((match, index) => {
+                                const context =
+                                  evidence[index]?.context || "";
+
+                                if (!context) return null;
+
+                                return (
+                                  <div
+                                    className={styles.contextBlock}
+                                    key={`${match.keyword}-${match.start}-${index}-context`}
+                                  >
+                                    {context}
+                                  </div>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -138,24 +176,33 @@ function EvidenceSection({
               })}
           </div>
 
-          {keywordGroups.length > 4 && (
-            <button
-              type="button"
-              className={styles.textButton}
-              onClick={() =>
-                setShowAllMatches(
-                  (previous) => !previous
-                )
-              }
-            >
-              {showAllMatches
-                ? "Show fewer SDGs"
-                : `Show all ${keywordGroups.length} SDGs`}
-            </button>
-          )}
+          <div className={styles.evidenceFooter}>
+            <span className={styles.evidenceTotal}>
+              Showing{" "}
+              {Math.min(
+                showAllMatches ? keywordGroups.length : 4,
+                keywordGroups.length
+              )}{" "}
+              of {keywordGroups.length} SDGs
+            </span>
+
+            {keywordGroups.length > 4 && (
+              <button
+                type="button"
+                className={styles.showMoreButton}
+                onClick={() =>
+                  setShowAllMatches((previous) => !previous)
+                }
+              >
+                {showAllMatches
+                  ? "Show fewer SDGs"
+                  : `Show all ${keywordGroups.length} SDGs`}
+              </button>
+            )}
+          </div>
         </>
       ) : (
-        <p className={styles.noEvidence}>
+        <p className={styles.emptyEvidence}>
           No keyword evidence was returned for this analysis.
         </p>
       )}

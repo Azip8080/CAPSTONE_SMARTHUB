@@ -1,12 +1,17 @@
 .container {
-  margin-bottom: 24px;
+  min-width: 0;
+  margin-top: 16px;
   padding: 20px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  background: #ffffff;
+  border: 1px solid #e1e7f0;
+  border-radius: 14px;
+  background: #fff;
 }
 
 .header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 16px;
 }
 
@@ -21,17 +26,19 @@
 
 .header h3 {
   margin: 0;
+  color: #17233b;
   font-size: 17px;
 }
 
 .header p {
   margin: 5px 0 0;
   color: #7a879b;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .summaryBox {
+  min-height: 100px;
   padding: 16px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
@@ -42,6 +49,6 @@
   margin: 0;
   color: #475569;
   font-size: 13px;
-  line-height: 1.7;
-  text-align: justify;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
 }
