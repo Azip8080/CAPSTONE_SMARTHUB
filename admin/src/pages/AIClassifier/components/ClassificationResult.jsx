@@ -66,9 +66,7 @@ function ClassificationResult({
             : [];
 
       const alternatives =
-        Array.isArray(
-          result.topMatches
-        )
+        Array.isArray(result.topMatches)
           ? result.topMatches.filter(
               (item) =>
                 item &&
@@ -81,9 +79,7 @@ function ClassificationResult({
           : [];
 
       const relatedSDGs =
-        Array.isArray(
-          result.relatedSDGs
-        )
+        Array.isArray(result.relatedSDGs)
           ? result.relatedSDGs.filter(
               (item) =>
                 item &&
@@ -96,9 +92,7 @@ function ClassificationResult({
           : [];
 
       const automaticTags =
-        Array.isArray(
-          result.automaticTags
-        )
+        Array.isArray(result.automaticTags)
           ? result.automaticTags.filter(
               (item) =>
                 item &&
@@ -114,9 +108,7 @@ function ClassificationResult({
         null;
 
       const sdgRelevance =
-        Array.isArray(
-          result.sdgRelevance
-        )
+        Array.isArray(result.sdgRelevance)
           ? result.sdgRelevance
           : [];
 
@@ -139,9 +131,7 @@ function ClassificationResult({
         {};
 
       const keywordGroups =
-        Object.entries(
-          groupedKeywords
-        )
+        Object.entries(groupedKeywords)
           .filter(
             ([, matches]) =>
               Array.isArray(matches) &&
@@ -153,9 +143,7 @@ function ClassificationResult({
           );
 
       const allMatches =
-        Array.isArray(
-          keywordData.matches
-        )
+        Array.isArray(keywordData.matches)
           ? keywordData.matches
           : [];
 
@@ -172,11 +160,9 @@ function ClassificationResult({
           : allMatches.length;
 
       const methodLabel =
-        result.method ===
-        "huggingface"
+        result.method === "huggingface"
           ? "AI model"
-          : result.method ===
-              "keyword"
+          : result.method === "keyword"
             ? "Keyword matching"
             : result.method ||
               "Classification";
@@ -210,23 +196,20 @@ function ClassificationResult({
         className={styles.resultCard}
         aria-live="polite"
       >
-        <div
-          className={
-            styles.loadingState
-          }
-        >
-          <div
-            className={styles.spinner}
-          />
+        <div className={styles.loadingState}>
+          <div className={styles.spinner} />
+
+          <span className={styles.loadingEyebrow}>
+            AI ANALYSIS
+          </span>
 
           <h3>
-            Analyzing document...
+            Analyzing project information
           </h3>
 
           <p>
-            Extracting text and
-            checking possible SDG
-            connections.
+            Extracting content and checking
+            possible SDG connections.
           </p>
         </div>
       </section>
@@ -239,9 +222,15 @@ function ClassificationResult({
         className={styles.resultCard}
         role="alert"
       >
-        <div
-          className={styles.errorState}
-        >
+        <div className={styles.errorState}>
+          <span className={styles.errorIcon}>
+            !
+          </span>
+
+          <span className={styles.loadingEyebrow}>
+            ANALYSIS ERROR
+          </span>
+
           <h3>
             Classification failed
           </h3>
@@ -251,9 +240,7 @@ function ClassificationResult({
           {onReset && (
             <button
               type="button"
-              className={
-                styles.secondaryButton
-              }
+              className={styles.secondaryButton}
               onClick={onReset}
             >
               Try again
@@ -269,22 +256,26 @@ function ClassificationResult({
     !classificationData
   ) {
     return (
-      <section
-        className={styles.resultCard}
-      >
-        <div
-          className={styles.emptyState}
-        >
+      <section className={styles.resultCard}>
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>
+            ✦
+          </div>
+
+          <span className={styles.loadingEyebrow}>
+            AI ANALYSIS
+          </span>
+
           <h3>
-            Classification results
+            Results will appear here
           </h3>
 
           <p>
-            Submit a project title,
-            description, or PDF/TXT
-            file to see its suggested
-            SDG and supporting
-            evidence.
+            Submit project information or
+            upload a PDF/TXT document to
+            see the suggested SDGs,
+            supporting evidence, tags,
+            and project quality checks.
           </p>
         </div>
       </section>
@@ -334,7 +325,7 @@ function ClassificationResult({
     },
     {
       id: "missing",
-      label: "Missing Information",
+      label: "Quality Check",
       count: missingCount,
     },
     {
@@ -344,7 +335,7 @@ function ClassificationResult({
     },
     {
       id: "text",
-      label: "Extracted text",
+      label: "Extracted Text",
       count: extractedText
         ? null
         : 0,
@@ -356,38 +347,19 @@ function ClassificationResult({
       className={styles.resultCard}
       aria-live="polite"
     >
-      <header
-        className={styles.resultHeader}
-      >
-        <div
-          className={
-            styles.headingContent
-          }
-        >
-          <p
-            className={styles.eyebrow}
-          >
-            <span
-              className={
-                styles.statusDot
-              }
-            />
-
+      <header className={styles.resultHeader}>
+        <div className={styles.headingContent}>
+          <p className={styles.eyebrow}>
+            <span className={styles.statusDot} />
             Analysis complete
           </p>
 
-          <h2>
-            Classification results
-          </h2>
+          <h2>AI analysis</h2>
 
-          <p
-            className={
-              styles.resultDescription
-            }
-          >
-            Review the suggested SDGs
-            before saving or publishing
-            the project.
+          <p className={styles.resultDescription}>
+            Review the AI findings before
+            selecting SDGs and preparing
+            the project for publication.
           </p>
         </div>
 
@@ -423,12 +395,8 @@ function ClassificationResult({
         selectedTagsLength={
           selectedTags.length
         }
-        extractedText={
-          extractedText
-        }
-        onUseResult={
-          onUseResult
-        }
+        extractedText={extractedText}
+        onUseResult={onUseResult}
       />
 
       <DetectedSDGs
@@ -437,13 +405,15 @@ function ClassificationResult({
         onToggleSDG={onToggleSDG}
       />
 
-      <div
-        className={styles.tabSection}
-      >
+      <div className={styles.reviewLabel}>
+        AI findings
+      </div>
+
+      <div className={styles.tabSection}>
         <div
           className={styles.tabHeader}
           role="tablist"
-          aria-label="Analysis details"
+          aria-label="AI analysis details"
         >
           {tabs.map((tab) => (
             <button
@@ -452,33 +422,24 @@ function ClassificationResult({
               role="tab"
               id={`tab-${tab.id}`}
               aria-selected={
-                activeTab ===
-                tab.id
+                activeTab === tab.id
               }
               aria-controls={`panel-${tab.id}`}
-              className={`
-                ${styles.tabButton}
-                ${
-                  activeTab ===
-                  tab.id
-                    ? styles.activeTab
-                    : ""
-                }
-              `}
+              className={[
+                styles.tabButton,
+                activeTab === tab.id
+                  ? styles.activeTab
+                  : "",
+              ].join(" ")}
               onClick={() =>
-                setActiveTab(
-                  tab.id
-                )
+                setActiveTab(tab.id)
               }
             >
               {tab.label}
 
-              {tab.count !==
-                null && (
+              {tab.count !== null && (
                 <span
-                  className={
-                    styles.tabCount
-                  }
+                  className={styles.tabCount}
                 >
                   {tab.count}
                 </span>
@@ -487,8 +448,7 @@ function ClassificationResult({
           ))}
         </div>
 
-        {activeTab ===
-          "evidence" && (
+        {activeTab === "evidence" && (
           <EvidenceSection
             keywordGroups={
               keywordGroups
@@ -502,21 +462,12 @@ function ClassificationResult({
           />
         )}
 
-        {activeTab ===
-          "alternatives" && (
+        {activeTab === "alternatives" && (
           <OtherSDGs
-            relatedSDGs={
-              relatedSDGs
-            }
-            alternatives={
-              alternatives
-            }
-            primaryTag={
-              primaryTag
-            }
-            onUseResult={
-              onUseResult
-            }
+            relatedSDGs={relatedSDGs}
+            alternatives={alternatives}
+            primaryTag={primaryTag}
+            onUseResult={onUseResult}
           />
         )}
 
@@ -541,8 +492,7 @@ function ClassificationResult({
           />
         )}
 
-        {activeTab ===
-          "missing" && (
+        {activeTab === "missing" && (
           <MissingInformation
             missingInformation={
               missingInformation
@@ -550,8 +500,7 @@ function ClassificationResult({
           />
         )}
 
-        {activeTab ===
-          "relevance" && (
+        {activeTab === "relevance" && (
           <SDGRelevance
             sdgRelevance={
               sdgRelevance
@@ -575,46 +524,29 @@ function ClassificationResult({
         summary={projectSummary}
       />
 
-      <div
-        className={
-          styles.reviewNotice
-        }
-      >
-        <span
-          className={
-            styles.reviewIcon
-          }
-        >
+      <div className={styles.reviewNotice}>
+        <span className={styles.reviewIcon}>
           !
         </span>
 
         <div>
           <strong>
-            Administrator review
-            required
+            Administrator review required
           </strong>
 
           <p>
-            Confirm the project's
-            actual objectives and
-            select the appropriate
-            SDGs before saving or
-            publishing it.
+            Confirm the project's actual
+            objectives and selected SDGs
+            before saving or publishing.
           </p>
         </div>
       </div>
 
       {onReset && (
-        <div
-          className={
-            styles.resultActions
-          }
-        >
+        <div className={styles.resultActions}>
           <button
             type="button"
-            className={
-              styles.secondaryButton
-            }
+            className={styles.secondaryButton}
             onClick={onReset}
           >
             Classify another project

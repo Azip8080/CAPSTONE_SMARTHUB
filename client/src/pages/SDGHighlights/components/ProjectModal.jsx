@@ -1,67 +1,96 @@
+import { useEffect, useState } from "react";
 import styles from "./ProjectModal.module.css";
 
-const SDG_COLORS = {
-  "SDG 1": "#E5243B",
-  "SDG 2": "#DDA63A",
-  "SDG 3": "#4C9F38",
-  "SDG 4": "#C5192D",
-  "SDG 5": "#FF3A21",
-  "SDG 6": "#26BDE2",
-  "SDG 7": "#FCC30B",
-  "SDG 8": "#A21942",
-  "SDG 9": "#FD6925",
-  "SDG 10": "#DD1367",
-  "SDG 11": "#FD9D24",
-  "SDG 12": "#BF8B2E",
-  "SDG 13": "#3F7E44",
-  "SDG 14": "#0A97D9",
-  "SDG 15": "#56C02B",
-  "SDG 16": "#00689D",
-  "SDG 17": "#19486A",
-};
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api";
 
-const STATUS_STYLES = {
-  Planned: {
-    bg: "#f1f5f9",
-    color: "#475569",
-  },
-  Ongoing: {
-    bg: "#dcfce7",
-    color: "#166534",
-  },
-  Completed: {
-    bg: "#dbeafe",
-    color: "#1d4ed8",
-  },
-};
+function getPhotoUrl(photo) {
+  if (!photo) return "";
+
+  if (
+    photo.startsWith("http://") ||
+    photo.startsWith("https://")
+  ) {
+    return photo;
+  }
+
+  if (photo.startsWith("/")) {
+    return `${API_URL.replace("/api", "")}${photo}`;
+  }
+
+  return photo;
+}
 
 function ProjectModal({
   project,
   open,
   onClose,
 }) {
+  const [selectedPhoto, setSelectedPhoto] =
+    useState(null);
+
+  useEffect(() => {
+    if (!project) return;
+
+    const photos = Array.isArray(
+      project.photos
+    )
+      ? project.photos
+      : [];
+
+    setSelectedPhoto(
+      photos.length > 0
+        ? photos[0]
+        : null
+    );
+  }, [project]);
+
+  useEffect(() => {
+    if (!project || !open) return;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, [project, open, onClose]);
+
   if (!open || !project) {
     return null;
   }
+
+  const photos = Array.isArray(
+    project.photos
+  )
+    ? project.photos
+    : [];
 
   const sdgs =
     Array.isArray(project.sdgTags) &&
     project.sdgTags.length > 0
       ? project.sdgTags
-      : [project.sdgTag];
+      : project.sdgTag
+        ? [project.sdgTag]
+        : [];
 
-  const tags =
-    Array.isArray(project.tags)
-      ? project.tags
-      : [];
-
-  const color =
-    SDG_COLORS[project.sdgTag] ||
-    "#0f172a";
-
-  const status =
-    STATUS_STYLES[project.status] ||
-    STATUS_STYLES.Planned;
+  const tags = Array.isArray(
+    project.tags
+  )
+    ? project.tags
+    : [];
 
   return (
     <div
@@ -70,143 +99,139 @@ function ProjectModal({
     >
       <div
         className={styles.modal}
-        onClick={(e) =>
-          e.stopPropagation()
+        onClick={(event) =>
+          event.stopPropagation()
         }
       >
-        <div
-          className={styles.modalHeader}
-          style={{
-            borderTop:
-              `4px solid ${color}`,
-          }}
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={onClose}
+          aria-label="Close project"
         >
-          <div
-            className={styles.headerTop}
-          >
-            <div
-              className={styles.badges}
-            >
-              {project.featured && (
-                <span
-                  className={
-                    styles.featuredBadge
-                  }
-                >
-                  ⭐ Featured
-                </span>
-              )}
+          ×
+        </button>
 
-              {sdgs.map((sdg) => (
-                <span
-                  key={sdg}
-                  className={
-                    styles.sdgBadge
-                  }
-                  style={{
-                    background:
-                      SDG_COLORS[sdg] ||
-                      "#0f172a",
-                  }}
-                >
-                  {sdg}
-                </span>
-              ))}
-
+        <div className={styles.header}>
+          <div className={styles.sdgList}>
+            {sdgs.map((sdg) => (
               <span
-                className={
-                  styles.statusBadge
-                }
-                style={{
-                  background:
-                    status.bg,
-                  color:
-                    status.color,
-                }}
+                key={sdg}
+                className={styles.sdgBadge}
               >
-                {project.status}
+                {sdg}
               </span>
-            </div>
-
-            <button
-              className={
-                styles.closeBtn
-              }
-              onClick={onClose}
-            >
-              ✕
-            </button>
+            ))}
           </div>
+
+          <span
+            className={`${styles.status} ${
+              styles[
+                project.status?.toLowerCase()
+              ]
+            }`}
+          >
+            {project.status}
+          </span>
 
           <h2 className={styles.title}>
             {project.title}
           </h2>
 
-          <p
-            className={
-              styles.barangay
-            }
-          >
-            📍 {project.barangay}
-          </p>
+          <div className={styles.location}>
+            <span>📍</span>
+            <span>
+              {project.barangay}
+            </span>
+          </div>
         </div>
 
-        <div
-          className={styles.modalBody}
-        >
-          {project.photos?.length >
-          0 ? (
-            <div
-              className={
-                styles.photoGrid
-              }
-            >
-              {project.photos.map(
+        <div className={styles.gallery}>
+          <div className={styles.mainPhoto}>
+            {selectedPhoto ? (
+              <img
+                src={getPhotoUrl(
+                  selectedPhoto
+                )}
+                alt={project.title}
+              />
+            ) : (
+              <div
+                className={
+                  styles.photoPlaceholder
+                }
+              >
+                No project photo
+              </div>
+            )}
+          </div>
+
+          {photos.length > 1 && (
+            <div className={styles.thumbnails}>
+              {photos.map(
                 (photo, index) => (
-                  <img
+                  <button
+                    type="button"
                     key={`${photo}-${index}`}
-                    className={
-                      styles.projectPhoto
-                    }
-                    src={`http://localhost:5000${photo}`}
-                    alt={`${project.title} ${
-                      index + 1
+                    className={`${styles.thumbnail} ${
+                      selectedPhoto === photo
+                        ? styles.activeThumbnail
+                        : ""
                     }`}
-                  />
+                    onClick={() =>
+                      setSelectedPhoto(
+                        photo
+                      )
+                    }
+                  >
+                    <img
+                      src={getPhotoUrl(
+                        photo
+                      )}
+                      alt={`Project photo ${
+                        index + 1
+                      }`}
+                    />
+                  </button>
                 )
               )}
             </div>
-          ) : (
-            <div
-              className={
-                styles.imagePlaceholder
-              }
-            >
-              Project Photo
-            </div>
           )}
+        </div>
 
-          <p
-            className={
-              styles.description
-            }
-          >
-            {project.description}
-          </p>
+        <div className={styles.body}>
+          <section className={styles.section}>
+            <h3>
+              Project Description
+            </h3>
+
+            <p>
+              {project.description ||
+                "No project description available."}
+            </p>
+          </section>
 
           {tags.length > 0 && (
-            <div
-              className={styles.tags}
+            <section
+              className={
+                styles.section
+              }
             >
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className={styles.tag}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+              <h3>Tags</h3>
+
+              <div
+                className={styles.tags}
+              >
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className={styles.tag}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </section>
           )}
         </div>
       </div>

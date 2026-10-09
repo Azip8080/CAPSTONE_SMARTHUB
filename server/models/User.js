@@ -31,6 +31,16 @@ const UserSchema = new mongoose.Schema(
     barangay: {
       type: String,
     },
+
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

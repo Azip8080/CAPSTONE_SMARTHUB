@@ -5,6 +5,7 @@ import useAIClassification from "./hooks/useAIClassification";
 import ClassifierForm from "./components/ClassifierForm";
 import ClassificationResult from "./components/ClassificationResult";
 
+
 import {
   saveProjectDraft,
   publishProject,
@@ -33,11 +34,20 @@ const SDG_COLORS = {
 };
 
 function AIClassifier({ onResult }) {
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [projectId, setProjectId] = useState(null);
-  const [barangay, setBarangay] = useState("");
-  const [status, setStatus] = useState("Planned");
+  const [saving, setSaving] =
+    useState(false);
+
+  const [message, setMessage] =
+    useState("");
+
+  const [projectId, setProjectId] =
+    useState(null);
+
+  const [barangay, setBarangay] =
+    useState("");
+
+  const [status, setStatus] =
+    useState("Planned");
 
   const {
     result,
@@ -68,7 +78,9 @@ function AIClassifier({ onResult }) {
     }
   };
 
-  const handlePrimarySDGChange = (tag) => {
+  const handlePrimarySDGChange = (
+    tag
+  ) => {
     setSdgTag(tag);
 
     if (
@@ -85,13 +97,106 @@ function AIClassifier({ onResult }) {
 
   const buildProject = () => ({
     title: title.trim(),
-    description: description.trim(),
+    description:
+      description.trim(),
     sdgTag,
     sdgTags: selectedSDGs,
     tags: projectTags,
-    barangay: barangay.trim(),
+    barangay:
+      barangay.trim(),
     status,
   });
+
+  const handleAIChanges = (
+    changes
+  ) => {
+    if (!changes) {
+      return;
+    }
+
+    if (changes.title) {
+      setTitle(changes.title);
+    }
+
+    if (changes.description) {
+      setDescription(
+        changes.description
+      );
+    }
+
+    if (changes.barangay) {
+      setBarangay(
+        changes.barangay
+      );
+    }
+
+    if (changes.status) {
+      setStatus(changes.status);
+    }
+
+    if (changes.sdgTag) {
+      setSdgTag(
+        changes.sdgTag
+      );
+
+      if (
+        !selectedSDGs.includes(
+          changes.sdgTag
+        )
+      ) {
+        handleToggleSDG(
+          changes.sdgTag
+        );
+      }
+
+      if (onResult) {
+        onResult(
+          changes.sdgTag
+        );
+      }
+    }
+
+    if (
+      Array.isArray(
+        changes.sdgTags
+      )
+    ) {
+      changes.sdgTags.forEach(
+        (tag) => {
+          if (
+            !selectedSDGs.includes(
+              tag
+            )
+          ) {
+            handleToggleSDG(tag);
+          }
+        }
+      );
+    }
+
+    if (
+      Array.isArray(
+        changes.tags
+      )
+    ) {
+      const currentTags =
+        Array.isArray(projectTags)
+          ? projectTags
+          : [];
+
+      changes.tags.forEach(
+        (tag) => {
+          if (
+            !currentTags.includes(
+              tag
+            )
+          ) {
+            handleAddTag(tag);
+          }
+        }
+      );
+    }
+  };
 
   const validateProject = () => {
     if (!title.trim()) {
@@ -117,86 +222,98 @@ function AIClassifier({ onResult }) {
     return "";
   };
 
-  const handleSaveDraft = async () => {
-    const validationError =
-      validateProject();
+  const handleSaveDraft =
+    async () => {
+      const validationError =
+        validateProject();
 
-    if (validationError) {
-      setMessage(validationError);
-      return;
-    }
-
-    setSaving(true);
-    setMessage("");
-
-    try {
-      const saved =
-        await saveProjectDraft(
-          buildProject(),
-          projectId
+      if (validationError) {
+        setMessage(
+          validationError
         );
-
-      if (saved?._id) {
-        setProjectId(saved._id);
+        return;
       }
 
-      setMessage(
-        "Project draft saved successfully."
-      );
-    } catch (err) {
-      setMessage(
-        err.message ||
-          "Unable to save the project draft."
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
+      setSaving(true);
+      setMessage("");
 
-  const handlePublish = async () => {
-    const validationError =
-      validateProject();
+      try {
+        const saved =
+          await saveProjectDraft(
+            buildProject(),
+            projectId
+          );
 
-    if (validationError) {
-      setMessage(validationError);
-      return;
-    }
+        if (saved?._id) {
+          setProjectId(
+            saved._id
+          );
+        }
 
-    setSaving(true);
-    setMessage("");
-
-    try {
-      const saved =
-        await saveProjectDraft(
-          buildProject(),
-          projectId
+        setMessage(
+          "Project draft saved successfully."
         );
-
-      if (!saved?._id && !projectId) {
-        throw new Error(
-          "The server did not return the saved project ID."
+      } catch (err) {
+        setMessage(
+          err.message ||
+            "Unable to save the project draft."
         );
+      } finally {
+        setSaving(false);
+      }
+    };
+
+  const handlePublish =
+    async () => {
+      const validationError =
+        validateProject();
+
+      if (validationError) {
+        setMessage(
+          validationError
+        );
+        return;
       }
 
-      const id =
-        saved?._id || projectId;
+      setSaving(true);
+      setMessage("");
 
-      setProjectId(id);
+      try {
+        const saved =
+          await saveProjectDraft(
+            buildProject(),
+            projectId
+          );
 
-      await publishProject(id);
+        if (
+          !saved?._id &&
+          !projectId
+        ) {
+          throw new Error(
+            "The server did not return the saved project ID."
+          );
+        }
 
-      setMessage(
-        "Project published successfully."
-      );
-    } catch (err) {
-      setMessage(
-        err.message ||
-          "Unable to publish the project."
-      );
-    } finally {
-      setSaving(false);
-    }
-  };
+        const id =
+          saved?._id ||
+          projectId;
+
+        setProjectId(id);
+
+        await publishProject(id);
+
+        setMessage(
+          "Project published successfully."
+        );
+      } catch (err) {
+        setMessage(
+          err.message ||
+            "Unable to publish the project."
+        );
+      } finally {
+        setSaving(false);
+      }
+    };
 
   const handleReset = () => {
     resetClassification();
@@ -208,45 +325,81 @@ function AIClassifier({ onResult }) {
 
   return (
     <main className={styles.page}>
-      <header className={styles.pageHeader}>
+      <header
+        className={
+          styles.pageHeader
+        }
+      >
         <div>
-          <div className={styles.breadcrumb}>
-            Admin Panel <span>/</span> AI Classifier
+          <div
+            className={
+              styles.breadcrumb
+            }
+          >
+            Admin Panel{" "}
+            <span>/</span> AI Classifier
           </div>
 
-          <h1>AI SDG Classifier</h1>
+          <h1>
+            AI SDG Classifier
+          </h1>
 
           <p>
-            Identify which Sustainable Development
-            Goals relate to a project using NLP
+            Identify which Sustainable
+            Development Goals relate to
+            a project using NLP
             classification.
           </p>
         </div>
 
-        <div className={styles.headerBadge}>
-          <span className={styles.statusDot} />
+        <div
+          className={
+            styles.headerBadge
+          }
+        >
+          <span
+            className={
+              styles.statusDot
+            }
+          />
           AI Classification
         </div>
       </header>
 
-      <section className={styles.introCard}>
-        <div className={styles.introIcon}>✦</div>
+      <section
+        className={
+          styles.introCard
+        }
+      >
+        <div
+          className={
+            styles.introIcon
+          }
+        >
+          ✦
+        </div>
 
         <div>
           <h2>
-            Turn project information into SDG
-            suggestions
+            Turn project information
+            into SDG suggestions
           </h2>
 
           <p>
-            Analyze project information, review
-            multiple SDG suggestions, and confirm
-            the project details before publishing.
+            Analyze project information,
+            review multiple SDG
+            suggestions, and confirm
+            the project details before
+            publishing.
           </p>
         </div>
       </section>
 
-      <div className={styles.contentGrid}>
+      <div
+        className={
+          styles.contentGrid
+        }
+      >
         <ClassifierForm
           loading={loading}
           onClassifyText={
@@ -261,22 +414,48 @@ function AIClassifier({ onResult }) {
           result={result}
           loading={loading}
           error={error}
-          onUseResult={handleUseResult}
+          onUseResult={
+            handleUseResult
+          }
           onReset={handleReset}
-          selectedSDGs={selectedSDGs}
-          onToggleSDG={handleToggleSDG}
-          selectedTags={projectTags}
-          onToggleTag={handleToggleTag}
-          onAddTag={handleAddTag}
-          onRemoveTag={handleRemoveTag}
+          selectedSDGs={
+            selectedSDGs
+          }
+          onToggleSDG={
+            handleToggleSDG
+          }
+          selectedTags={
+            projectTags
+          }
+          onToggleTag={
+            handleToggleTag
+          }
+          onAddTag={
+            handleAddTag
+          }
+          onRemoveTag={
+            handleRemoveTag
+          }
         />
       </div>
 
       {result && !loading && (
-        <section className={styles.reviewCard}>
-          <div className={styles.reviewHeader}>
+        <section
+          className={
+            styles.reviewCard
+          }
+        >
+          <div
+            className={
+              styles.reviewHeader
+            }
+          >
             <div>
-              <span className={styles.reviewEyebrow}>
+              <span
+                className={
+                  styles.reviewEyebrow
+                }
+              >
                 PROJECT REVIEW
               </span>
 
@@ -285,22 +464,35 @@ function AIClassifier({ onResult }) {
               </h2>
 
               <p>
-                Confirm the information below.
-                The classification is only a
-                suggestion until you approve the
-                selected SDGs.
+                Confirm the information
+                below. The classification
+                is only a suggestion until
+                you approve the selected
+                SDGs.
               </p>
             </div>
 
-            <span className={styles.reviewStatus}>
+            <span
+              className={
+                styles.reviewStatus
+              }
+            >
               {projectId
                 ? "Draft saved"
                 : "Not saved"}
             </span>
           </div>
 
-          <div className={styles.reviewGrid}>
-            <div className={styles.reviewField}>
+          <div
+            className={
+              styles.reviewGrid
+            }
+          >
+            <div
+              className={
+                styles.reviewField
+              }
+            >
               <label htmlFor="review-title">
                 Project title
               </label>
@@ -309,14 +501,20 @@ function AIClassifier({ onResult }) {
                 id="review-title"
                 value={title}
                 onChange={(e) =>
-                  setTitle(e.target.value)
+                  setTitle(
+                    e.target.value
+                  )
                 }
                 maxLength={200}
                 required
               />
             </div>
 
-            <div className={styles.reviewField}>
+            <div
+              className={
+                styles.reviewField
+              }
+            >
               <label htmlFor="review-sdg">
                 Primary SDG
               </label>
@@ -339,17 +537,26 @@ function AIClassifier({ onResult }) {
                   { length: 17 },
                   (_, index) => (
                     <option
-                      key={index + 1}
-                      value={`SDG ${index + 1}`}
+                      key={
+                        index + 1
+                      }
+                      value={`SDG ${
+                        index + 1
+                      }`}
                     >
-                      SDG {index + 1}
+                      SDG{" "}
+                      {index + 1}
                     </option>
                   )
                 )}
               </select>
             </div>
 
-            <div className={styles.reviewField}>
+            <div
+              className={
+                styles.reviewField
+              }
+            >
               <label htmlFor="review-barangay">
                 Barangay or community
               </label>
@@ -358,14 +565,20 @@ function AIClassifier({ onResult }) {
                 id="review-barangay"
                 value={barangay}
                 onChange={(e) =>
-                  setBarangay(e.target.value)
+                  setBarangay(
+                    e.target.value
+                  )
                 }
                 placeholder="Enter barangay or community"
                 required
               />
             </div>
 
-            <div className={styles.reviewField}>
+            <div
+              className={
+                styles.reviewField
+              }
+            >
               <label htmlFor="review-status">
                 Project status
               </label>
@@ -374,7 +587,9 @@ function AIClassifier({ onResult }) {
                 id="review-status"
                 value={status}
                 onChange={(e) =>
-                  setStatus(e.target.value)
+                  setStatus(
+                    e.target.value
+                  )
                 }
               >
                 <option value="Planned">
@@ -398,12 +613,18 @@ function AIClassifier({ onResult }) {
                 Selected SDGs
               </label>
 
-              <div className={styles.sdgSelection}>
+              <div
+                className={
+                  styles.sdgSelection
+                }
+              >
                 {Array.from(
                   { length: 17 },
                   (_, index) => {
                     const tag =
-                      `SDG ${index + 1}`;
+                      `SDG ${
+                        index + 1
+                      }`;
 
                     const selected =
                       selectedSDGs.includes(
@@ -427,7 +648,9 @@ function AIClassifier({ onResult }) {
                       >
                         <input
                           type="checkbox"
-                          checked={selected}
+                          checked={
+                            selected
+                          }
                           onChange={() =>
                             handleToggleSDG(
                               tag
@@ -444,9 +667,17 @@ function AIClassifier({ onResult }) {
                 )}
               </div>
 
-              <span className={styles.fieldHint}>
-                {selectedSDGs.length} SDG
-                {selectedSDGs.length !== 1
+              <span
+                className={
+                  styles.fieldHint
+                }
+              >
+                {
+                  selectedSDGs.length
+                }{" "}
+                SDG
+                {selectedSDGs.length !==
+                1
                   ? "s"
                   : ""}{" "}
                 selected
@@ -477,7 +708,9 @@ function AIClassifier({ onResult }) {
 
           {error && (
             <p
-              className={styles.reviewError}
+              className={
+                styles.reviewError
+              }
               role="alert"
             >
               {error}
@@ -495,13 +728,19 @@ function AIClassifier({ onResult }) {
             </p>
           )}
 
-          <div className={styles.reviewActions}>
+          <div
+            className={
+              styles.reviewActions
+            }
+          >
             <button
               type="button"
               className={
                 styles.saveDraftButton
               }
-              onClick={handleSaveDraft}
+              onClick={
+                handleSaveDraft
+              }
               disabled={saving}
             >
               {saving
@@ -514,7 +753,9 @@ function AIClassifier({ onResult }) {
               className={
                 styles.publishButton
               }
-              onClick={handlePublish}
+              onClick={
+                handlePublish
+              }
               disabled={saving}
             >
               {saving
@@ -528,19 +769,27 @@ function AIClassifier({ onResult }) {
               styles.reviewFootnote
             }
           >
-            Publishing makes the project
-            eligible for the public Showcase.
-            Verify all details before publishing.
+            Publishing makes the
+            project eligible for the
+            public Showcase. Verify all
+            details before publishing.
           </p>
         </section>
       )}
 
-      <footer className={styles.pageFooter}>
-        <span>SDG SMART HUB</span>
+      <footer
+        className={
+          styles.pageFooter
+        }
+      >
+        <span>
+          SDG SMART HUB
+        </span>
 
         <span>
-          AI-generated suggestions should be
-          reviewed by an admin.
+          AI-generated suggestions
+          should be reviewed by an
+          admin.
         </span>
       </footer>
     </main>

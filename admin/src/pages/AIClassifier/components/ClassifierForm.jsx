@@ -1,4 +1,3 @@
-
 import { useRef, useState } from "react";
 import styles from "./ClassifierForm.module.css";
 
@@ -13,7 +12,6 @@ function ClassifierForm({
   const [file, setFile] = useState(null);
   const fileRef = useRef(null);
 
-  // Validate uploaded files
   const validateFile = (selected) => {
     if (!selected) return false;
 
@@ -35,19 +33,19 @@ function ClassifierForm({
     return true;
   };
 
-  // Handle text submission
   const handleTextSubmit = (event) => {
     event.preventDefault();
     onClassifyText(title, description);
   };
 
-  // Handle file submission
   const handleFileSubmit = (event) => {
     event.preventDefault();
-    if (file) onClassifyFile(file);
+
+    if (file) {
+      onClassifyFile(file);
+    }
   };
 
-  // Handle file selection
   const handleFileChange = (event) => {
     const selected = event.target.files?.[0];
 
@@ -59,7 +57,6 @@ function ClassifierForm({
     }
   };
 
-  // Handle drag-and-drop files
   const handleDrop = (event) => {
     event.preventDefault();
 
@@ -93,11 +90,14 @@ function ClassifierForm({
       <div className={styles.heading}>
         <div>
           <span className={styles.eyebrow}>
-            CLASSIFICATION TOOL
+            STEP 01 · PROJECT INPUT
           </span>
-          <h2>Analyze a project</h2>
+
+          <h2>Start an AI analysis</h2>
+
           <p>
-            Enter project details or upload a document.
+            Provide project information or upload
+            an existing project document.
           </p>
         </div>
 
@@ -114,7 +114,8 @@ function ClassifierForm({
           }
           onClick={() => setTab("text")}
         >
-          ✎ Text input
+          <span>✎</span>
+          Text input
         </button>
 
         <button
@@ -126,7 +127,8 @@ function ClassifierForm({
           }
           onClick={() => setTab("file")}
         >
-          ▤ Upload file
+          <span>↑</span>
+          Upload document
         </button>
       </div>
 
@@ -152,9 +154,15 @@ function ClassifierForm({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="project-description">
-              Project description
-            </label>
+            <div className={styles.labelRow}>
+              <label htmlFor="project-description">
+                Project description
+              </label>
+
+              <span className={styles.counter}>
+                {description.length}/10,000
+              </span>
+            </div>
 
             <textarea
               id="project-description"
@@ -162,14 +170,10 @@ function ClassifierForm({
               onChange={(event) =>
                 setDescription(event.target.value)
               }
-              placeholder="Describe the project's objectives, activities, and expected impact..."
-              rows={6}
+              placeholder="Describe the objectives, activities, beneficiaries, location, and expected impact..."
+              rows={7}
               maxLength={10000}
             />
-
-            <span className={styles.hint}>
-              {description.length}/10,000 characters
-            </span>
           </div>
 
           <button
@@ -177,12 +181,15 @@ function ClassifierForm({
             className={styles.primaryButton}
             disabled={
               loading ||
-              (!title.trim() && !description.trim())
+              (!title.trim() &&
+                !description.trim())
             }
           >
-            {loading
-              ? "Analyzing..."
-              : "Classify project"}
+            <span>
+              {loading
+                ? "Analyzing project..."
+                : "Analyze project"}
+            </span>
 
             {!loading && <span>→</span>}
           </button>
@@ -203,26 +210,34 @@ function ClassifierForm({
           <button
             type="button"
             className={`${styles.dropzone} ${
-              file ? styles.dropzoneSelected : ""
+              file
+                ? styles.dropzoneSelected
+                : ""
             }`}
-            onClick={() => fileRef.current?.click()}
+            onClick={() =>
+              fileRef.current?.click()
+            }
             onDragOver={(event) =>
               event.preventDefault()
             }
             onDrop={handleDrop}
           >
-            <span className={styles.uploadIcon}>
+            <span
+              className={
+                styles.uploadIcon
+              }
+            >
               {file ? "✓" : "↑"}
             </span>
 
             <strong>
               {file
                 ? file.name
-                : "Choose a document to analyze"}
+                : "Drop your project document here"}
             </strong>
 
             <span className={styles.hint}>
-              Click to browse or drag a file here
+              Click to browse or drag and drop
             </span>
 
             <span className={styles.fileTypes}>
@@ -231,13 +246,23 @@ function ClassifierForm({
           </button>
 
           {file && (
-            <button
-              type="button"
-              className={styles.removeFile}
-              onClick={handleRemoveFile}
-            >
-              Remove selected file
-            </button>
+            <div className={styles.fileSelected}>
+              <div>
+                <strong>
+                  Document selected
+                </strong>
+
+                <span>{file.name}</span>
+              </div>
+
+              <button
+                type="button"
+                className={styles.removeFile}
+                onClick={handleRemoveFile}
+              >
+                Remove
+              </button>
+            </div>
           )}
 
           <button
@@ -245,9 +270,11 @@ function ClassifierForm({
             className={styles.primaryButton}
             disabled={loading || !file}
           >
-            {loading
-              ? "Analyzing document..."
-              : "Classify document"}
+            <span>
+              {loading
+                ? "Analyzing document..."
+                : "Analyze document"}
+            </span>
 
             {!loading && <span>→</span>}
           </button>
@@ -258,9 +285,10 @@ function ClassifierForm({
         <span>ⓘ</span>
 
         <p>
-          The classifier suggests an SDG category based on
-          the submitted content. Review the suggestion
-          before using it.
+          AI suggestions are recommendations.
+          Review the detected SDGs, evidence,
+          tags, and project information before
+          saving or publishing.
         </p>
       </div>
     </section>

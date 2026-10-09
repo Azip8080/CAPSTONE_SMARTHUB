@@ -38,8 +38,7 @@ const STATUS_STYLES = {
 };
 
 function FeaturedProject({ project }) {
-  const [open, setOpen] =
-    useState(false);
+  const [open, setOpen] = useState(false);
 
   const sdgs =
     Array.isArray(project.sdgTags) &&
@@ -152,6 +151,7 @@ function FeaturedProject({ project }) {
           )}
 
           <button
+            type="button"
             className={
               styles.viewBtn
             }

@@ -1,36 +1,39 @@
-
 .card {
   min-width: 0;
-  padding: 25px;
+  padding: 26px;
   border: 1px solid #e1e7f0;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 2px 7px rgb(27 48 79 / 3%);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgb(27 48 79 / 4%);
 }
 
 .heading {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 22px;
 }
 
 .eyebrow {
   display: block;
   margin-bottom: 8px;
-  color: #8a97ab;
+  color: #3478f6;
   font-size: 10px;
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: 1.1px;
 }
 
 .heading h2 {
-  margin: 0 0 8px;
+  margin: 0 0 7px;
   color: #17233b;
-  font-size: 19px;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.4px;
 }
 
 .heading p {
+  max-width: 460px;
   margin: 0;
   color: #7a879b;
   font-size: 12px;
@@ -39,38 +42,42 @@
 
 .step {
   display: grid;
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid #e1e8f3;
-  border-radius: 9px;
-  background: #f7f9fc;
-  color: #78869d;
-  font-size: 12px;
-  font-weight: 700;
+  border: 1px solid #dce5f4;
+  border-radius: 10px;
+  background: #f4f7fc;
+  color: #3478f6;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 5px;
-  margin-bottom: 24px;
+  margin-bottom: 22px;
   padding: 5px;
-  border-radius: 9px;
-  background: #f2f5fa;
+  border-radius: 10px;
+  background: #f1f4f9;
 }
 
 .tab,
 .activeTab {
-  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 43px;
   padding: 9px;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 8px;
   cursor: pointer;
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 650;
 }
 
 .tab {
@@ -79,22 +86,22 @@
 }
 
 .activeTab {
-  border-color: #e3eaf6;
-  background: #fff;
+  border-color: #dce5f4;
+  background: #ffffff;
   color: #285fc3;
-  box-shadow: 0 1px 4px rgb(24 45 78 / 7%);
+  box-shadow: 0 2px 6px rgb(24 45 78 / 7%);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 19px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 8px;
 }
 
 .field label {
@@ -103,17 +110,33 @@
   font-weight: 700;
 }
 
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.counter {
+  color: #98a3b4;
+  font-size: 10px;
+}
+
 .field input,
 .field textarea {
   width: 100%;
-  padding: 12px 14px;
+  box-sizing: border-box;
+  padding: 12px 13px;
   border: 1px solid #dce3ed;
   border-radius: 9px;
   outline: none;
-  background: #fff;
+  background: #ffffff;
   color: #26364e;
   font: inherit;
   font-size: 13px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .field input {
@@ -121,7 +144,7 @@
 }
 
 .field textarea {
-  min-height: 145px;
+  min-height: 150px;
   line-height: 1.7;
   resize: vertical;
 }
@@ -137,16 +160,6 @@
   color: #a1adbd;
 }
 
-.hint {
-  color: #8995a8;
-  font-size: 11px;
-  line-height: 1.6;
-}
-
-.field .hint {
-  align-self: flex-end;
-}
-
 .primaryButton {
   display: flex;
   align-items: center;
@@ -158,24 +171,27 @@
   border: 1px solid #3478f6;
   border-radius: 9px;
   background: #3478f6;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-  transition: background 0.2s;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .primaryButton:hover:not(:disabled) {
   background: #2468e8;
+  border-color: #2468e8;
 }
 
 .primaryButton:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.55;
 }
 
-.primaryButton span {
+.primaryButton > span:last-child {
   font-size: 17px;
 }
 
@@ -185,17 +201,20 @@
 
 .dropzone {
   display: flex;
-  min-height: 245px;
+  min-height: 250px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 24px;
-  border: 1.5px dashed #cbd8eb;
-  border-radius: 12px;
-  background: #fafcff;
+  gap: 11px;
+  padding: 28px;
+  border: 1.5px dashed #c8d6eb;
+  border-radius: 13px;
+  background: #f9fbff;
   cursor: pointer;
   text-align: center;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .dropzone:hover {
@@ -217,13 +236,14 @@
 
 .uploadIcon {
   display: grid;
-  width: 52px;
-  height: 52px;
+  width: 54px;
+  height: 54px;
   place-items: center;
-  border-radius: 14px;
+  border-radius: 15px;
   background: #e9f1ff;
   color: #3478f6;
-  font-size: 26px;
+  font-size: 27px;
+  font-weight: 500;
 }
 
 .dropzoneSelected .uploadIcon {
@@ -231,21 +251,63 @@
   color: #238454;
 }
 
+.hint {
+  color: #8995a8;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
 .fileTypes {
-  color: #9aa6b7;
+  color: #a0aaba;
+  font-size: 10px;
+}
+
+.fileSelected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid #dce9e1;
+  border-radius: 9px;
+  background: #f7fcf9;
+}
+
+.fileSelected > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fileSelected strong {
+  color: #28704d;
   font-size: 11px;
 }
 
+.fileSelected span {
+  min-width: 0;
+  overflow: hidden;
+  color: #627795;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .removeFile {
-  align-self: flex-end;
-  margin-top: -10px;
-  padding: 4px 0;
+  flex-shrink: 0;
+  padding: 5px 8px;
   border: 0;
   background: transparent;
-  color: #d04a4a;
+  color: #c24141;
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.removeFile:hover {
+  color: #991b1b;
 }
 
 .note {
@@ -265,13 +327,17 @@
 .note p {
   margin: 0;
   color: #8491a4;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1.7;
 }
 
 @media (max-width: 600px) {
   .card {
-    padding: 18px;
+    padding: 19px;
+  }
+
+  .heading {
+    gap: 10px;
   }
 
   .tabs {
@@ -280,7 +346,12 @@
 
   .tab,
   .activeTab {
-    padding: 8px 4px;
+    padding: 8px 5px;
     font-size: 11px;
+  }
+
+  .dropzone {
+    min-height: 220px;
+    padding: 20px;
   }
 }

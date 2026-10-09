@@ -146,3 +146,25 @@ export async function publishProject(projectId) {
     method: "PATCH",
   });
 }
+export async function refineProject(
+  project,
+  instruction
+) {
+  const response = await fetchWithTimeout(
+    `${API_BASE}/refine`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({
+        project,
+        instruction,
+      }),
+    }
+  );
+
+  return handleResponse(response);
+}

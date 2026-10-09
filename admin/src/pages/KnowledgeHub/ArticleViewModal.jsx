@@ -10,55 +10,186 @@ function ArticleViewModal({
     article.sdgTag
   );
 
+  const photos =
+    Array.isArray(article.photos)
+      ? article.photos
+      : [];
+
   return (
     <div className={styles.viewBody}>
-      <div className={styles.viewBadges}>
+      <div className={styles.header}>
         <span
-          className={styles.sdgChip}
-          style={{
-            background:
-              sdg.color || "#888",
-          }}
+          className={styles.headerLabel}
         >
-          {article.sdgTag}
+          KNOWLEDGE RESOURCE
         </span>
 
-        <span className={styles.catChip}>
-          {article.category}
-        </span>
+        <h2 className={styles.title}>
+          {article.title}
+        </h2>
 
-        <span className={styles.sdgName}>
-          {sdg.label}
-        </span>
+        <div
+          className={styles.viewBadges}
+        >
+          <span
+            className={styles.sdgChip}
+            style={{
+              background:
+                sdg.color || "#888",
+            }}
+          >
+            {article.sdgTag}
+          </span>
+
+          <span
+            className={styles.catChip}
+          >
+            {article.category}
+          </span>
+
+          <span
+            className={styles.sdgName}
+          >
+            {sdg.label}
+          </span>
+        </div>
       </div>
 
-      {article.photos?.length > 0 && (
-        <img
-          className={styles.viewImage}
-          src={`http://localhost:5000${article.photos[0]}`}
-          alt={article.title}
-        />
+      {photos.length > 0 ? (
+        <section
+          className={styles.gallerySection}
+        >
+          <div
+            className={
+              styles.sectionHeading
+            }
+          >
+            <h3>Resource Photos</h3>
+
+            <span>
+              {photos.length} photo
+              {photos.length !== 1
+                ? "s"
+                : ""}
+            </span>
+          </div>
+
+          <div
+            className={styles.photoGrid}
+          >
+            {photos.map(
+              (photo, index) => (
+                <div
+                  key={`${photo}-${index}`}
+                  className={
+                    index === 0
+                      ? styles.primaryPhoto
+                      : styles.secondaryPhoto
+                  }
+                >
+                  <img
+                    src={`http://localhost:5000${photo}`}
+                    alt={`${article.title} ${
+                      index + 1
+                    }`}
+                  />
+                </div>
+              )
+            )}
+          </div>
+        </section>
+      ) : (
+        <div
+          className={styles.photoEmpty}
+        >
+          No resource photos available.
+        </div>
       )}
 
-      <p className={styles.viewContent}>
-        {article.content}
-      </p>
+      <section
+        className={styles.contentSection}
+      >
+        <div
+          className={
+            styles.sectionHeading
+          }
+        >
+          <h3>Resource Content</h3>
+        </div>
+
+        <p
+          className={styles.viewContent}
+        >
+          {article.content ||
+            "No resource content available."}
+        </p>
+      </section>
+
+      <section
+        className={styles.infoSection}
+      >
+        <div>
+          <span
+            className={styles.infoLabel}
+          >
+            SDG
+          </span>
+
+          <span
+            className={styles.infoValue}
+          >
+            {article.sdgTag}
+          </span>
+        </div>
+
+        <div>
+          <span
+            className={styles.infoLabel}
+          >
+            CATEGORY
+          </span>
+
+          <span
+            className={styles.infoValue}
+          >
+            {article.category}
+          </span>
+        </div>
+
+        <div>
+          <span
+            className={styles.infoLabel}
+          >
+            SDG GOAL
+          </span>
+
+          <span
+            className={styles.infoValue}
+          >
+            {sdg.label}
+          </span>
+        </div>
+      </section>
 
       <div className={styles.viewActions}>
         <button
+          type="button"
           className={styles.editBtn}
-          onClick={() => onEdit(article)}
+          onClick={() =>
+            onEdit(article)
+          }
         >
-          Edit
+          Edit Resource
         </button>
 
         <button
+          type="button"
           className={styles.deleteBtn}
           onClick={() =>
             onDelete(article._id)
           }
         >
-          Delete
+          Delete Resource
         </button>
       </div>
     </div>
