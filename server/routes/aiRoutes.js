@@ -21,7 +21,7 @@ const {
 
 const {
   detectMissingInformation,
-} = require("../ai/missinginfo");
+} = require("../ai/missingInfo");
 
 const {
   generateProjectSummary,
