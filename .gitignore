@@ -30,3 +30,6 @@ desktop.ini
 # Editor settings
 .vscode/
 !.vscode/extensions.json
+
+# Database backups
+database-backup/
