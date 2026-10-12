@@ -1,4 +1,5 @@
-const BASE = "http://localhost:5000/api/knowledge";
+const BASE = "https://sdg-smarthub-api.onrender.com/api/knowledge";
+
 
 export async function fetchGuides() {
   const res = await fetch(BASE);

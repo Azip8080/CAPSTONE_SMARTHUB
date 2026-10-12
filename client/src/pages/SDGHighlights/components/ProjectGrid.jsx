@@ -76,7 +76,7 @@ function ProjectCard({ project }) {
           {project.photos?.length > 0 ? (
             <img
               className={styles.projectImage}
-              src={`http://localhost:5000${project.photos[0]}`}
+              src={`https://sdg-smarthub-api.onrender.com${project.photos[0]}`}
               alt={project.title}
             />
           ) : (

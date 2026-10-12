@@ -2,7 +2,8 @@ import styles from "./Signup.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-const API = "http://localhost:5000/api/users";
+const API = "https://sdg-smarthub-api.onrender.com/api/users";
+
 
 function Signup() {
   const navigate = useNavigate();

@@ -72,7 +72,7 @@ function GuideCard({ guide, onRead }) {
       <div className={styles.cardImage}>
         {guide.photos?.length > 0 ? (
           <img
-            src={`http://localhost:5000${guide.photos[0]}`}
+            src={`https://sdg-smarthub-api.onrender.com${guide.photos[0]}`}
             alt={guide.title}
             className={styles.guideImage}
           />
@@ -223,7 +223,7 @@ function GuideModal({ guide, onClose }) {
         <div className={styles.modalBody}>
           {guide.photos?.length > 0 && (
             <img
-              src={`http://localhost:5000${guide.photos[0]}`}
+              src={`https://sdg-smarthub-api.onrender.com${guide.photos[0]}`}
               alt={guide.title}
               className={styles.modalImage}
             />

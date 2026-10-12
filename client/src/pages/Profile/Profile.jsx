@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Profile.module.css";
 
-const BASE = "http://localhost:5000/api/users";
+const BASE = "https://sdg-smarthub-api.onrender.com/api/users";
 
 function Profile() {
   const navigate = useNavigate();

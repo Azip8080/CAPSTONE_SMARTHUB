@@ -1,4 +1,5 @@
-const BASE = "http://localhost:5000/api/analytics";
+const BASE = "https://sdg-smarthub-api.onrender.com/api/analytics";
+
 
 export async function fetchDistribution(params = {}) {
   const query = new URLSearchParams(params).toString();

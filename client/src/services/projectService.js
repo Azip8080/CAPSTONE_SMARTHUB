@@ -1,4 +1,4 @@
-const BASE = "http://localhost:5000/api/projects";
+const BASE = "https://sdg-smarthub-api.onrender.com/api/projects";
 
 export async function fetchProjects(params = {}) {
   const query = new URLSearchParams(params).toString();

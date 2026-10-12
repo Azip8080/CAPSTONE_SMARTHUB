@@ -3,7 +3,7 @@ import styles from "./ProjectModal.module.css";
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5000/api";
+  "https://sdg-smarthub-api.onrender.com/api";
 
 function getPhotoUrl(photo) {
   if (!photo) return "";

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./PasswordReset.module.css";
 
-const API = "http://localhost:5000/api/users";
+const API = "https://sdg-smarthub-api.onrender.com/api/users";
+
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");

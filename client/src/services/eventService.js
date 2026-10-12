@@ -1,5 +1,6 @@
 const BASE =
-  "http://localhost:5000/api/events";
+  "https://sdg-smarthub-api.onrender.com/api/events";
+
 
 export async function fetchEvents(
   params = {}
