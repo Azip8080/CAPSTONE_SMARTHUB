@@ -1,6 +1,6 @@
 
 require("dotenv").config({
-  path: require("path").join(__dirname, ".env")
+  path: require("path").join(__dirname, ".env"),
 });
 
 const express = require("express");
@@ -41,13 +41,15 @@ app.get("/", (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
-  if (!process.env.MONGODB_URI) {
+  const mongoUri = process.env.MONGODB_URI;
+
+  if (!mongoUri) {
     console.error("MONGODB_URI is missing from your environment.");
     process.exit(1);
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(mongoUri);
     console.log("MongoDB Atlas Connected");
 
     app.listen(PORT, () => {

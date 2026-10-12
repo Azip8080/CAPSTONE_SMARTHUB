@@ -1,9 +1,9 @@
+
 const express = require("express");
 const router = express.Router();
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
 
 const User = require("../models/User");
 const RegistrationOTP = require("../models/RegistrationOTP");
@@ -11,15 +11,54 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/adminOnly");
 const { logActivity } = require("../utils/activityLogger");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-});
+// Brevo transactional email API (HTTPS)
+async function sendBrevoEmail({ to, subject, textContent, htmlContent }) {
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
 
+  if (!apiKey || !senderEmail) {
+    throw new Error(
+      "BREVO_API_KEY or BREVO_SENDER_EMAIL is not configured."
+    );
+  }
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "api-key": apiKey,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      sender: {
+        name: "SDG Smart Hub",
+        email: senderEmail,
+      },
+      to: [{ email: to }],
+      subject,
+      textContent,
+      ...(htmlContent ? { htmlContent } : {}),
+    }),
+  });
+
+  if (!response.ok) {
+    const errorDetails = await response.text();
+    console.error(
+      "[BREVO EMAIL ERROR]",
+      response.status,
+      errorDetails
+    );
+    throw new Error(`Brevo rejected the email (HTTP ${response.status}).`);
+  }
+
+  return response.json();
+}
+
+// Send signup OTP
 router.post("/send-otp", async (req, res) => {
+  let normalizedEmail;
+  let otpHash;
+
   try {
     const { fullName, email, password, barangay } = req.body;
 
@@ -42,19 +81,24 @@ router.post("/send-otp", async (req, res) => {
       });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_APP_PASSWORD) {
-      console.error("Gmail environment variables are not configured.");
+    if (
+      !process.env.BREVO_API_KEY ||
+      !process.env.BREVO_SENDER_EMAIL
+    ) {
+      console.error("Brevo environment variables are not configured.");
       return res.status(500).json({
         message: "Email service is not configured. Please try again later.",
       });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
+    normalizedEmail = email.toLowerCase().trim();
     const normalizedName = fullName.trim();
     const normalizedBarangay =
       typeof barangay === "string" ? barangay.trim() : "";
 
-    const existingUser = await User.findOne({ email: normalizedEmail });
+    const existingUser = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (existingUser) {
       return res.status(409).json({
@@ -76,7 +120,7 @@ router.post("/send-otp", async (req, res) => {
     }
 
     const otp = crypto.randomInt(100000, 1000000).toString();
-    const otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+    otpHash = crypto.createHash("sha256").update(otp).digest("hex");
     const hashedPassword = await bcrypt.hash(password, 12);
 
     await RegistrationOTP.findOneAndUpdate(
@@ -100,14 +144,13 @@ router.post("/send-otp", async (req, res) => {
     );
 
     try {
-      await transporter.sendMail({
-        from: `"SDG Smart Hub" <${process.env.EMAIL_USER}>`,
+      await sendBrevoEmail({
         to: normalizedEmail,
         subject: "SDG Smart Hub - Email Verification Code",
-        text: `Your SDG Smart Hub verification code is ${otp}.
+        textContent: `Your SDG Smart Hub verification code is ${otp}.
 
 This code expires in 10 minutes. If you did not try to create an account, you can ignore this email.`,
-        html: `
+        htmlContent: `
           <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#172033">
             <h2>SDG Smart Hub Email Verification</h2>
             <p>Use this code to verify your email address and finish creating your account:</p>
@@ -135,12 +178,25 @@ This code expires in 10 minutes. If you did not try to create an account, you ca
     });
   } catch (err) {
     console.error("[SEND OTP ERROR]", err);
+
+    if (normalizedEmail && otpHash) {
+      try {
+        await RegistrationOTP.deleteOne({
+          email: normalizedEmail,
+          otpHash,
+        });
+      } catch (cleanupError) {
+        console.error("[OTP CLEANUP ERROR]", cleanupError);
+      }
+    }
+
     return res.status(500).json({
       message: "Failed to send verification code.",
     });
   }
 });
 
+// Verify signup OTP
 router.post("/verify-otp", async (req, res) => {
   try {
     const email =
@@ -240,6 +296,7 @@ router.post("/register", async (req, res) => {
   });
 });
 
+// Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -291,6 +348,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Request password reset
 router.post("/forgot-password", async (req, res) => {
   try {
     const email =
@@ -335,17 +393,29 @@ router.post("/forgot-password", async (req, res) => {
       `${clientUrl.replace(/\/$/, "")}/reset-password/${resetToken}`;
 
     try {
-      await transporter.sendMail({
-        from: `"SDG Smart Hub" <${process.env.EMAIL_USER}>`,
+      await sendBrevoEmail({
         to: user.email,
         subject: "SDG Smart Hub - Password Reset",
-        text: `You requested a password reset for your SDG Smart Hub account.
+        textContent: `You requested a password reset for your SDG Smart Hub account.
 
 Open the following link within 15 minutes to create a new password:
 
 ${resetLink}
 
 If you did not request this, you can ignore this email.`,
+        htmlContent: `
+          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#172033">
+            <h2>SDG Smart Hub Password Reset</h2>
+            <p>You requested a password reset for your account.</p>
+            <p>
+              <a href="${resetLink}" style="display:inline-block;padding:12px 18px;background:#176b45;color:#ffffff;text-decoration:none;border-radius:6px">
+                Reset Password
+              </a>
+            </p>
+            <p>This link expires in <strong>15 minutes</strong>.</p>
+            <p>If you did not request this, you can ignore this email.</p>
+          </div>
+        `,
       });
     } catch (emailError) {
       user.resetPasswordToken = null;
@@ -365,6 +435,7 @@ If you did not request this, you can ignore this email.`,
   }
 });
 
+// Complete password reset
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -413,6 +484,7 @@ router.post("/reset-password/:token", async (req, res) => {
   }
 });
 
+// Create admin account
 router.post("/admin", auth, adminOnly, async (req, res) => {
   try {
     const { fullName, email, password, barangay } = req.body;
@@ -472,6 +544,7 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
   }
 });
 
+// Get current user
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
@@ -493,6 +566,7 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
+// Update user
 router.put("/:id", auth, adminOnly, async (req, res) => {
   try {
     const { password, ...safeFields } = req.body;
@@ -530,6 +604,7 @@ router.put("/:id", auth, adminOnly, async (req, res) => {
   }
 });
 
+// Change password while logged in
 router.put("/:id/password", auth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -553,7 +628,7 @@ router.put("/:id/password", auth, async (req, res) => {
 
     if (newPassword.length < 8) {
       return res.status(400).json({
-        message: "Password must be at least 8 characters long.",
+        message: "New password must be at least 8 characters long.",
       });
     }
 
@@ -598,6 +673,7 @@ router.put("/:id/password", auth, async (req, res) => {
   }
 });
 
+// List users
 router.get("/", auth, adminOnly, async (req, res) => {
   try {
     const users = await User.find()
@@ -613,6 +689,7 @@ router.get("/", auth, adminOnly, async (req, res) => {
   }
 });
 
+// Delete user
 router.delete("/:id", auth, adminOnly, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -629,7 +706,7 @@ router.delete("/:id", auth, adminOnly, async (req, res) => {
       entityType: "user",
       entityId: user._id,
       entityTitle: user.fullName,
-      details: "Deleted a user account.",
+      details: "Deleted user account.",
     });
 
     return res.json({
