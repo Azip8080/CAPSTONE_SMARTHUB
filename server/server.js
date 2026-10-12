@@ -8,6 +8,19 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 
+console.log(
+  "CLIENT_URL configured:",
+  Boolean(process.env.CLIENT_URL?.trim())
+);
+console.log(
+  "BREVO_API_KEY configured:",
+  Boolean(process.env.BREVO_API_KEY?.trim())
+);
+console.log(
+  "BREVO_SENDER_EMAIL configured:",
+  Boolean(process.env.BREVO_SENDER_EMAIL?.trim())
+);
+
 const knowledgeRoutes = require("./routes/KnowledgeRoutes");
 const userRoutes = require("./routes/userRoutes");
 const projectRoutes = require("./routes/projectRoutes");
@@ -26,6 +39,7 @@ app.use(
   express.static(path.join(__dirname, "uploads"))
 );
 
+
 app.use("/api/knowledge", knowledgeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/users", userRoutes);
@@ -34,6 +48,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/activity", activityRoutes);
 
+// Health check
 app.get("/", (req, res) => {
   res.send("SDG Smart Hub Backend Running");
 });
