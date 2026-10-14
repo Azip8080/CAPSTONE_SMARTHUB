@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
 import Login from "./pages/Login/Login";
 import AdminLayout from "./components/AdminLayout/AdminLayout";
 import Dashboard from "./pages/Dashboard/Dashboard";
@@ -11,9 +18,22 @@ import ProjectShowcase from "./pages/ProjectShowcase/ProjectShowcase";
 import KnowledgeHub from "./pages/KnowledgeHub/KnowledgeHub";
 import AIClassifier from "./pages/AIClassifier/AIClassifier";
 
-function PrivateRoute({ children }) {
+function AdminRoute({ children }) {
   const token = localStorage.getItem("adminToken");
-  return token ? children : <Navigate to="/login" replace />;
+
+  let user = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("adminUser") || "null");
+  } catch {
+    user = null;
+  }
+
+  if (!token || !user || user.role !== "admin") {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
 }
 
 function App() {
@@ -21,26 +41,31 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+
         <Route
           path="/"
           element={
-            <PrivateRoute>
+            <AdminRoute>
               <AdminLayout />
-            </PrivateRoute>
+            </AdminRoute>
           }
         >
-          <Route path="/ai-classifier" element={<AIClassifier />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard"       element={<Dashboard />} />
-          <Route path="sdg-tracker"     element={<SDGTracker />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="sdg-tracker" element={<SDGTracker />} />
           <Route path="analytics" element={<Reports />} />
-          <Route path="data-management" element={<DataManagement />} />n
+          <Route path="data-management" element={<DataManagement />} />
           <Route path="events-projects" element={<EventsProjects />} />
           <Route path="user-management" element={<UserManagement />} />
           <Route path="project-showcase" element={<ProjectShowcase />} />
-          <Route path="knowledge-hub"   element={<KnowledgeHub />} />
+          <Route path="knowledge-hub" element={<KnowledgeHub />} />
+          <Route path="ai-classifier" element={<AIClassifier />} />
         </Route>
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
+        <Route
+          path="*"
+          element={<Navigate to="/dashboard" replace />}
+        />
       </Routes>
     </BrowserRouter>
   );
