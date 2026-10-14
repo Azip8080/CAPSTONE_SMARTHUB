@@ -4,7 +4,7 @@ import {
   SDG_OPTIONS,
   STATUS_OPTIONS,
   EMPTY_PROJECT,
-} from "./constants.js";
+} from "./Constants.js";
 
 function ProjectForm({
   initialData,
