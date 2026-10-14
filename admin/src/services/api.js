@@ -1,10 +1,8 @@
-const BASE =
-  "http://localhost:5000/api";
+
+const BASE = `${import.meta.env.VITE_API_URL}/api`;
 
 function getToken() {
-  return localStorage.getItem(
-    "adminToken"
-  );
+  return localStorage.getItem("adminToken");
 }
 
 function getHeaders() {
@@ -17,38 +15,26 @@ function getHeaders() {
     : {};
 }
 
-async function request(
-  path,
-  options = {}
-) {
-  const res = await fetch(
-    `${BASE}${path}`,
-    {
-      ...options,
-      headers: {
-        ...getHeaders(),
-        ...options.headers,
-      },
-    }
-  );
+async function request(path, options = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: {
+      ...getHeaders(),
+      ...options.headers,
+    },
+  });
 
   if (res.status === 401) {
-    localStorage.removeItem(
-      "adminToken"
-    );
-
+    localStorage.removeItem("adminToken");
     window.location.href = "/login";
+    throw new Error("Unauthorized. Please log in again.");
   }
 
   if (!res.ok) {
-    const data =
-      await res.json().catch(
-        () => ({})
-      );
+    const data = await res.json().catch(() => ({}));
 
     throw new Error(
-      data.message ||
-        `Request failed: ${res.status}`
+      data.message || `Request failed: ${res.status}`
     );
   }
 
@@ -56,15 +42,13 @@ async function request(
 }
 
 export const api = {
-  get: (path) =>
-    request(path),
+  get: (path) => request(path),
 
   post: (path, body) =>
     request(path, {
       method: "POST",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     }),
@@ -73,8 +57,7 @@ export const api = {
     request(path, {
       method: "PUT",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     }),
@@ -83,8 +66,7 @@ export const api = {
     request(path, {
       method: "PATCH",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     }),
