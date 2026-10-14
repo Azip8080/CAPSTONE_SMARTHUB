@@ -1,9 +1,6 @@
 import { useState } from "react";
 import styles from "./Form.module.css";
-import {
-  SDG_OPTIONS,
-  EMPTY_EVENT,
-} from "./constants.js";
+import { SDG_OPTIONS, EMPTY_EVENT } from "./Constants.js";
 
 function formatDateTimeLocal(date) {
   if (!date) {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./TabToolBar.module.css";
-import { STATUS_OPTIONS } from "./constants.js";
-import { useProjects } from "./useProjects.js";
+import { STATUS_OPTIONS } from "./Constants.js";
+import { useProjects } from "./UseProjects.js";
 import ProjectCard from "./ProjectCard.jsx";
 import Modal from "./Modal.jsx";
 import ProjectForm from "./ProjectForm.jsx";

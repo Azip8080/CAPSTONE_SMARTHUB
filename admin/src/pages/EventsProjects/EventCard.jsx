@@ -1,5 +1,5 @@
 import styles from "./Card.module.css";
-import { SDG_COLORS } from "./constants.js";
+import { SDG_COLORS } from "./Constants.js";
 
 function EventCard({
   event,

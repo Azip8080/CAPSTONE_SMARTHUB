@@ -1,4 +1,4 @@
-import styles from "./RangeToolbar.module.css";
+import styles from "./RangeToolBar.module.css";
 import { RANGE_OPTIONS } from "./constants.js";
 
 function RangeToolbar({ range, onChange }) {
