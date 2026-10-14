@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import styles from "./TabToolbar.module.css";
-import { useEvents } from "./useEvents.js";
+import styles from "./TabToolBar.module.css";
+import { useEvents } from "./UseEvents.js";
 import EventCard from "./EventCard.jsx";
 import Modal from "./Modal.jsx";
 import EventForm from "./EventForm.jsx";

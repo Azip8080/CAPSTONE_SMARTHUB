@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import styles from "./Reports.module.css";
 import { api } from "../../services/api";
 import StatsGrid from "./StatsGrid.jsx";
-import RangeToolbar from "./RangeToolbar.jsx";
-import BarChart from "./BarChart.jsx";
+import RangeToolbar from "./RangeToolBar.jsx";
+import BarChart from "./Barchart.jsx";
 import ParticipationRanking from "./ParticipationRanking.jsx";
 import LineChart from "./LineChart.jsx";
 
