@@ -1,6 +1,6 @@
 
-const API_BASE = "http://localhost:5000/api/ai";
-const PROJECTS_API = "http://localhost:5000/api/projects";
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/ai`;
+const PROJECTS_API = `${import.meta.env.VITE_API_URL}/api/projects`;
 
 const REQUEST_TIMEOUT = 60000;
 

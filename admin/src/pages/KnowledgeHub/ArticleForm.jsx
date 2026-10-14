@@ -346,10 +346,10 @@ function ArticleForm({
                 >
                   <img
                     src={
-                      photo.existing
-                        ? `http://localhost:5000${photo.preview}`
-                        : photo.preview
-                    }
+                  photo.existing
+                  ? `${import.meta.env.VITE_API_URL}${photo.preview}`
+                  : photo.preview
+              }
                     alt={`Article photo ${
                       index + 1
                     }`}

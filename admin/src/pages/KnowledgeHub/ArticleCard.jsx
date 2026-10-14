@@ -44,7 +44,7 @@ function ArticleCard({
       {article.photos?.length > 0 ? (
         <img
           className={styles.cardImage}
-          src={`http://localhost:5000${article.photos[0]}`}
+          src={`${import.meta.env.VITE_API_URL}${article.photos[0]}`}
           alt={article.title}
         />
       ) : (

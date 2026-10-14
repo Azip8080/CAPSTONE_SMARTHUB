@@ -88,7 +88,7 @@ function ArticleViewModal({
                   }
                 >
                   <img
-                    src={`http://localhost:5000${photo}`}
+                    src={`${import.meta.env.VITE_API_URL}${photo}`}
                     alt={`${article.title} ${
                       index + 1
                     }`}

@@ -222,7 +222,7 @@ function ProjectDetailModal({
                       }
                     >
                       <img
-                        src={`http://localhost:5000${photo}`}
+                        src={`${import.meta.env.VITE_API_URL}${photo}`}
                         alt={`${project.title} ${
                           index + 1
                         }`}
