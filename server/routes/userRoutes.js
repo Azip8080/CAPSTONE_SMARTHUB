@@ -1,9 +1,10 @@
-
 const express = require("express");
 const router = express.Router();
+
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const emailjs = require("@emailjs/nodejs");
 
 const User = require("../models/User");
 const RegistrationOTP = require("../models/RegistrationOTP");
@@ -11,50 +12,21 @@ const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/adminOnly");
 const { logActivity } = require("../utils/activityLogger");
 
-// Brevo transactional email API (HTTPS)
-async function sendBrevoEmail({ to, subject, textContent, htmlContent }) {
-  const apiKey = process.env.BREVO_API_KEY;
-  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+async function sendEmailJSTemplate(templateId, templateParams) {
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
 
-  if (!apiKey || !senderEmail) {
-    throw new Error(
-      "BREVO_API_KEY or BREVO_SENDER_EMAIL is not configured."
-    );
+  if (!serviceId || !publicKey || !privateKey || !templateId) {
+    throw new Error("EmailJS environment variables are not configured.");
   }
 
-  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "api-key": apiKey,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      sender: {
-        name: "SDG Smart Hub",
-        email: senderEmail,
-      },
-      to: [{ email: to }],
-      subject,
-      textContent,
-      ...(htmlContent ? { htmlContent } : {}),
-    }),
+  return emailjs.send(serviceId, templateId, templateParams, {
+    publicKey,
+    privateKey,
   });
-
-  if (!response.ok) {
-    const errorDetails = await response.text();
-    console.error(
-      "[BREVO EMAIL ERROR]",
-      response.status,
-      errorDetails
-    );
-    throw new Error(`Brevo rejected the email (HTTP ${response.status}).`);
-  }
-
-  return response.json();
 }
 
-// Send signup OTP
 router.post("/send-otp", async (req, res) => {
   let normalizedEmail;
   let otpHash;
@@ -82,16 +54,20 @@ router.post("/send-otp", async (req, res) => {
     }
 
     if (
-      !process.env.BREVO_API_KEY ||
-      !process.env.BREVO_SENDER_EMAIL
+      !process.env.EMAILJS_SERVICE_ID ||
+      !process.env.EMAILJS_PUBLIC_KEY ||
+      !process.env.EMAILJS_PRIVATE_KEY ||
+      !process.env.EMAILJS_OTP_TEMPLATE_ID
     ) {
-      console.error("Brevo environment variables are not configured.");
+      console.error("EmailJS OTP environment variables are not configured.");
+
       return res.status(500).json({
         message: "Email service is not configured. Please try again later.",
       });
     }
 
     normalizedEmail = email.toLowerCase().trim();
+
     const normalizedName = fullName.trim();
     const normalizedBarangay =
       typeof barangay === "string" ? barangay.trim() : "";
@@ -120,7 +96,9 @@ router.post("/send-otp", async (req, res) => {
     }
 
     const otp = crypto.randomInt(100000, 1000000).toString();
+
     otpHash = crypto.createHash("sha256").update(otp).digest("hex");
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
     await RegistrationOTP.findOneAndUpdate(
@@ -144,22 +122,14 @@ router.post("/send-otp", async (req, res) => {
     );
 
     try {
-      await sendBrevoEmail({
-        to: normalizedEmail,
-        subject: "SDG Smart Hub - Email Verification Code",
-        textContent: `Your SDG Smart Hub verification code is ${otp}.
-
-This code expires in 10 minutes. If you did not try to create an account, you can ignore this email.`,
-        htmlContent: `
-          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#172033">
-            <h2>SDG Smart Hub Email Verification</h2>
-            <p>Use this code to verify your email address and finish creating your account:</p>
-            <div style="font-size:32px;font-weight:700;letter-spacing:8px;padding:16px 0">${otp}</div>
-            <p>This code expires in <strong>10 minutes</strong>.</p>
-            <p>If you did not request this code, you can ignore this email.</p>
-          </div>
-        `,
-      });
+      await sendEmailJSTemplate(
+        process.env.EMAILJS_OTP_TEMPLATE_ID,
+        {
+          to_email: normalizedEmail,
+          otp_code: otp,
+          expiry_minutes: 10,
+        }
+      );
     } catch (emailError) {
       console.error("[SEND OTP EMAIL ERROR]", emailError);
 
@@ -169,7 +139,8 @@ This code expires in 10 minutes. If you did not try to create an account, you ca
       });
 
       return res.status(502).json({
-        message: "Could not send the verification email. Please try again later.",
+        message:
+          "Could not send the verification email. Please try again later.",
       });
     }
 
@@ -196,7 +167,6 @@ This code expires in 10 minutes. If you did not try to create an account, you ca
   }
 });
 
-// Verify signup OTP
 router.post("/verify-otp", async (req, res) => {
   try {
     const email =
@@ -217,7 +187,8 @@ router.post("/verify-otp", async (req, res) => {
 
     if (!registration) {
       return res.status(400).json({
-        message: "No pending registration was found. Please request a new code.",
+        message:
+          "No pending registration was found. Please request a new code.",
       });
     }
 
@@ -225,7 +196,8 @@ router.post("/verify-otp", async (req, res) => {
       await RegistrationOTP.deleteOne({ _id: registration._id });
 
       return res.status(400).json({
-        message: "The verification code has expired. Please request a new one.",
+        message:
+          "The verification code has expired. Please request a new one.",
       });
     }
 
@@ -273,30 +245,32 @@ router.post("/verify-otp", async (req, res) => {
     await RegistrationOTP.deleteOne({ _id: registration._id });
 
     const userObj = newUser.toObject();
+
     delete userObj.password;
     delete userObj.resetPasswordToken;
     delete userObj.resetPasswordExpires;
 
     return res.status(201).json({
-      message: "Email verified and account created successfully. You can now log in.",
+      message:
+        "Email verified and account created successfully. You can now log in.",
       user: userObj,
     });
   } catch (err) {
     console.error("[VERIFY OTP ERROR]", err);
+
     return res.status(500).json({
       message: "Failed to verify email and create account.",
     });
   }
 });
 
-// Prevent account creation without email verification.
 router.post("/register", async (req, res) => {
   return res.status(410).json({
-    message: "Direct registration is disabled. Request an email verification code first.",
+    message:
+      "Direct registration is disabled. Request an email verification code first.",
   });
 });
 
-// Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -308,6 +282,7 @@ router.post("/login", async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
@@ -331,6 +306,7 @@ router.post("/login", async (req, res) => {
     );
 
     const userObj = user.toObject();
+
     delete userObj.password;
     delete userObj.resetPasswordToken;
     delete userObj.resetPasswordExpires;
@@ -342,13 +318,13 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error("[LOGIN ERROR]", err);
+
     return res.status(500).json({
       message: "Login failed.",
     });
   }
 });
 
-// Request password reset
 router.post("/forgot-password", async (req, res) => {
   try {
     const email =
@@ -359,6 +335,22 @@ router.post("/forgot-password", async (req, res) => {
     if (!email) {
       return res.status(400).json({
         message: "Please enter your email address.",
+      });
+    }
+
+    if (
+      !process.env.EMAILJS_SERVICE_ID ||
+      !process.env.EMAILJS_PUBLIC_KEY ||
+      !process.env.EMAILJS_PRIVATE_KEY ||
+      !process.env.EMAILJS_RESET_TEMPLATE_ID ||
+      !process.env.CLIENT_URL
+    ) {
+      console.error(
+        "EmailJS password-reset environment variables are not configured."
+      );
+
+      return res.status(500).json({
+        message: "Email service is not configured. Please try again later.",
       });
     }
 
@@ -378,49 +370,26 @@ router.post("/forgot-password", async (req, res) => {
       .digest("hex");
 
     user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000);
+
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL;
-
-    if (!clientUrl) {
-      user.resetPasswordToken = null;
-      user.resetPasswordExpires = null;
-      await user.save();
-      throw new Error("CLIENT_URL is not configured.");
-    }
-
-    const resetLink =
-      `${clientUrl.replace(/\/$/, "")}/reset-password/${resetToken}`;
+    const clientUrl = process.env.CLIENT_URL.replace(/\/$/, "");
+    const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
     try {
-      await sendBrevoEmail({
-        to: user.email,
-        subject: "SDG Smart Hub - Password Reset",
-        textContent: `You requested a password reset for your SDG Smart Hub account.
-
-Open the following link within 15 minutes to create a new password:
-
-${resetLink}
-
-If you did not request this, you can ignore this email.`,
-        htmlContent: `
-          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#172033">
-            <h2>SDG Smart Hub Password Reset</h2>
-            <p>You requested a password reset for your account.</p>
-            <p>
-              <a href="${resetLink}" style="display:inline-block;padding:12px 18px;background:#176b45;color:#ffffff;text-decoration:none;border-radius:6px">
-                Reset Password
-              </a>
-            </p>
-            <p>This link expires in <strong>15 minutes</strong>.</p>
-            <p>If you did not request this, you can ignore this email.</p>
-          </div>
-        `,
-      });
+      await sendEmailJSTemplate(
+        process.env.EMAILJS_RESET_TEMPLATE_ID,
+        {
+          to_email: user.email,
+          reset_link: resetLink,
+        }
+      );
     } catch (emailError) {
       user.resetPasswordToken = null;
       user.resetPasswordExpires = null;
+
       await user.save();
+
       throw emailError;
     }
 
@@ -429,13 +398,13 @@ If you did not request this, you can ignore this email.`,
     });
   } catch (err) {
     console.error("[FORGOT PASSWORD ERROR]", err);
+
     return res.status(500).json({
       message: "Unable to process the password reset request.",
     });
   }
 });
 
-// Complete password reset
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -471,6 +440,7 @@ router.post("/reset-password/:token", async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 12);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
+
     await user.save();
 
     return res.json({
@@ -478,13 +448,13 @@ router.post("/reset-password/:token", async (req, res) => {
     });
   } catch (err) {
     console.error("[RESET PASSWORD ERROR]", err);
+
     return res.status(500).json({
       message: "Unable to reset the password.",
     });
   }
 });
 
-// Create admin account
 router.post("/admin", auth, adminOnly, async (req, res) => {
   try {
     const { fullName, email, password, barangay } = req.body;
@@ -502,6 +472,7 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
+
     const existing = await User.findOne({ email: normalizedEmail });
 
     if (existing) {
@@ -538,13 +509,13 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error("[CREATE ADMIN ERROR]", err);
+
     return res.status(500).json({
       message: "Failed to create admin account.",
     });
   }
 });
 
-// Get current user
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
@@ -560,13 +531,13 @@ router.get("/me", auth, async (req, res) => {
     return res.json({ user });
   } catch (err) {
     console.error("[GET ME ERROR]", err);
+
     return res.status(500).json({
       message: "Failed to get user.",
     });
   }
 });
 
-// Update user
 router.put("/:id", auth, adminOnly, async (req, res) => {
   try {
     const { password, ...safeFields } = req.body;
@@ -598,18 +569,21 @@ router.put("/:id", auth, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error("[UPDATE USER ERROR]", err);
+
     return res.status(500).json({
       message: "Failed to update user.",
     });
   }
 });
 
-// Change password while logged in
 router.put("/:id/password", auth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
-    if (req.user.id !== req.params.id && req.user.role !== "admin") {
+    if (
+      req.user.id !== req.params.id &&
+      req.user.role !== "admin"
+    ) {
       return res.status(403).json({
         message: "You are not allowed to change this user's password.",
       });
@@ -640,7 +614,10 @@ router.put("/:id/password", auth, async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
 
     if (!isMatch) {
       return res.status(400).json({
@@ -651,6 +628,7 @@ router.put("/:id/password", auth, async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 12);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
+
     await user.save();
 
     await logActivity({
@@ -667,13 +645,13 @@ router.put("/:id/password", auth, async (req, res) => {
     });
   } catch (err) {
     console.error("[UPDATE PASSWORD ERROR]", err);
+
     return res.status(500).json({
       message: "Failed to update user password.",
     });
   }
 });
 
-// List users
 router.get("/", auth, adminOnly, async (req, res) => {
   try {
     const users = await User.find()
@@ -683,13 +661,13 @@ router.get("/", auth, adminOnly, async (req, res) => {
     return res.json({ users });
   } catch (err) {
     console.error("[GET USERS ERROR]", err);
+
     return res.status(500).json({
       message: "Failed to get users.",
     });
   }
 });
 
-// Delete user
 router.delete("/:id", auth, adminOnly, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -714,6 +692,7 @@ router.delete("/:id", auth, adminOnly, async (req, res) => {
     });
   } catch (err) {
     console.error("[DELETE USER ERROR]", err);
+
     return res.status(500).json({
       message: "Failed to delete user.",
     });

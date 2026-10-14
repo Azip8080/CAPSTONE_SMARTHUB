@@ -9,6 +9,7 @@
     "start": "node server/server.js"
   },
   "dependencies": {
+    "@emailjs/nodejs": "^5.0.2",
     "@huggingface/inference": "^4.13.30",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
