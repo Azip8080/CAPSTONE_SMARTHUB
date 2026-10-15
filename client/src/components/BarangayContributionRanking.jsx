@@ -22,13 +22,21 @@ function BarangayContributionRanking() {
         setLoading(true);
         setError("");
 
+        if (!API_URL) {
+          throw new Error(
+            "VITE_API_URL is missing. Configure it in your deployment environment."
+          );
+        }
+
         const response = await fetch(
           `${API_URL}/api/projects/barangay-ranking`,
           { signal: controller.signal }
         );
 
         if (!response.ok) {
-          throw new Error("Unable to load barangay rankings.");
+          throw new Error(
+            `Unable to load barangay rankings (HTTP ${response.status}).`
+          );
         }
 
         const result = await response.json();
@@ -40,6 +48,7 @@ function BarangayContributionRanking() {
         setRanking(Array.isArray(result.data) ? result.data : []);
       } catch (err) {
         if (err.name !== "AbortError") {
+          console.error("Barangay ranking error:", err);
           setError(err.message || "Something went wrong.");
         }
       } finally {
@@ -55,12 +64,18 @@ function BarangayContributionRanking() {
   }, []);
 
   async function openProjects(barangay) {
+    if (!barangay) return;
+
     setSelectedBarangay(barangay);
     setProjects([]);
     setProjectsError("");
     setProjectsLoading(true);
 
     try {
+      if (!API_URL) {
+        throw new Error("VITE_API_URL is not configured.");
+      }
+
       const response = await fetch(
         `${API_URL}/api/projects/barangay/${encodeURIComponent(
           barangay
@@ -68,7 +83,9 @@ function BarangayContributionRanking() {
       );
 
       if (!response.ok) {
-        throw new Error("Unable to load published projects.");
+        throw new Error(
+          `Unable to load published projects (HTTP ${response.status}).`
+        );
       }
 
       const result = await response.json();
@@ -81,6 +98,7 @@ function BarangayContributionRanking() {
 
       setProjects(Array.isArray(result.data) ? result.data : []);
     } catch (err) {
+      console.error("Published projects error:", err);
       setProjectsError(err.message || "Something went wrong.");
     } finally {
       setProjectsLoading(false);
@@ -127,7 +145,9 @@ function BarangayContributionRanking() {
           <div className={styles.headingText}>
             <span className={styles.eyebrow}>COMMUNITY IMPACT</span>
             <h2>Top Contributing Barangays</h2>
-            <p>Explore communities making a difference through SDG projects.</p>
+            <p>
+              Explore communities making a difference through SDG projects.
+            </p>
           </div>
 
           <span className={styles.totalBadge}>
@@ -168,7 +188,7 @@ function BarangayContributionRanking() {
                 >
                   <span
                     className={`${styles.rank} ${
-                      index < 3 ? styles[`rank${index + 1}`] : ""
+                      index < 3 ? styles[`rank${index + 1}`] || "" : ""
                     }`}
                   >
                     {index + 1}
@@ -178,9 +198,9 @@ function BarangayContributionRanking() {
                     <span className={styles.barangayName}>
                       {item.barangay || "Unnamed Barangay"}
                     </span>
+
                     <span className={styles.projectCount}>
-                      <strong>{item.projectCount ?? 0}</strong>
-                      {" "}
+                      <strong>{item.projectCount ?? 0}</strong>{" "}
                       {(item.projectCount ?? 0) === 1
                         ? "published project"
                         : "published projects"}
@@ -204,9 +224,7 @@ function BarangayContributionRanking() {
                 {showAll
                   ? "Show less"
                   : `View all ${ranking.length} barangays`}
-                <span aria-hidden="true">
-                  {showAll ? "↑" : "↓"}
-                </span>
+                <span aria-hidden="true">{showAll ? "↑" : "↓"}</span>
               </button>
             )}
           </>
@@ -268,13 +286,15 @@ function BarangayContributionRanking() {
                     Array.isArray(project.sdgTags) && project.sdgTags.length
                       ? project.sdgTags
                       : project.sdgTag
-                        ? [project.sdgTag]
+                        ? Array.isArray(project.sdgTag)
+                          ? project.sdgTag
+                          : [project.sdgTag]
                         : [];
 
                   return (
                     <article
                       className={styles.projectCard}
-                      key={project._id || index}
+                      key={project._id || project.id || index}
                     >
                       <div className={styles.projectIcon} aria-hidden="true">
                         SDG
@@ -290,7 +310,9 @@ function BarangayContributionRanking() {
                                 className={styles.sdgTag}
                                 key={`${sdg}-${sdgIndex}`}
                               >
-                                {sdg}
+                                {String(sdg).startsWith("SDG")
+                                  ? sdg
+                                  : `SDG ${sdg}`}
                               </span>
                             ))
                           ) : (
