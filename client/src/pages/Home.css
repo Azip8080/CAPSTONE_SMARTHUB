@@ -114,6 +114,8 @@
   color: #ffffff;
 }
 
+/* Statistics Section */
+
 .stats-section {
   display: flex;
   justify-content: center;
@@ -166,6 +168,78 @@
   font-weight: 400;
 }
 
+/* Scroll Down Button */
+
+.scroll-down-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 42px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    transform 0.2s;
+}
+
+.scroll-down-btn:hover {
+  color: #ffffff;
+  transform: translateY(3px);
+}
+
+.scroll-down-icon {
+  font-size: 24px;
+  line-height: 1;
+  animation: scrollDown 1.8s ease-in-out infinite;
+}
+
+@keyframes scrollDown {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(5px);
+  }
+}
+
+/* Barangay Contribution Ranking */
+/* Match SDGCharts.module.css sizing */
+
+.barangay-ranking-section {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 56px 2.5rem 72px;
+  background: #f8fafc;
+}
+
+.barangay-ranking-section > * {
+  width: 100%;
+  max-width: 1280px;
+  min-width: 0;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Tablet */
+
+@media (max-width: 1000px) {
+  .barangay-ranking-section {
+    padding: 48px 2rem 64px;
+  }
+}
+
+/* Existing Hero and Statistics Responsive Styles */
+
 @media (max-width: 900px) {
   .hero {
     min-height: 460px;
@@ -186,6 +260,14 @@
 
   .stat-card {
     padding: 28px 24px;
+  }
+}
+
+/* Mobile and Small Tablet */
+
+@media (max-width: 768px) {
+  .barangay-ranking-section {
+    padding: 40px 1.5rem 56px;
   }
 }
 
@@ -230,7 +312,7 @@
   }
 
   .stats-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .stat-card {
@@ -249,6 +331,23 @@
   .stat-sub {
     font-size: 11px;
     line-height: 1.5;
+  }
+
+  .scroll-down-btn {
+    margin-top: 32px;
+    font-size: 10px;
+  }
+
+  .scroll-down-icon {
+    font-size: 22px;
+  }
+}
+
+/* Smaller Mobile Screens */
+
+@media (max-width: 480px) {
+  .barangay-ranking-section {
+    padding: 32px 1rem 44px;
   }
 }
 
@@ -277,55 +376,9 @@
   .stat-value {
     font-size: 30px;
   }
-}
-.scroll-down-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-top: 42px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    color 0.2s,
-    transform 0.2s;
-}
 
-.scroll-down-btn:hover {
-  color: #ffffff;
-  transform: translateY(3px);
-}
-
-.scroll-down-icon {
-  font-size: 24px;
-  line-height: 1;
-  animation: scrollDown 1.8s ease-in-out infinite;
-}
-
-@keyframes scrollDown {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(5px);
-  }
-}
-
-@media (max-width: 600px) {
-  .scroll-down-btn {
-    margin-top: 32px;
-    font-size: 10px;
-  }
-
-  .scroll-down-icon {
-    font-size: 22px;
+  .barangay-ranking-section {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 }

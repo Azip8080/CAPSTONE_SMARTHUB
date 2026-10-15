@@ -2,33 +2,96 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 
+const API_URL = (
+  import.meta.env.VITE_API_URL || ""
+).replace(/\/+$/, "");
+
 function Login() {
   const navigate = useNavigate();
-  const [form, setForm]       = useState({ email: "", password: "" });
-  const [error, setError]     = useState(null);
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    if (!API_URL) {
+      setError(
+        "API URL is missing. Please configure VITE_API_URL in your .env file."
+      );
+      return;
+    }
+
     setLoading(true);
+
     try {
       const res = await fetch(
-      `${import.meta.env.VITE_API_URL}/api/users/login`,{
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Invalid credentials");
-      if (data.user?.role !== "admin") throw new Error("Access denied. Admins only.");
+        `${API_URL}/api/users/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(form),
+        }
+      );
+
+      const text = await res.text();
+
+      let data = {};
+
+      if (text.trim()) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(
+            "The server returned an invalid response. Check your API URL and backend."
+          );
+        }
+      }
+
+      if (!res.ok) {
+        throw new Error(
+          data.message || `Login failed (${res.status}).`
+        );
+      }
+
+      if (!data.token || !data.user) {
+        throw new Error(
+          "The server response is missing the login token or user information."
+        );
+      }
+
+      if (data.user.role !== "admin") {
+        throw new Error(
+          "Access denied. Admins only."
+        );
+      }
+
       localStorage.setItem("adminToken", data.token);
-      localStorage.setItem("adminUser", JSON.stringify(data.user));
+      localStorage.setItem(
+        "adminUser",
+        JSON.stringify(data.user)
+      );
+
       navigate("/dashboard");
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.message || "Unable to sign in. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -40,39 +103,80 @@ function Login() {
         <div className={styles.header}>
           <div className={styles.logoRow}>
             <div className={styles.logo}>SDG</div>
-            <span className={styles.logoText}>Smart Hub</span>
+            <span className={styles.logoText}>
+              Smart Hub
+            </span>
           </div>
-          <h1 className={styles.title}>Admin Panel</h1>
-          <p className={styles.subtitle}>Sign in to manage the platform</p>
+
+          <h1 className={styles.title}>
+            Admin Panel
+          </h1>
+
+          <p className={styles.subtitle}>
+            Sign in to manage the platform
+          </p>
         </div>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit}
+        >
           <div className={styles.field}>
-            <label className={styles.label}>Email</label>
+            <label
+              className={styles.label}
+              htmlFor="email"
+            >
+              Email
+            </label>
+
             <input
+              id="email"
               className={styles.input}
               type="email"
               name="email"
               placeholder="admin@example.com"
               value={form.email}
               onChange={handleChange}
+              autoComplete="username"
               required
             />
           </div>
+
           <div className={styles.field}>
-            <label className={styles.label}>Password</label>
+            <label
+              className={styles.label}
+              htmlFor="password"
+            >
+              Password
+            </label>
+
             <input
+              id="password"
               className={styles.input}
               type="password"
               name="password"
-              placeholder="••••••••"
+              placeholder="Enter your password"
               value={form.password}
               onChange={handleChange}
+              autoComplete="current-password"
               required
             />
           </div>
-          {error && <p className={styles.error}>{error}</p>}
-          <button className={styles.btn} type="submit" disabled={loading}>
+
+          {error && (
+            <p
+              className={styles.error}
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
+
+          <button
+            className={styles.btn}
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>

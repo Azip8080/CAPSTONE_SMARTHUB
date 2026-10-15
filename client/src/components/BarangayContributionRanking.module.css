@@ -1,0 +1,545 @@
+.section {
+  width: 100%;
+  min-width: 0;
+  padding: 22px;
+  box-sizing: border-box;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #e2eaf5;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.045);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 20px;
+}
+
+.headingIcon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: #eaf2ff;
+  color: #2563eb;
+  font-size: 29px;
+  font-weight: 700;
+}
+
+.headingText {
+  flex: 1;
+  min-width: 0;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #2563eb;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+}
+
+.heading h2,
+.panelHeader h2 {
+  margin: 0;
+  color: #172b4d;
+  font-size: 19px;
+  font-weight: 750;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.heading p,
+.panelHeader p {
+  margin: 5px 0 0;
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.totalBadge {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 1px solid #d6e5ff;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #e7edf5;
+  border-radius: 12px;
+  background: #ffffff;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.row:hover {
+  border-color: #bfdbfe;
+  background: #f7faff;
+}
+
+.row:active {
+  transform: scale(0.995);
+}
+
+.row:focus-visible,
+.viewAllButton:focus-visible,
+.closeButton:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+.rank {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.rank1 {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.rank2 {
+  background: #e8eef7;
+  color: #475569;
+}
+
+.rank3 {
+  background: #e7efff;
+  color: #315bb5;
+}
+
+.barangayInfo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.barangayName {
+  color: #243b5a;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.projectCount {
+  color: #8290a5;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.projectCount strong {
+  color: #2563eb;
+  font-weight: 800;
+}
+
+.rowArrow {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 29px;
+  height: 29px;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 24px;
+  line-height: 1;
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.row:hover .rowArrow {
+  background: #dbeafe;
+  transform: translateX(2px);
+}
+
+.viewAllButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 42px;
+  margin-top: 13px;
+  padding: 10px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #f8fbff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.viewAllButton:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.viewAllButton span {
+  font-size: 15px;
+}
+
+.state {
+  padding: 25px 16px;
+  border: 1px dashed #d6e2f1;
+  border-radius: 12px;
+  background: #f8fbff;
+  color: #718096;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.state h3,
+.panelState h3 {
+  margin: 0 0 7px;
+  color: #243b5a;
+  font-size: 14px;
+}
+
+.state p,
+.panelState p {
+  margin: 0;
+}
+
+.loader {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 3px solid #dbeafe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 750ms linear infinite;
+}
+
+.state .loader {
+  margin-bottom: 10px;
+}
+
+.footer {
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid #edf2f8;
+  color: #8a97a9;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Published projects panel */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 31, 55, 0.42);
+  backdrop-filter: blur(3px);
+}
+
+.projectPanel {
+  display: flex;
+  flex-direction: column;
+  width: min(580px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  padding: 26px;
+  box-sizing: border-box;
+  background: #ffffff;
+  box-shadow: -12px 0 40px rgba(15, 35, 65, 0.13);
+  animation: slideIn 220ms ease-out;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e6edf6;
+}
+
+.panelHeadingText {
+  min-width: 0;
+}
+
+.closeButton {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e2eaf5;
+  border-radius: 11px;
+  background: #ffffff;
+  color: #52637a;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.projectList {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 20px 0;
+}
+
+.projectCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #e2eaf5;
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+.projectIcon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 39px;
+  height: 39px;
+  border-radius: 11px;
+  background: #eaf2ff;
+  color: #2563eb;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.projectInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.projectInfo h3 {
+  margin: 1px 0 9px;
+  color: #243b5a;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.sdgTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sdgTag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #eff6ff;
+  color: #2458b8;
+  font-size: 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.projectDescription {
+  margin: 10px 0 0;
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.projectDate {
+  display: block;
+  margin-top: 11px;
+  color: #8795a8;
+  font-size: 10px;
+}
+
+.publishedBadge {
+  flex-shrink: 0;
+  padding: 5px 7px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.panelState {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: 24px;
+  color: #718096;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.panelState .loader {
+  margin-bottom: 12px;
+}
+
+.panelFooter {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #e6edf6;
+  color: #8290a5;
+  font-size: 11px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .section {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .headingIcon {
+    width: 39px;
+    height: 39px;
+  }
+
+  .heading h2,
+  .panelHeader h2 {
+    font-size: 17px;
+  }
+
+  .headingText {
+    flex-basis: calc(100% - 55px);
+  }
+
+  .totalBadge {
+    margin-left: 49px;
+  }
+
+  .row {
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .rank {
+    width: 31px;
+    height: 31px;
+  }
+
+  .barangayName {
+    font-size: 12px;
+  }
+
+  .projectCount {
+    font-size: 10px;
+  }
+
+  .projectPanel {
+    padding: 20px 15px;
+  }
+
+  .projectCard {
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .projectIcon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .publishedBadge {
+    font-size: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader,
+  .projectPanel {
+    animation: none;
+  }
+
+  .row,
+  .rowArrow,
+  .viewAllButton,
+  .closeButton {
+    transition: none;
+  }
+}

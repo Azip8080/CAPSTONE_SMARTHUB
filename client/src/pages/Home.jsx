@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import "./Home.css";
 import SDGCharts from "../components/SDGCharts/SDGCharts";
 import SummaryCards from "../components/SummaryCards";
+import BarangayContributionRanking from "../components/BarangayContributionRanking";
 
 function Home() {
   const navigate = useNavigate();
@@ -17,9 +18,7 @@ function Home() {
             Sustainable Development City of Manila
           </p>
 
-          <h1 className="hero-title">
-            SDG Smart Hub
-          </h1>
+          <h1 className="hero-title">SDG Smart Hub</h1>
 
           <p className="hero-subtitle">
             Connecting communities with sustainable
@@ -30,9 +29,7 @@ function Home() {
             <button
               type="button"
               className="primary-btn"
-              onClick={() =>
-                navigate("/highlights")
-              }
+              onClick={() => navigate("/highlights")}
             >
               Explore Projects
             </button>
@@ -40,9 +37,7 @@ function Home() {
             <button
               type="button"
               className="secondary-btn"
-              onClick={() =>
-                navigate("/about")
-              }
+              onClick={() => navigate("/about")}
             >
               Learn More
             </button>
@@ -52,24 +47,26 @@ function Home() {
             type="button"
             className="scroll-down-btn"
             onClick={() =>
-              document
-                .getElementById("analytics")
-                ?.scrollIntoView({
-                  behavior: "smooth",
-                })
+              document.getElementById("analytics")?.scrollIntoView({
+                behavior: "smooth",
+              })
             }
             aria-label="Scroll to SDG Analytics"
           >
             <span>Explore Analytics</span>
-            <span className="scroll-down-icon">
-              ↓
-            </span>
+            <span className="scroll-down-icon">↓</span>
           </button>
         </div>
       </section>
 
       <SummaryCards />
 
+      {/* Compact blue-and-white barangay leaderboard */}
+      <section className="barangay-ranking-section">
+        <BarangayContributionRanking />
+      </section>
+
+      {/* SDG analytics */}
       <div id="analytics">
         <SDGCharts />
       </div>

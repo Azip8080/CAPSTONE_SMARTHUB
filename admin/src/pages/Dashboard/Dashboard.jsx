@@ -1,8 +1,7 @@
 import { useState } from "react";
-
+import BarangayContributionRanking from "./components/BarangayContributionRanking";
 import styles from "./Dashboard.module.css";
 import { useDashboard } from "./useDashboard";
-
 import SDGOverview from "./components/SDGOverview";
 import ProjectStatus from "./components/ProjectStatus";
 import ProjectDetailsModal from "./components/ProjectDetailsModal";
@@ -19,28 +18,18 @@ function Dashboard() {
     error,
   } = useDashboard();
 
-  const [selectedProject, setSelectedProject] =
-    useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const [selectedEvent, setSelectedEvent] =
-    useState(null);
-
-  const recentProjects =
-    projects.slice(0, 5);
+  const recentProjects = projects.slice(0, 5);
 
   return (
     <div className={styles.page}>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>
-          Dashboard
-        </h1>
+        <h1 className={styles.pageTitle}>Dashboard</h1>
       </div>
 
-      {error && (
-        <p className={styles.error}>
-          {error}
-        </p>
-      )}
+      {error && <p className={styles.error}>{error}</p>}
 
       <div className={styles.statsGrid}>
         {[
@@ -65,194 +54,107 @@ function Dashboard() {
             color: "#8b5cf6",
           },
         ].map((card) => (
-          <div
-            key={card.label}
-            className={styles.statCard}
-          >
-            <p className={styles.statLabel}>
-              {card.label}
-            </p>
+          <div key={card.label} className={styles.statCard}>
+            <p className={styles.statLabel}>{card.label}</p>
 
             <div className={styles.statBottom}>
               <p className={styles.statValue}>
-                {loading
-                  ? "—"
-                  : card.value ?? 0}
+                {loading ? "—" : card.value ?? 0}
               </p>
 
               <div
                 className={styles.statDot}
-                style={{
-                  background: card.color,
-                }}
+                style={{ background: card.color }}
               />
             </div>
           </div>
         ))}
       </div>
 
-      <SDGOverview
-        projects={projects}
-      />
+      <SDGOverview projects={projects} />
 
-      <ProjectStatus
-        projects={projects}
-      />
+      <ProjectStatus projects={projects} />
+
+      <BarangayContributionRanking />
 
       <div className={styles.mainGrid}>
         <div className={styles.card}>
-          <p className={styles.cardTitle}>
-            Recent Projects
-          </p>
+          <p className={styles.cardTitle}>Recent Projects</p>
 
-          {loading && (
-            <p className={styles.empty}>
-              Loading…
-            </p>
+          {loading && <p className={styles.empty}>Loading…</p>}
+
+          {!loading && recentProjects.length === 0 && (
+            <p className={styles.empty}>No projects yet.</p>
           )}
 
-          {!loading &&
-            recentProjects.length === 0 && (
-              <p className={styles.empty}>
-                No projects yet.
-              </p>
-            )}
-
           <div className={styles.list}>
-            {recentProjects.map(
-              (project) => (
-                <button
-                  key={project._id}
-                  type="button"
-                  className={
-                    styles.projectButton
-                  }
-                  onClick={() =>
-                    setSelectedProject(
-                      project
-                    )
-                  }
+            {recentProjects.map((project) => (
+              <button
+                key={project._id}
+                type="button"
+                className={styles.projectButton}
+                onClick={() => setSelectedProject(project)}
+              >
+                <div className={styles.listItemLeft}>
+                  <p className={styles.listItemTitle}>
+                    {project.title}
+                  </p>
+
+                  <p className={styles.listItemSub}>
+                    {project.barangay} · {project.sdgTag}
+                  </p>
+                </div>
+
+                <span
+                  className={`${styles.statusBadge} ${
+                    styles[project.status?.toLowerCase()]
+                  }`}
                 >
-                  <div
-                    className={
-                      styles.listItemLeft
-                    }
-                  >
-                    <p
-                      className={
-                        styles.listItemTitle
-                      }
-                    >
-                      {project.title}
-                    </p>
-
-                    <p
-                      className={
-                        styles.listItemSub
-                      }
-                    >
-                      {project.barangay} ·{" "}
-                      {project.sdgTag}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`${styles.statusBadge} ${
-                      styles[
-                        project.status?.toLowerCase()
-                      ]
-                    }`}
-                  >
-                    {project.status}
-                  </span>
-                </button>
-              )
-            )}
+                  {project.status}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
         <div className={styles.card}>
-          <p className={styles.cardTitle}>
-            Upcoming Events
-          </p>
+          <p className={styles.cardTitle}>Upcoming Events</p>
 
-          {loading && (
-            <p className={styles.empty}>
-              Loading…
-            </p>
+          {loading && <p className={styles.empty}>Loading…</p>}
+
+          {!loading && events.length === 0 && (
+            <p className={styles.empty}>No events yet.</p>
           )}
-
-          {!loading &&
-            events.length === 0 && (
-              <p className={styles.empty}>
-                No events yet.
-              </p>
-            )}
 
           <div className={styles.list}>
             {events.map((event) => {
-              const date = new Date(
-                event.date
-              );
+              const date = new Date(event.date);
 
               return (
                 <button
                   key={event._id}
                   type="button"
-                  className={
-                    styles.eventButton
-                  }
-                  onClick={() =>
-                    setSelectedEvent(
-                      event
-                    )
-                  }
+                  className={styles.eventButton}
+                  onClick={() => setSelectedEvent(event)}
                 >
-                  <div
-                    className={
-                      styles.dateBlock
-                    }
-                  >
-                    <span
-                      className={
-                        styles.dateDay
-                      }
-                    >
+                  <div className={styles.dateBlock}>
+                    <span className={styles.dateDay}>
                       {date.getDate()}
                     </span>
 
-                    <span
-                      className={
-                        styles.dateMonth
-                      }
-                    >
-                      {date.toLocaleString(
-                        "default",
-                        {
-                          month: "short",
-                        }
-                      )}
+                    <span className={styles.dateMonth}>
+                      {date.toLocaleString("default", {
+                        month: "short",
+                      })}
                     </span>
                   </div>
 
-                  <div
-                    className={
-                      styles.listItemLeft
-                    }
-                  >
-                    <p
-                      className={
-                        styles.listItemTitle
-                      }
-                    >
+                  <div className={styles.listItemLeft}>
+                    <p className={styles.listItemTitle}>
                       {event.title}
                     </p>
 
-                    <p
-                      className={
-                        styles.listItemSub
-                      }
-                    >
+                    <p className={styles.listItemSub}>
                       {event.location}
                     </p>
                   </div>
@@ -263,15 +165,9 @@ function Dashboard() {
         </div>
 
         <div className={styles.card}>
-          <p className={styles.cardTitle}>
-            Quick Actions
-          </p>
+          <p className={styles.cardTitle}>Quick Actions</p>
 
-          <div
-            className={
-              styles.quickActions
-            }
-          >
+          <div className={styles.quickActions}>
             {[
               {
                 label: "Add Project",
@@ -297,18 +193,11 @@ function Dashboard() {
               <a
                 key={action.label}
                 href={action.path}
-                className={
-                  styles.quickAction
-                }
+                className={styles.quickAction}
               >
                 <div
-                  className={
-                    styles.quickActionDot
-                  }
-                  style={{
-                    background:
-                      action.color,
-                  }}
+                  className={styles.quickActionDot}
+                  style={{ background: action.color }}
                 />
 
                 {action.label}
@@ -318,9 +207,7 @@ function Dashboard() {
 
           <p
             className={styles.cardTitle}
-            style={{
-              marginTop: 24,
-            }}
+            style={{ marginTop: 24 }}
           >
             Activity Log
           </p>
@@ -334,16 +221,12 @@ function Dashboard() {
 
       <ProjectDetailsModal
         project={selectedProject}
-        onClose={() =>
-          setSelectedProject(null)
-        }
+        onClose={() => setSelectedProject(null)}
       />
 
       <EventDetailsModal
         event={selectedEvent}
-        onClose={() =>
-          setSelectedEvent(null)
-        }
+        onClose={() => setSelectedEvent(null)}
       />
     </div>
   );
