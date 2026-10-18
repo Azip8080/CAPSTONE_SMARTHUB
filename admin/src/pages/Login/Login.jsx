@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
 
 const API_URL = (
-  import.meta.env.VITE_API_URL || ""
+  import.meta.env.VITE_API_URL ||
+  "https://sdg-smarthub-api.onrender.com/api"
 ).replace(/\/+$/, "");
 
 function Login() {
@@ -27,30 +29,18 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-
-    if (!API_URL) {
-      setError(
-        "API URL is missing. Please configure VITE_API_URL in your .env file."
-      );
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${API_URL}/api/users/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(form),
-        }
-      );
+      const res = await fetch(`${API_URL}/users/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
 
       const text = await res.text();
-
       let data = {};
 
       if (text.trim()) {
@@ -58,7 +48,7 @@ function Login() {
           data = JSON.parse(text);
         } catch {
           throw new Error(
-            "The server returned an invalid response. Check your API URL and backend."
+            "The server returned an invalid response. Check the API URL and backend."
           );
         }
       }
@@ -75,23 +65,16 @@ function Login() {
         );
       }
 
-      if (data.user.role !== "admin") {
-        throw new Error(
-          "Access denied. Admins only."
-        );
+      if (String(data.user.role).toLowerCase() !== "admin") {
+        throw new Error("Access denied. Admins only.");
       }
 
       localStorage.setItem("adminToken", data.token);
-      localStorage.setItem(
-        "adminUser",
-        JSON.stringify(data.user)
-      );
+      localStorage.setItem("adminUser", JSON.stringify(data.user));
 
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        err.message || "Unable to sign in. Please try again."
-      );
+      setError(err.message || "Unable to sign in. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -103,32 +86,20 @@ function Login() {
         <div className={styles.header}>
           <div className={styles.logoRow}>
             <div className={styles.logo}>SDG</div>
-            <span className={styles.logoText}>
-              Smart Hub
-            </span>
+            <span className={styles.logoText}>Smart Hub</span>
           </div>
 
-          <h1 className={styles.title}>
-            Admin Panel
-          </h1>
-
+          <h1 className={styles.title}>Admin Panel</h1>
           <p className={styles.subtitle}>
             Sign in to manage the platform
           </p>
         </div>
 
-        <form
-          className={styles.form}
-          onSubmit={handleSubmit}
-        >
+        <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <label
-              className={styles.label}
-              htmlFor="email"
-            >
+            <label className={styles.label} htmlFor="email">
               Email
             </label>
-
             <input
               id="email"
               className={styles.input}
@@ -143,13 +114,9 @@ function Login() {
           </div>
 
           <div className={styles.field}>
-            <label
-              className={styles.label}
-              htmlFor="password"
-            >
+            <label className={styles.label} htmlFor="password">
               Password
             </label>
-
             <input
               id="password"
               className={styles.input}
@@ -164,10 +131,7 @@ function Login() {
           </div>
 
           {error && (
-            <p
-              className={styles.error}
-              role="alert"
-            >
+            <p className={styles.error} role="alert">
               {error}
             </p>
           )}
