@@ -1,8 +1,13 @@
-
-const BASE = `${import.meta.env.VITE_API_URL}/api`;
+const BASE = (
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api"
+).replace(/\/+$/, "");
 
 function getToken() {
-  return localStorage.getItem("adminToken");
+  return (
+    localStorage.getItem("adminToken") ||
+    localStorage.getItem("token")
+  );
 }
 
 function getHeaders() {
@@ -16,7 +21,13 @@ function getHeaders() {
 }
 
 async function request(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+  const normalizedPath = path.startsWith("/")
+    ? path
+    : `/${path}`;
+
+  const url = `${BASE}${normalizedPath}`;
+
+  const res = await fetch(url, {
     ...options,
     headers: {
       ...getHeaders(),
@@ -26,19 +37,25 @@ async function request(path, options = {}) {
 
   if (res.status === 401) {
     localStorage.removeItem("adminToken");
-    window.location.href = "/login";
+    localStorage.removeItem("token");
+
     throw new Error("Unauthorized. Please log in again.");
   }
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
+  const data = await res.json().catch(() => ({}));
 
-    throw new Error(
+  if (!res.ok) {
+    const error = new Error(
       data.message || `Request failed: ${res.status}`
     );
+
+    error.status = res.status;
+    error.data = data;
+
+    throw error;
   }
 
-  return res.json();
+  return data;
 }
 
 export const api = {

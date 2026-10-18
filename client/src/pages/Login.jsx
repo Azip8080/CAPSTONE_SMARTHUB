@@ -1,38 +1,71 @@
+
 import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
+const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api"
+).replace(/\/+$/, "");
+
 function Login() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState(null);
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setForm((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError("");
     setLoading(true);
 
     try {
-      const res = await fetch("https://sdg-smarthub-api.onrender.com/api/users/login", {
+      const res = await fetch(`${API_BASE}/users/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) throw new Error(data.message || "Invalid credentials");
+      // A pending or rejected account must not establish a session.
+      if (!res.ok) {
+        throw new Error(
+          data.message || "Unable to sign in. Please try again."
+        );
+      }
 
+      // Do not accept an incomplete login response.
+      if (!data.token || !data.user) {
+        throw new Error(
+          "The server returned an incomplete login response."
+        );
+      }
+
+      // Save credentials only after successful authentication.
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
       window.dispatchEvent(new Event("userUpdated"));
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.message || "Unable to connect to the server."
+      );
     } finally {
       setLoading(false);
     }
@@ -67,6 +100,7 @@ function Login() {
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={handleChange}
+                autoComplete="email"
                 required
               />
             </div>
@@ -92,11 +126,16 @@ function Login() {
                 placeholder="••••••••"
                 value={form.password}
                 onChange={handleChange}
+                autoComplete="current-password"
                 required
               />
             </div>
 
-            {error && <p className={styles.error}>{error}</p>}
+            {error && (
+              <p className={styles.error} role="alert">
+                {error}
+              </p>
+            )}
 
             <button
               className={styles.submitBtn}

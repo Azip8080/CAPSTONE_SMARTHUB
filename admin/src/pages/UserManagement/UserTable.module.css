@@ -142,3 +142,67 @@
   padding: 48px;
   text-align: center;
 }
+/* Account status */
+.statusChip {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusPending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.statusActive {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.statusRejected {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.rejectionReason {
+  max-width: 220px;
+  margin-top: 6px;
+  color: #991b1b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.approveBtn,
+.rejectBtn {
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.approveBtn {
+  background: #15803d;
+}
+
+.rejectBtn {
+  background: #b91c1c;
+}
+
+.approveBtn:hover:not(:disabled) {
+  background: #166534;
+}
+
+.rejectBtn:hover:not(:disabled) {
+  background: #991b1b;
+}
+
+.approveBtn:disabled,
+.rejectBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

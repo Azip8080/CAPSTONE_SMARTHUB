@@ -1,3 +1,5 @@
+// useUsers.js
+
 import {
   useState,
   useEffect,
@@ -9,49 +11,31 @@ import { api } from "../../services/api";
 
 export function useUsers() {
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [search, setSearch] =
-    useState("");
-  const [roleFilter, setRoleFilter] =
-    useState("All");
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("All");
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response =
-        await api.get("/users");
+      const response = await api.get("/users");
+      const payload = response?.data ?? response;
 
-      const payload =
-        response?.data ?? response;
+      const userData = Array.isArray(payload)
+        ? payload
+        : payload?.users ??
+          payload?.data?.users ??
+          payload?.data ??
+          [];
 
-      const userData =
-        Array.isArray(payload)
-          ? payload
-          : payload?.users ??
-            payload?.data?.users ??
-            payload?.data ??
-            [];
-
-      setUsers(
-        Array.isArray(userData)
-          ? userData
-          : []
-      );
+      setUsers(Array.isArray(userData) ? userData : []);
     } catch (e) {
-      console.error(
-        "[USERS ERROR]",
-        e
-      );
-
+      console.error("[USERS ERROR]", e);
       setUsers([]);
-      setError(
-        e.message ||
-          "Failed to load users."
-      );
+      setError(e.message || "Failed to load users.");
     } finally {
       setLoading(false);
     }
@@ -63,11 +47,7 @@ export function useUsers() {
 
   const createUser = useCallback(
     async (form) => {
-      await api.post(
-        "/users/admin",
-        form
-      );
-
+      await api.post("/users/admin", form);
       await load();
     },
     [load]
@@ -75,11 +55,7 @@ export function useUsers() {
 
   const updateUser = useCallback(
     async (id, form) => {
-      await api.put(
-        `/users/${id}`,
-        form
-      );
-
+      await api.put(`/users/${id}`, form);
       await load();
     },
     [load]
@@ -87,10 +63,25 @@ export function useUsers() {
 
   const deleteUser = useCallback(
     async (id) => {
-      await api.delete(
-        `/users/${id}`
-      );
+      await api.delete(`/users/${id}`);
+      await load();
+    },
+    [load]
+  );
 
+  const approveUser = useCallback(
+    async (id) => {
+      await api.patch(`/users/${id}/approve`);
+      await load();
+    },
+    [load]
+  );
+
+  const rejectUser = useCallback(
+    async (id, reason) => {
+      await api.patch(`/users/${id}/reject`, {
+        reason,
+      });
       await load();
     },
     [load]
@@ -101,30 +92,16 @@ export function useUsers() {
 
     return users.filter((u) => {
       const matchSearch =
-        u.fullName
-          ?.toLowerCase()
-          .includes(q) ||
-        u.email
-          ?.toLowerCase()
-          .includes(q) ||
-        u.barangay
-          ?.toLowerCase()
-          .includes(q);
+        u.fullName?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
+        u.barangay?.toLowerCase().includes(q);
 
       const matchRole =
-        roleFilter === "All" ||
-        u.role === roleFilter;
+        roleFilter === "All" || u.role === roleFilter;
 
-      return (
-        matchSearch &&
-        matchRole
-      );
+      return matchSearch && matchRole;
     });
-  }, [
-    users,
-    search,
-    roleFilter,
-  ]);
+  }, [users, search, roleFilter]);
 
   const counts = useMemo(
     () => ({
@@ -134,24 +111,37 @@ export function useUsers() {
         (u) => u.role === "admin"
       ).length,
 
-      barangay_personnel:
-        users.filter(
-          (u) =>
-            u.role ===
-            "barangay_personnel"
-        ).length,
+      barangay_personnel: users.filter(
+        (u) => u.role === "barangay_personnel"
+      ).length,
 
-      community_member:
-        users.filter(
-          (u) =>
-            u.role ===
-            "community_member"
-        ).length,
+      community_member: users.filter(
+        (u) => u.role === "community_member"
+      ).length,
+
+      pending: users.filter(
+        (u) =>
+          u.role === "community_member" &&
+          (u.accountStatus || "Pending") === "Pending"
+      ).length,
+
+      active: users.filter(
+        (u) =>
+          u.role === "community_member" &&
+          u.accountStatus === "Active"
+      ).length,
+
+      rejected: users.filter(
+        (u) =>
+          u.role === "community_member" &&
+          u.accountStatus === "Rejected"
+      ).length,
     }),
     [users]
   );
 
   return {
+    users,
     loading,
     error,
     search,
@@ -163,5 +153,8 @@ export function useUsers() {
     createUser,
     updateUser,
     deleteUser,
+    approveUser,
+    rejectUser,
+    reloadUsers: load,
   };
 }

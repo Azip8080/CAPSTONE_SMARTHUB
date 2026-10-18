@@ -5,12 +5,15 @@ const UserSchema = new mongoose.Schema(
     fullName: {
       type: String,
       required: true,
+      trim: true,
     },
 
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
 
     password: {
@@ -30,6 +33,32 @@ const UserSchema = new mongoose.Schema(
 
     barangay: {
       type: String,
+      default: "",
+      trim: true,
+    },
+
+    accountStatus: {
+      type: String,
+      enum: ["Pending", "Active", "Rejected"],
+      default: "Pending",
+    },
+
+    verification: {
+      verifiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        default: null,
+      },
+
+      verifiedAt: {
+        type: Date,
+        default: null,
+      },
+
+      rejectionReason: {
+        type: String,
+        default: null,
+      },
     },
 
     resetPasswordToken: {

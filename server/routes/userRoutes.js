@@ -27,6 +27,17 @@ async function sendEmailJSTemplate(templateId, templateParams) {
   });
 }
 
+function removeSensitiveFields(user) {
+  const userObj = user.toObject();
+
+  delete userObj.password;
+  delete userObj.resetPasswordToken;
+  delete userObj.resetPasswordExpires;
+
+  return userObj;
+}
+
+// REQUEST EMAIL OTP
 router.post("/send-otp", async (req, res) => {
   let normalizedEmail;
   let otpHash;
@@ -59,8 +70,6 @@ router.post("/send-otp", async (req, res) => {
       !process.env.EMAILJS_PRIVATE_KEY ||
       !process.env.EMAILJS_OTP_TEMPLATE_ID
     ) {
-      console.error("EmailJS OTP environment variables are not configured.");
-
       return res.status(500).json({
         message: "Email service is not configured. Please try again later.",
       });
@@ -72,9 +81,7 @@ router.post("/send-otp", async (req, res) => {
     const normalizedBarangay =
       typeof barangay === "string" ? barangay.trim() : "";
 
-    const existingUser = await User.findOne({
-      email: normalizedEmail,
-    });
+    const existingUser = await User.findOne({ email: normalizedEmail });
 
     if (existingUser) {
       return res.status(409).json({
@@ -96,7 +103,6 @@ router.post("/send-otp", async (req, res) => {
     }
 
     const otp = crypto.randomInt(100000, 1000000).toString();
-
     otpHash = crypto.createHash("sha256").update(otp).digest("hex");
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -122,14 +128,11 @@ router.post("/send-otp", async (req, res) => {
     );
 
     try {
-      await sendEmailJSTemplate(
-        process.env.EMAILJS_OTP_TEMPLATE_ID,
-        {
-          to_email: normalizedEmail,
-          otp_code: otp,
-          expiry_minutes: 10,
-        }
-      );
+      await sendEmailJSTemplate(process.env.EMAILJS_OTP_TEMPLATE_ID, {
+        to_email: normalizedEmail,
+        otp_code: otp,
+        expiry_minutes: 10,
+      });
     } catch (emailError) {
       console.error("[SEND OTP EMAIL ERROR]", emailError);
 
@@ -139,8 +142,7 @@ router.post("/send-otp", async (req, res) => {
       });
 
       return res.status(502).json({
-        message:
-          "Could not send the verification email. Please try again later.",
+        message: "Could not send the verification email. Please try again later.",
       });
     }
 
@@ -167,6 +169,7 @@ router.post("/send-otp", async (req, res) => {
   }
 });
 
+// VERIFY EMAIL OTP AND CREATE PENDING COMMUNITY ACCOUNT
 router.post("/verify-otp", async (req, res) => {
   try {
     const email =
@@ -187,8 +190,7 @@ router.post("/verify-otp", async (req, res) => {
 
     if (!registration) {
       return res.status(400).json({
-        message:
-          "No pending registration was found. Please request a new code.",
+        message: "No pending registration was found. Please request a new code.",
       });
     }
 
@@ -196,8 +198,7 @@ router.post("/verify-otp", async (req, res) => {
       await RegistrationOTP.deleteOne({ _id: registration._id });
 
       return res.status(400).json({
-        message:
-          "The verification code has expired. Please request a new one.",
+        message: "The verification code has expired. Please request a new one.",
       });
     }
 
@@ -240,20 +241,20 @@ router.post("/verify-otp", async (req, res) => {
       password: registration.password,
       barangay: registration.barangay || "",
       role: "community_member",
+      accountStatus: "Pending",
+      verification: {
+        verifiedBy: null,
+        verifiedAt: null,
+        rejectionReason: null,
+      },
     });
 
     await RegistrationOTP.deleteOne({ _id: registration._id });
 
-    const userObj = newUser.toObject();
-
-    delete userObj.password;
-    delete userObj.resetPasswordToken;
-    delete userObj.resetPasswordExpires;
-
     return res.status(201).json({
       message:
-        "Email verified and account created successfully. You can now log in.",
-      user: userObj,
+        "Email verified. Your account is pending administrator approval. You can log in after your account is approved.",
+      user: removeSensitiveFields(newUser),
     });
   } catch (err) {
     console.error("[VERIFY OTP ERROR]", err);
@@ -264,6 +265,7 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
+// DISABLE DIRECT REGISTRATION
 router.post("/register", async (req, res) => {
   return res.status(410).json({
     message:
@@ -271,18 +273,23 @@ router.post("/register", async (req, res) => {
   });
 });
 
+// LOGIN
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      !email.trim() ||
+      !password
+    ) {
       return res.status(400).json({
         message: "Email and password are required.",
       });
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-
     const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
@@ -299,22 +306,45 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // Apply approval checks only to community members.
+    // Existing admin and barangay personnel accounts remain separate.
+    if (
+      user.role === "community_member" &&
+      user.accountStatus !== "Active"
+    ) {
+      if (user.accountStatus === "Rejected") {
+        return res.status(403).json({
+          message:
+            "Your account has been rejected. Please contact the administrator.",
+          accountStatus: "Rejected",
+        });
+      }
+
+      return res.status(403).json({
+        message:
+          "Your account is awaiting administrator approval. Please try again after it has been approved.",
+        accountStatus: "Pending",
+      });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      console.error("[LOGIN ERROR] JWT_SECRET is not configured.");
+
+      return res.status(500).json({
+        message: "Server authentication is not configured.",
+      });
+    }
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    const userObj = user.toObject();
-
-    delete userObj.password;
-    delete userObj.resetPasswordToken;
-    delete userObj.resetPasswordExpires;
-
     return res.json({
       message: "Login successful.",
       token,
-      user: userObj,
+      user: removeSensitiveFields(user),
     });
   } catch (err) {
     console.error("[LOGIN ERROR]", err);
@@ -325,6 +355,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// FORGOT PASSWORD
 router.post("/forgot-password", async (req, res) => {
   try {
     const email =
@@ -356,6 +387,7 @@ router.post("/forgot-password", async (req, res) => {
 
     const user = await User.findOne({ email });
 
+    // Avoid revealing whether an email address has an account.
     if (!user) {
       return res.json({
         message: "If the email is registered, a reset link will be sent.",
@@ -373,21 +405,17 @@ router.post("/forgot-password", async (req, res) => {
 
     await user.save();
 
-    const clientUrl = process.env.CLIENT_URL.replace(/\/$/, "");
+    const clientUrl = process.env.CLIENT_URL.replace(/\/+$/, "");
     const resetLink = `${clientUrl}/reset-password/${resetToken}`;
 
     try {
-      await sendEmailJSTemplate(
-        process.env.EMAILJS_RESET_TEMPLATE_ID,
-        {
-          to_email: user.email,
-          reset_link: resetLink,
-        }
-      );
+      await sendEmailJSTemplate(process.env.EMAILJS_RESET_TEMPLATE_ID, {
+        to_email: user.email,
+        reset_link: resetLink,
+      });
     } catch (emailError) {
       user.resetPasswordToken = null;
       user.resetPasswordExpires = null;
-
       await user.save();
 
       throw emailError;
@@ -405,6 +433,7 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
+// RESET PASSWORD
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { newPassword } = req.body;
@@ -455,6 +484,7 @@ router.post("/reset-password/:token", async (req, res) => {
   }
 });
 
+// CREATE ADMIN
 router.post("/admin", auth, adminOnly, async (req, res) => {
   try {
     const { fullName, email, password, barangay } = req.body;
@@ -472,11 +502,10 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-
     const existing = await User.findOne({ email: normalizedEmail });
 
     if (existing) {
-      return res.status(400).json({
+      return res.status(409).json({
         message: "An account with this email already exists.",
       });
     }
@@ -488,7 +517,8 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
       email: normalizedEmail,
       password: hashedPassword,
       role: "admin",
-      barangay: barangay?.trim() || undefined,
+      accountStatus: "Active",
+      barangay: typeof barangay === "string" ? barangay.trim() : "",
     });
 
     await logActivity({
@@ -500,12 +530,9 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
       details: "Created a new admin account.",
     });
 
-    const userObj = newUser.toObject();
-    delete userObj.password;
-
     return res.status(201).json({
       message: "Admin account created successfully.",
-      user: userObj,
+      user: removeSensitiveFields(newUser),
     });
   } catch (err) {
     console.error("[CREATE ADMIN ERROR]", err);
@@ -516,6 +543,7 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
   }
 });
 
+// GET CURRENT USER
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
@@ -538,9 +566,147 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
+// LIST USERS FOR ADMIN
+router.get("/", auth, adminOnly, async (req, res) => {
+  try {
+    const users = await User.find()
+      .select("-password -resetPasswordToken -resetPasswordExpires")
+      .sort({ createdAt: -1 });
+
+    return res.json({ users });
+  } catch (err) {
+    console.error("[GET USERS ERROR]", err);
+
+    return res.status(500).json({
+      message: "Failed to get users.",
+    });
+  }
+});
+
+// APPROVE COMMUNITY ACCOUNT
+router.patch("/:id/approve", auth, adminOnly, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    if (user.role !== "community_member") {
+      return res.status(400).json({
+        message: "Only community member accounts require this approval.",
+      });
+    }
+
+    if (user.accountStatus === "Active") {
+      return res.status(400).json({
+        message: "This account is already active.",
+      });
+    }
+
+    user.accountStatus = "Active";
+    user.verification = {
+      verifiedBy: req.user.id,
+      verifiedAt: new Date(),
+      rejectionReason: null,
+    };
+
+    await user.save();
+
+    await logActivity({
+      actor: req.user.id,
+      action: "approved",
+      entityType: "user",
+      entityId: user._id,
+      entityTitle: user.fullName,
+      details: "Approved a community member account.",
+    });
+
+    return res.json({
+      message: "Community account approved successfully.",
+      user: removeSensitiveFields(user),
+    });
+  } catch (err) {
+    console.error("[APPROVE USER ERROR]", err);
+
+    return res.status(500).json({
+      message: "Failed to approve account.",
+    });
+  }
+});
+
+// REJECT COMMUNITY ACCOUNT
+router.patch("/:id/reject", auth, adminOnly, async (req, res) => {
+  try {
+    const reason =
+      typeof req.body.reason === "string" ? req.body.reason.trim() : "";
+
+    if (!reason) {
+      return res.status(400).json({
+        message: "Please provide a reason for rejecting this account.",
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    if (user.role !== "community_member") {
+      return res.status(400).json({
+        message: "Only community member accounts can be rejected here.",
+      });
+    }
+
+    user.accountStatus = "Rejected";
+    user.verification = {
+      verifiedBy: req.user.id,
+      verifiedAt: new Date(),
+      rejectionReason: reason,
+    };
+
+    await user.save();
+
+    await logActivity({
+      actor: req.user.id,
+      action: "rejected",
+      entityType: "user",
+      entityId: user._id,
+      entityTitle: user.fullName,
+      details: `Rejected a community member account. Reason: ${reason}`,
+    });
+
+    return res.json({
+      message: "Community account rejected.",
+      user: removeSensitiveFields(user),
+    });
+  } catch (err) {
+    console.error("[REJECT USER ERROR]", err);
+
+    return res.status(500).json({
+      message: "Failed to reject account.",
+    });
+  }
+});
+
+// UPDATE USER DETAILS
 router.put("/:id", auth, adminOnly, async (req, res) => {
   try {
-    const { password, ...safeFields } = req.body;
+    // Prevent this general-purpose endpoint from changing sensitive fields.
+    const {
+      password,
+      role,
+      accountStatus,
+      verification,
+      resetPasswordToken,
+      resetPasswordExpires,
+      ...safeFields
+    } = req.body;
 
     const user = await User.findByIdAndUpdate(
       req.params.id,
@@ -576,6 +742,7 @@ router.put("/:id", auth, adminOnly, async (req, res) => {
   }
 });
 
+// CHANGE PASSWORD
 router.put("/:id/password", auth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -614,10 +781,7 @@ router.put("/:id/password", auth, async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(
-      currentPassword,
-      user.password
-    );
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
 
     if (!isMatch) {
       return res.status(400).json({
@@ -652,22 +816,7 @@ router.put("/:id/password", auth, async (req, res) => {
   }
 });
 
-router.get("/", auth, adminOnly, async (req, res) => {
-  try {
-    const users = await User.find()
-      .select("-password -resetPasswordToken -resetPasswordExpires")
-      .sort({ createdAt: -1 });
-
-    return res.json({ users });
-  } catch (err) {
-    console.error("[GET USERS ERROR]", err);
-
-    return res.status(500).json({
-      message: "Failed to get users.",
-    });
-  }
-});
-
+// DELETE USER
 router.delete("/:id", auth, adminOnly, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
