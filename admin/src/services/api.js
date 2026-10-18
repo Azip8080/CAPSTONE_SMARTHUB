@@ -1,8 +1,9 @@
 const BASE = (
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5000/api"
+  "https://sdg-smarthub-api.onrender.com/api"
 ).replace(/\/+$/, "");
 
+// Retrieve the saved authentication token
 function getToken() {
   return (
     localStorage.getItem("adminToken") ||
@@ -10,6 +11,7 @@ function getToken() {
   );
 }
 
+// Add authorization headers when a token exists
 function getHeaders() {
   const token = getToken();
 
@@ -20,6 +22,7 @@ function getHeaders() {
     : {};
 }
 
+// Send an API request
 async function request(path, options = {}) {
   const normalizedPath = path.startsWith("/")
     ? path
@@ -35,6 +38,7 @@ async function request(path, options = {}) {
     },
   });
 
+  // Handle unauthorized requests
   if (res.status === 401) {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("token");
@@ -42,8 +46,10 @@ async function request(path, options = {}) {
     throw new Error("Unauthorized. Please log in again.");
   }
 
+  // Safely parse the response
   const data = await res.json().catch(() => ({}));
 
+  // Handle API errors
   if (!res.ok) {
     const error = new Error(
       data.message || `Request failed: ${res.status}`
@@ -58,6 +64,7 @@ async function request(path, options = {}) {
   return data;
 }
 
+// Public API methods
 export const api = {
   get: (path) => request(path),
 
