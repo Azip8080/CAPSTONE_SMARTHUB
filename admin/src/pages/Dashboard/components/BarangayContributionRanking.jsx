@@ -1,7 +1,12 @@
+
 import { useEffect, useState } from "react";
 import styles from "./BarangayContributionRanking.module.css";
 
-const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+const API_URL = (
+  import.meta.env.VITE_API_URL ||
+  "https://sdg-smarthub-api.onrender.com/api"
+).replace(/\/+$/, "");
+
 const ranks = ["1st", "2nd", "3rd", "4th", "5th"];
 
 function BarangayContributionRanking() {
@@ -22,7 +27,7 @@ function BarangayContributionRanking() {
         setError("");
 
         const response = await fetch(
-          `${API_URL}/api/projects/barangay-ranking`,
+          `${API_URL}/projects/barangay-ranking`,
           { signal: controller.signal }
         );
 
@@ -61,7 +66,9 @@ function BarangayContributionRanking() {
 
     try {
       const response = await fetch(
-        `${API_URL}/api/projects/barangay/${encodeURIComponent(barangay)}/published`
+        `${API_URL}/projects/barangay/${encodeURIComponent(
+          barangay
+        )}/published`
       );
 
       if (!response.ok) {
@@ -71,10 +78,14 @@ function BarangayContributionRanking() {
       const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.message || "Unable to load published projects.");
+        throw new Error(
+          result.message || "Unable to load published projects."
+        );
       }
 
-      setPublishedProjects(Array.isArray(result.data) ? result.data : []);
+      setPublishedProjects(
+        Array.isArray(result.data) ? result.data : []
+      );
     } catch (err) {
       setProjectsError(err.message || "Something went wrong.");
     } finally {
@@ -113,9 +124,13 @@ function BarangayContributionRanking() {
       <section className={styles.section}>
         <div className={styles.heading}>
           <div>
-            <span className={styles.eyebrow}>COMMUNITY PERFORMANCE</span>
+            <span className={styles.eyebrow}>
+              COMMUNITY PERFORMANCE
+            </span>
             <h2>Barangay Contribution Ranking</h2>
-            <p>Compare barangays based on their published SDG projects.</p>
+            <p>
+              Compare barangays based on their published SDG projects.
+            </p>
           </div>
 
           <span className={styles.totalBadge}>
@@ -149,7 +164,10 @@ function BarangayContributionRanking() {
         ) : (
           <div className={styles.list}>
             {ranking.map((item, index) => (
-              <article className={styles.row} key={item.barangay || index}>
+              <article
+                className={styles.row}
+                key={item.barangay || index}
+              >
                 <div
                   className={`${styles.rank} ${
                     index < 3 ? styles[`rank${index + 1}`] : ""
@@ -289,7 +307,9 @@ function BarangayContributionRanking() {
                         </span>
                       </div>
 
-                      <span className={styles.publishedBadge}>Published</span>
+                      <span className={styles.publishedBadge}>
+                        Published
+                      </span>
                     </article>
                   );
                 })}
