@@ -1,6 +1,13 @@
 
-const API_BASE = `${import.meta.env.VITE_API_URL}/api/ai`;
-const PROJECTS_API = `${import.meta.env.VITE_API_URL}/api/projects`;
+const API_ORIGIN = (
+  import.meta.env.VITE_API_URL ||
+  "https://sdg-smarthub-api.onrender.com/api"
+)
+  .replace(/\/+$/, "")
+  .replace(/\/api$/i, "");
+
+const API_BASE = `${API_ORIGIN}/api/ai`;
+const PROJECTS_API = `${API_ORIGIN}/api/projects`;
 
 const REQUEST_TIMEOUT = 60000;
 
@@ -23,7 +30,7 @@ async function fetchWithTimeout(
   } catch (error) {
     if (error.name === "AbortError") {
       throw new Error(
-        "The request timed out after 60 seconds. Check the backend terminal and server connection."
+        "The request timed out after 60 seconds. Check the backend and server connection."
       );
     }
 
@@ -98,7 +105,7 @@ export async function classifyFile(file) {
   }
 
   return {
-    ...data.data,
+    ...(data.data || {}),
     filename: data.filename || file.name,
   };
 }
@@ -121,7 +128,10 @@ async function projectRequest(path, options = {}) {
   return handleResponse(response);
 }
 
-export async function saveProjectDraft(project, projectId = null) {
+export async function saveProjectDraft(
+  project,
+  projectId = null
+) {
   if (projectId) {
     return projectRequest(`/${projectId}`, {
       method: "PUT",
@@ -146,17 +156,14 @@ export async function publishProject(projectId) {
     method: "PATCH",
   });
 }
-export async function refineProject(
-  project,
-  instruction
-) {
+
+export async function refineProject(project, instruction) {
   const response = await fetchWithTimeout(
     `${API_BASE}/refine`,
     {
       method: "POST",
       headers: {
-        "Content-Type":
-          "application/json",
+        "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
       body: JSON.stringify({
