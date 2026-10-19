@@ -1,4 +1,3 @@
-
 import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -42,25 +41,23 @@ function Login() {
 
       const data = await res.json().catch(() => ({}));
 
-      // A pending or rejected account must not establish a session.
       if (!res.ok) {
         throw new Error(
           data.message || "Unable to sign in. Please try again."
         );
       }
 
-      // Do not accept an incomplete login response.
       if (!data.token || !data.user) {
         throw new Error(
           "The server returned an incomplete login response."
         );
       }
 
-      // Save credentials only after successful authentication.
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       window.dispatchEvent(new Event("userUpdated"));
+
       navigate("/");
     } catch (err) {
       setError(
@@ -92,6 +89,7 @@ function Login() {
               <label className={styles.label} htmlFor="email">
                 Email address
               </label>
+
               <input
                 className={styles.input}
                 id="email"
@@ -110,6 +108,7 @@ function Login() {
                 <label className={styles.label} htmlFor="password">
                   Password
                 </label>
+
                 <Link
                   to="/forgot-password"
                   className={styles.forgotLink}
@@ -162,13 +161,16 @@ function Login() {
       <div className={styles.right}>
         <div className={styles.rightBg} />
         <div className={styles.rightOverlay} />
+
         <div className={styles.rightContent}>
           <p className={styles.eyebrow}>
             Sustainable Development City of Manila
           </p>
+
           <h1 className={styles.rightTitle}>
             Tracking Progress Across All 17 SDGs
           </h1>
+
           <p className={styles.rightDesc}>
             A centralized platform connecting communities, barangays, and
             organizations toward a sustainable Manila.
