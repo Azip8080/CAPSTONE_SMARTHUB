@@ -1,7 +1,15 @@
+
 import { useEffect, useState } from "react";
 import styles from "./BarangayContributionRanking.module.css";
 
-const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+const API_URL = (
+  import.meta.env.VITE_API_URL ||
+  "https://sdg-smarthub-api.onrender.com/api"
+)
+  .replace(/\/+$/, "")
+  .replace(/\/api$/i, "");
+
+const API_BASE = `${API_URL}/api`;
 
 function BarangayContributionRanking() {
   const [ranking, setRanking] = useState([]);
@@ -22,27 +30,24 @@ function BarangayContributionRanking() {
         setLoading(true);
         setError("");
 
-        if (!API_URL) {
-          throw new Error(
-            "VITE_API_URL is missing. Configure it in your deployment environment."
-          );
-        }
-
         const response = await fetch(
-          `${API_URL}/api/projects/barangay-ranking`,
+          `${API_BASE}/projects/barangay-ranking`,
           { signal: controller.signal }
         );
 
+        const result = await response.json().catch(() => ({}));
+
         if (!response.ok) {
           throw new Error(
-            `Unable to load barangay rankings (HTTP ${response.status}).`
+            result.message ||
+              `Unable to load barangay rankings (HTTP ${response.status}).`
           );
         }
 
-        const result = await response.json();
-
         if (!result.success) {
-          throw new Error(result.message || "Unable to load rankings.");
+          throw new Error(
+            result.message || "Unable to load rankings."
+          );
         }
 
         setRanking(Array.isArray(result.data) ? result.data : []);
@@ -72,23 +77,20 @@ function BarangayContributionRanking() {
     setProjectsLoading(true);
 
     try {
-      if (!API_URL) {
-        throw new Error("VITE_API_URL is not configured.");
-      }
-
       const response = await fetch(
-        `${API_URL}/api/projects/barangay/${encodeURIComponent(
+        `${API_BASE}/projects/barangay/${encodeURIComponent(
           barangay
         )}/published`
       );
 
+      const result = await response.json().catch(() => ({}));
+
       if (!response.ok) {
         throw new Error(
-          `Unable to load published projects (HTTP ${response.status}).`
+          result.message ||
+            `Unable to load published projects (HTTP ${response.status}).`
         );
       }
-
-      const result = await response.json();
 
       if (!result.success) {
         throw new Error(
@@ -188,7 +190,9 @@ function BarangayContributionRanking() {
                 >
                   <span
                     className={`${styles.rank} ${
-                      index < 3 ? styles[`rank${index + 1}`] || "" : ""
+                      index < 3
+                        ? styles[`rank${index + 1}`] || ""
+                        : ""
                     }`}
                   >
                     {index + 1}
@@ -224,7 +228,9 @@ function BarangayContributionRanking() {
                 {showAll
                   ? "Show less"
                   : `View all ${ranking.length} barangays`}
-                <span aria-hidden="true">{showAll ? "↑" : "↓"}</span>
+                <span aria-hidden="true">
+                  {showAll ? "↑" : "↓"}
+                </span>
               </button>
             )}
           </>
@@ -275,8 +281,8 @@ function BarangayContributionRanking() {
               <div className={styles.panelState}>
                 <h3>No published projects found</h3>
                 <p>
-                  There are currently no published projects available for this
-                  barangay.
+                  There are currently no published projects available for
+                  this barangay.
                 </p>
               </div>
             ) : (
@@ -333,7 +339,9 @@ function BarangayContributionRanking() {
                         </span>
                       </div>
 
-                      <span className={styles.publishedBadge}>Published</span>
+                      <span className={styles.publishedBadge}>
+                        Published
+                      </span>
                     </article>
                   );
                 })}

@@ -1,11 +1,16 @@
+
 import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-const API_BASE = (
+const API_URL = (
   import.meta.env.VITE_API_URL ||
-  "http://localhost:5000/api"
-).replace(/\/+$/, "");
+  "https://sdg-smarthub-api.onrender.com/api"
+)
+  .replace(/\/+$/, "")
+  .replace(/\/api$/i, "");
+
+const API_BASE = `${API_URL}/api`;
 
 function Login() {
   const navigate = useNavigate();
@@ -36,14 +41,17 @@ function Login() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          email: form.email.trim(),
+          password: form.password,
+        }),
       });
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         throw new Error(
-          data.message || "Unable to sign in. Please try again."
+          data.message || `Unable to sign in (HTTP ${res.status}).`
         );
       }
 
@@ -60,6 +68,7 @@ function Login() {
 
       navigate("/");
     } catch (err) {
+      console.error("Community login error:", err);
       setError(
         err.message || "Unable to connect to the server."
       );
