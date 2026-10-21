@@ -1,35 +1,13 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
 
 import SDGCharts from "../components/SDGCharts/SDGCharts";
 import SummaryCards from "../components/SummaryCards";
 import BarangayContributionRanking from "../components/BarangayContributionRanking";
+import AuthGate from "../components/AuthGate";
 
 function Home() {
   const navigate = useNavigate();
-
-  const [isSignedIn, setIsSignedIn] = useState(
-    Boolean(localStorage.getItem("token"))
-  );
-
-  useEffect(() => {
-    const checkLogin = () => {
-      setIsSignedIn(Boolean(localStorage.getItem("token")));
-    };
-
-    window.addEventListener("storage", checkLogin);
-    window.addEventListener("userUpdated", checkLogin);
-
-    return () => {
-      window.removeEventListener("storage", checkLogin);
-      window.removeEventListener("userUpdated", checkLogin);
-    };
-  }, []);
-
-  const handleSignIn = () => {
-    navigate("/login");
-  };
 
   return (
     <main className="Home">
@@ -82,20 +60,16 @@ function Home() {
             aria-label="Scroll to SDG Analytics"
           >
             <span>Explore Analytics</span>
-            <span className="scroll-down-icon">↓</span>
+
+            <span className="scroll-down-icon">
+              ↓
+            </span>
           </button>
         </div>
       </section>
 
-      {/* Protected community data */}
-      <section className="protected-section">
-        <div
-          className={
-            !isSignedIn
-              ? "protected-content blurred"
-              : "protected-content"
-          }
-        >
+      <AuthGate>
+        <section className="protected-section">
           <SummaryCards />
 
           <section className="barangay-ranking-section">
@@ -105,48 +79,9 @@ function Home() {
           <div id="analytics">
             <SDGCharts />
           </div>
-        </div>
+        </section>
+      </AuthGate>
 
-        {!isSignedIn && (
-          <div className="login-overlay">
-            <div className="login-overlay-card">
-              <div className="login-lock-icon">
-                🔒
-              </div>
-
-              <span className="login-overlay-eyebrow">
-                COMMUNITY DATA
-              </span>
-
-              <h2>
-                Sign in to view community data
-              </h2>
-
-              <p>
-                Sign in to access SDG analytics, barangay
-                contributions, project statistics, and
-                community participation data.
-              </p>
-
-              <button
-                type="button"
-                className="login-overlay-btn"
-                onClick={handleSignIn}
-              >
-                Sign in to continue
-              </button>
-
-              <button
-                type="button"
-                className="login-overlay-link"
-                onClick={() => navigate("/signup")}
-              >
-                Don't have an account? Create one
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
     </main>
   );
 }

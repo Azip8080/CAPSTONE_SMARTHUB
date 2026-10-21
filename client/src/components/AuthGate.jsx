@@ -34,6 +34,7 @@ function AuthGate({
 
   return (
     <div className={styles.container}>
+      {/* Blurred version of the actual page */}
       <div
         className={styles.blurredContent}
         aria-hidden="true"
@@ -41,6 +42,7 @@ function AuthGate({
         {children}
       </div>
 
+      {/* Authentication overlay */}
       <div
         className={styles.overlay}
         role="dialog"
@@ -48,30 +50,52 @@ function AuthGate({
         aria-labelledby="auth-gate-title"
       >
         <div className={styles.authCard}>
-          <h3 id="auth-gate-title">
-            {title}
-          </h3>
+          <div className={styles.brand}>
+            <div className={styles.brandIcon}>
+              SDG
+            </div>
 
-          <p>
-            Please sign in to your SDG Smart Hub
-            account to access this feature.
+            <span className={styles.brandName}>
+              Smart Hub
+            </span>
+          </div>
+
+          <div className={styles.cardHeader}>
+            <h2
+              id="auth-gate-title"
+              className={styles.title}
+            >
+              {title}
+            </h2>
+
+            <p className={styles.subtitle}>
+              Sign in to your SDG Smart Hub account
+              to access this feature.
+            </p>
+          </div>
+
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.loginButton}
+              onClick={() => navigate("/login")}
+            >
+              Sign in
+            </button>
+
+            <button
+              type="button"
+              className={styles.signupButton}
+              onClick={() => navigate("/signup")}
+            >
+              Create an account
+            </button>
+          </div>
+
+          <p className={styles.footer}>
+            © {new Date().getFullYear()} SDG Smart Hub —
+            City of Manila
           </p>
-
-          <button
-            type="button"
-            className={styles.loginButton}
-            onClick={() => navigate("/login")}
-          >
-            Sign in
-          </button>
-
-          <button
-            type="button"
-            className={styles.signupButton}
-            onClick={() => navigate("/signup")}
-          >
-            Create an account
-          </button>
         </div>
       </div>
     </div>
