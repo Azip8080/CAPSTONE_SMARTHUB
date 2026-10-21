@@ -382,3 +382,190 @@
     padding-right: 12px;
   }
 }
+/* =========================================================
+   PROTECTED COMMUNITY DATA
+   ========================================================= */
+
+.protected-section {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.protected-content {
+  position: relative;
+  width: 100%;
+  transition: filter 0.25s ease;
+}
+
+/* Blur protected information when signed out */
+.protected-content.blurred {
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Slightly darken the blurred content */
+.protected-content.blurred::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(248, 250, 252, 0.18);
+  pointer-events: none;
+}
+
+/* =========================================================
+   LOGIN OVERLAY
+   ========================================================= */
+
+.login-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 24px;
+
+  background: rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.login-overlay-card {
+  width: min(460px, 100%);
+
+  padding: 36px 34px;
+
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.18),
+    0 8px 24px rgba(15, 23, 42, 0.08);
+
+  text-align: center;
+}
+
+.login-lock-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 52px;
+  height: 52px;
+
+  margin: 0 auto 18px;
+
+  border-radius: 50%;
+
+  background: #eff6ff;
+
+  font-size: 23px;
+}
+
+.login-overlay-eyebrow {
+  display: block;
+
+  margin-bottom: 9px;
+
+  color: #64748b;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.login-overlay-card h2 {
+  margin: 0 0 12px;
+
+  color: #0f172a;
+
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.login-overlay-card p {
+  max-width: 380px;
+
+  margin: 0 auto 24px;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.login-overlay-btn {
+  width: 100%;
+
+  min-height: 46px;
+
+  padding: 12px 20px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.login-overlay-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.login-overlay-link {
+  margin-top: 16px;
+
+  border: none;
+  background: transparent;
+
+  color: #2563eb;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.login-overlay-link:hover {
+  text-decoration: underline;
+}
+@media (max-width: 600px) {
+  .login-overlay {
+    padding: 24px 16px;
+  }
+
+  .login-overlay-card {
+    padding: 30px 24px;
+    border-radius: 15px;
+  }
+
+  .login-overlay-card h2 {
+    font-size: 22px;
+  }
+
+  .login-overlay-card p {
+    font-size: 13px;
+  }
+
+  .protected-content.blurred {
+    filter: blur(5px);
+  }
+}

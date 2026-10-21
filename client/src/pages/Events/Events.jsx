@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import styles from "./Events.module.css";
+
+import AuthGate from "../../components/AuthGate";
+
 import EventCalendar from "./components/EventCalendar";
 import EventList from "./components/EventList";
 import { fetchEvents } from "../../services/eventService";
@@ -29,8 +32,12 @@ function Events() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [activeFilter, setActiveFilter] = useState("All");
+
+  const [selectedDate, setSelectedDate] =
+    useState(null);
+
+  const [activeFilter, setActiveFilter] =
+    useState("All");
 
   useEffect(() => {
     setLoading(true);
@@ -64,8 +71,7 @@ function Events() {
     })
     .sort(
       (a, b) =>
-        new Date(a.date) -
-        new Date(b.date)
+        new Date(a.date) - new Date(b.date)
     );
 
   return (
@@ -81,59 +87,64 @@ function Events() {
         </p>
       </div>
 
-      <div className={styles.toolbar}>
-        <div className={styles.toolbarInner}>
-          <span className={styles.toolbarLabel}>
-            Filter by goal
-          </span>
+      <AuthGate title="Sign in to view events">
+        <div className={styles.toolbar}>
+          <div className={styles.toolbarInner}>
+            <span className={styles.toolbarLabel}>
+              Filter by goal
+            </span>
 
-          <select
-            className={styles.select}
-            value={activeFilter}
-            onChange={(e) =>
-              setActiveFilter(e.target.value)
-            }
-          >
-            {SDG_FILTERS.map((filter) => (
-              <option
-                key={filter}
-                value={filter}
-              >
-                {filter}
-              </option>
-            ))}
-          </select>
-
-          {selectedDate && (
-            <button
-              className={styles.clearBtn}
-              onClick={() =>
-                setSelectedDate(null)
+            <select
+              className={styles.select}
+              value={activeFilter}
+              onChange={(e) =>
+                setActiveFilter(e.target.value)
               }
             >
-              ✕ Clear date
-            </button>
-          )}
+              {SDG_FILTERS.map((filter) => (
+                <option
+                  key={filter}
+                  value={filter}
+                >
+                  {filter}
+                </option>
+              ))}
+            </select>
+
+            {selectedDate && (
+              <button
+                type="button"
+                className={styles.clearBtn}
+                onClick={() =>
+                  setSelectedDate(null)
+                }
+              >
+                ✕ Clear date
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className={styles.layout}>
-        <EventCalendar
-          events={sdgFilteredEvents}
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-        />
+        <div className={styles.eventsWrapper}>
+          <div className={styles.layout}>
+            <EventCalendar
+              events={sdgFilteredEvents}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+            />
 
-        <EventList
-          events={filteredEvents}
-          loading={loading}
-          error={error}
-          selectedDate={selectedDate}
-          onClearDate={() =>
-            setSelectedDate(null)
-          }
-        />
-      </div>
+            <EventList
+              events={filteredEvents}
+              loading={loading}
+              error={error}
+              selectedDate={selectedDate}
+              onClearDate={() =>
+                setSelectedDate(null)
+              }
+            />
+          </div>
+        </div>
+      </AuthGate>
     </main>
   );
 }
