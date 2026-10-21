@@ -8,12 +8,9 @@ function AuthGate({
 }) {
   const navigate = useNavigate();
 
-  const [authenticated, setAuthenticated] =
-    useState(() => {
-      return Boolean(
-        localStorage.getItem("token")
-      );
-    });
+  const [authenticated, setAuthenticated] = useState(() => {
+    return Boolean(localStorage.getItem("token"));
+  });
 
   useEffect(() => {
     const checkAuth = () => {
@@ -22,26 +19,12 @@ function AuthGate({
       );
     };
 
-    window.addEventListener(
-      "storage",
-      checkAuth
-    );
-
-    window.addEventListener(
-      "userUpdated",
-      checkAuth
-    );
+    window.addEventListener("storage", checkAuth);
+    window.addEventListener("userUpdated", checkAuth);
 
     return () => {
-      window.removeEventListener(
-        "storage",
-        checkAuth
-      );
-
-      window.removeEventListener(
-        "userUpdated",
-        checkAuth
-      );
+      window.removeEventListener("storage", checkAuth);
+      window.removeEventListener("userUpdated", checkAuth);
     };
   }, []);
 
@@ -65,13 +48,6 @@ function AuthGate({
         aria-labelledby="auth-gate-title"
       >
         <div className={styles.authCard}>
-          <div
-            className={styles.lockIcon}
-            aria-hidden="true"
-          >
-            🔒
-          </div>
-
           <h3 id="auth-gate-title">
             {title}
           </h3>
