@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import BarangayContributionRanking from "./components/BarangayContributionRanking";
 import styles from "./Dashboard.module.css";
 import { useDashboard } from "./useDashboard";
@@ -190,9 +191,9 @@ function Dashboard() {
                 color: "#8b5cf6",
               },
             ].map((action) => (
-              <a
+              <Link
                 key={action.label}
-                href={action.path}
+                to={action.path}
                 className={styles.quickAction}
               >
                 <div
@@ -201,7 +202,7 @@ function Dashboard() {
                 />
 
                 {action.label}
-              </a>
+              </Link>
             ))}
           </div>
 
