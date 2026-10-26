@@ -1,18 +1,69 @@
-const BASE = "https://sdg-smarthub-api.onrender.com/api/analytics";
 
+const BASE = (
+  import.meta.env.VITE_API_URL ||
+  "https://sdg-smarthub-api.onrender.com/api"
+).replace(/\/+$/, "");
 
-export async function fetchDashboardSummary() {
-  const res = await fetch(
-    `${BASE}/dashboard-summary`
-  );
+const TOKEN_KEY = "token";
 
-  if (!res.ok) {
+async function analyticsRequest(endpoint, params = {}) {
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  console.log("[Analytics Debug]", {
+    tokenFound: Boolean(token),
+    tokenLength: token?.length ?? 0,
+    origin: window.location.origin,
+    endpoint,
+  });
+
+  if (!token) {
+    throw new Error("Please log in to view analytics.");
+  }
+
+  const queryParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      queryParams.set(key, String(value));
+    }
+  });
+
+  const query = queryParams.toString();
+  const url = `${BASE}/analytics/${endpoint}${
+    query ? `?${query}` : ""
+  }`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
+  });
+
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok || json.success === false) {
     throw new Error(
-      "Failed to fetch dashboard summary"
+      json.message || `Failed to fetch ${endpoint} (HTTP ${res.status}).`
     );
   }
 
-  const json = await res.json();
-
   return json.data;
+}
+
+export async function fetchDistribution(params = {}) {
+  return analyticsRequest("distribution", params);
+}
+
+export async function fetchParticipation(params = {}) {
+  return analyticsRequest("participation", params);
+}
+
+export async function fetchTrend(params = {}) {
+  return analyticsRequest("trend", params);
+}
+
+export async function fetchDashboardSummary(params = {}) {
+  return analyticsRequest("dashboard-summary", params);
 }

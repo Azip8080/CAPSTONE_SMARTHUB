@@ -225,7 +225,7 @@ function SDGTracker() {
 
   const summaryCards = [
     {
-      label: "Total Projects",
+      label: "SDG Overview",
       value: totalProjects,
       color: "#3b82f6",
       filter: "all",

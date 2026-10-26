@@ -397,3 +397,193 @@
     width: 100%;
   }
 }
+
+/* Event barangay selection */
+.barangayScope {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 5px;
+  margin-bottom: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.barangayScopeOption {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.barangayScopeOption:hover {
+  color: #1e40af;
+  background: #eff6ff;
+}
+
+.barangayScopeOptionActive {
+  border-color: #dbeafe;
+  background: #ffffff;
+  color: #1d4ed8;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.07);
+}
+
+.barangayScopeOptionActive:hover {
+  background: #ffffff;
+  color: #1d4ed8;
+}
+
+.barangayScopeOption input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.barangaySearchWrapper {
+  position: relative;
+  margin-top: 4px;
+}
+
+.barangaySearch {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 40px 0 38px;
+  border: 1px solid #dbe1e8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.barangaySearch::placeholder {
+  color: #94a3b8;
+}
+
+.barangaySearch:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.barangaySearchIcon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  color: #94a3b8;
+  font-size: 15px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.barangaySearchClear {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #64748b;
+  font-size: 18px;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.barangaySearchClear:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.barangayHelp {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.barangayHelpIcon {
+  flex-shrink: 0;
+  color: #2563eb;
+}
+
+.barangayStatus {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  margin-top: 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.barangayStatusIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.barangayStatusTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.barangayStatusDescription {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 420px) {
+  .barangayScope {
+    gap: 5px;
+    padding: 4px;
+  }
+
+  .barangayScopeOption {
+    gap: 6px;
+    padding: 9px 6px;
+    font-size: 11px;
+  }
+}

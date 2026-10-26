@@ -1,50 +1,49 @@
+
 import { useState } from "react";
 import styles from "./SDGCharts.module.css";
-
 import DistributionChart from "./DistributionChart";
 import ParticipationChart from "./ParticipationChart";
 import TrendChart from "./TrendChart";
 
 const RANGE_OPTIONS = [
-  { label: "1 month", value: "1month" },
-  { label: "3 months", value: "3months" },
-  { label: "6 months", value: "6months" },
-  { label: "1 year", value: "1year" },
-  { label: "All time", value: "all" },
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
+  { label: "Quarterly", value: "quarterly" },
 ];
 
-export default function SDGCharts() {
-  const [range, setRange] = useState("6months");
+export default function SDGCharts({ barangay = "" }) {
+  const [range, setRange] = useState("monthly");
 
   return (
     <section className={styles.sdgCharts}>
       <div className={styles.sdgChartsInner}>
         <div className={styles.chartsHeading}>
           <h2>SDG Analytics</h2>
-
           <p>
-            Track progress across all 17 Sustainable Development Goals
+            Track SDG progress and project activity
+            {barangay ? ` in ${barangay}` : " in your community"}.
           </p>
         </div>
 
         <div className={styles.chartsToolbar}>
-          <p className={styles.chartsToolbarLabel}>
-            Period
-          </p>
+          <p className={styles.chartsToolbarLabel}>Period</p>
 
-          <div className={styles.rangePills}>
-            {RANGE_OPTIONS.map((r) => (
+          <div
+            className={styles.rangePills}
+            role="group"
+            aria-label="Select analytics period"
+          >
+            {RANGE_OPTIONS.map((option) => (
               <button
                 type="button"
-                key={r.value}
+                key={option.value}
                 className={`${styles.rangePill} ${
-                  range === r.value
-                    ? styles.active
-                    : ""
+                  range === option.value ? styles.active : ""
                 }`}
-                onClick={() => setRange(r.value)}
+                onClick={() => setRange(option.value)}
+                aria-pressed={range === option.value}
               >
-                {r.label}
+                {option.label}
               </button>
             ))}
           </div>

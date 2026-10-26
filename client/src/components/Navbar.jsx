@@ -49,7 +49,7 @@ function Navbar() {
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand" onClick={closeMobileMenu}>
           <img src={SDGIMG} className="navbar-logo" alt="SDG Logo" />
-          <span className="navbar-title">Sustainable Development City of Manila</span>
+          <span className="navbar-title">SDG Smart Hub</span>
         </Link>
 
         <button

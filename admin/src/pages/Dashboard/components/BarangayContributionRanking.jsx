@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import styles from "./BarangayContributionRanking.module.css";
 
@@ -5,6 +6,15 @@ const API_URL = (
   import.meta.env.VITE_API_URL ||
   "https://sdg-smarthub-api.onrender.com/api"
 ).replace(/\/+$/, "");
+
+// Read the token saved by the admin login.
+function getAuthHeaders() {
+  const token = localStorage.getItem("adminToken");
+
+  return token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+}
 
 function BarangayContributionRanking() {
   const [barangays, setBarangays] = useState([]);
@@ -15,6 +25,7 @@ function BarangayContributionRanking() {
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState("");
 
+  // Load barangay contribution rankings.
   useEffect(() => {
     const controller = new AbortController();
 
@@ -26,11 +37,24 @@ function BarangayContributionRanking() {
         const response = await fetch(
           `${API_URL}/projects/barangay-ranking`,
           {
+            headers: getAuthHeaders(),
             signal: controller.signal,
           }
         );
 
         if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error(
+              "Your session is missing or expired. Please log in again."
+            );
+          }
+
+          if (response.status === 403) {
+            throw new Error(
+              "You do not have permission to view barangay contributions."
+            );
+          }
+
           throw new Error("Unable to load barangay contributions.");
         }
 
@@ -42,9 +66,9 @@ function BarangayContributionRanking() {
           );
         }
 
-        const data = Array.isArray(result.data) ? result.data : [];
-
-        setBarangays(data);
+        setBarangays(
+          Array.isArray(result.data) ? result.data : []
+        );
       } catch (err) {
         if (err.name !== "AbortError") {
           setError(err.message || "Something went wrong.");
@@ -61,6 +85,7 @@ function BarangayContributionRanking() {
     return () => controller.abort();
   }, []);
 
+  // Load published projects for a selected barangay.
   async function handleOpenProjects(barangay) {
     setSelectedBarangay(barangay);
     setPublishedProjects([]);
@@ -71,10 +96,25 @@ function BarangayContributionRanking() {
       const response = await fetch(
         `${API_URL}/projects/barangay/${encodeURIComponent(
           barangay
-        )}/published`
+        )}/published`,
+        {
+          headers: getAuthHeaders(),
+        }
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error(
+            "Your session is missing or expired. Please log in again."
+          );
+        }
+
+        if (response.status === 403) {
+          throw new Error(
+            "You do not have permission to view these projects."
+          );
+        }
+
         throw new Error("Unable to load published projects.");
       }
 
@@ -90,7 +130,9 @@ function BarangayContributionRanking() {
         Array.isArray(result.data) ? result.data : []
       );
     } catch (err) {
-      setProjectsError(err.message || "Something went wrong.");
+      setProjectsError(
+        err.message || "Something went wrong."
+      );
     } finally {
       setProjectsLoading(false);
     }
@@ -103,7 +145,11 @@ function BarangayContributionRanking() {
   }
 
   function getProjectTitle(project) {
-    return project.title || project.projectTitle || "Untitled Project";
+    return (
+      project.title ||
+      project.projectTitle ||
+      "Untitled Project"
+    );
   }
 
   function formatDate(date) {
@@ -139,7 +185,9 @@ function BarangayContributionRanking() {
   }
 
   const maxProjects = Math.max(
-    ...barangays.map((item) => Number(item.projectCount) || 0),
+    ...barangays.map(
+      (item) => Number(item.projectCount) || 0
+    ),
     1
   );
 
@@ -155,13 +203,15 @@ function BarangayContributionRanking() {
             <h2>Barangay SDG Contributions</h2>
 
             <p>
-              View the number of published projects and SDGs represented by
-              each registered barangay.
+              View the number of published projects and SDGs
+              represented by each registered barangay.
             </p>
           </div>
 
           <span className={styles.totalBadge}>
-            {loading ? "Loading..." : `${barangays.length} barangays`}
+            {loading
+              ? "Loading..."
+              : `${barangays.length} barangays`}
           </span>
         </div>
 
@@ -172,7 +222,6 @@ function BarangayContributionRanking() {
         ) : error ? (
           <div className={styles.state}>
             <span className={styles.stateIcon}>!</span>
-
             <div>
               <h3>Unable to load barangay contributions</h3>
               <p>{error}</p>
@@ -181,27 +230,24 @@ function BarangayContributionRanking() {
         ) : barangays.length === 0 ? (
           <div className={styles.state}>
             <span className={styles.stateIcon}>—</span>
-
             <div>
               <h3>No barangay project data yet</h3>
-
               <p>
-                Barangay contributions will appear when published projects
-                with barangay information are available.
+                Barangay contributions will appear when published
+                projects with barangay information are available.
               </p>
             </div>
           </div>
         ) : (
           <div className={styles.chart}>
             {barangays.map((item, index) => {
-              const projectCount = Number(item.projectCount) || 0;
+              const projectCount =
+                Number(item.projectCount) || 0;
 
               const percentage = Math.max(
                 (projectCount / maxProjects) * 100,
                 projectCount > 0 ? 4 : 0
               );
-
-              const sdgs = getBarangaySdgs(item);
 
               return (
                 <article
@@ -213,10 +259,11 @@ function BarangayContributionRanking() {
                       <h3>
                         {item.barangay || "Unnamed Barangay"}
                       </h3>
-
                       <span>
                         {projectCount}{" "}
-                        {projectCount === 1 ? "published project" : "published projects"}
+                        {projectCount === 1
+                          ? "published project"
+                          : "published projects"}
                       </span>
                     </div>
 
@@ -231,18 +278,15 @@ function BarangayContributionRanking() {
                     onClick={() =>
                       handleOpenProjects(item.barangay)
                     }
-                    aria-label={`View published projects for ${
-                      item.barangay
-                    }`}
+                    aria-label={`View published projects for ${item.barangay}`}
                     title="View published projects"
                   >
                     <span
                       className={styles.barFill}
-                      style={{
-                        width: `${percentage}%`,
-                      }}
+                      style={{ width: `${percentage}%` }}
                     />
                   </button>
+
                   <button
                     type="button"
                     className={styles.viewButton}
@@ -261,7 +305,6 @@ function BarangayContributionRanking() {
 
         <div className={styles.footer}>
           <span className={styles.footerDot} />
-
           <span>
             Project totals are based on published project records.
           </span>
@@ -285,11 +328,9 @@ function BarangayContributionRanking() {
                 <span className={styles.eyebrow}>
                   BARANGAY DETAILS
                 </span>
-
                 <h2 id="published-projects-title">
                   Published Projects
                 </h2>
-
                 <p>{selectedBarangay}</p>
               </div>
 
@@ -315,7 +356,6 @@ function BarangayContributionRanking() {
             ) : publishedProjects.length === 0 ? (
               <div className={styles.panelState}>
                 <h3>No published projects found</h3>
-
                 <p>
                   This barangay has no published projects available
                   to display.
@@ -362,7 +402,9 @@ function BarangayContributionRanking() {
                         </div>
 
                         {project.description && (
-                          <p className={styles.projectDescription}>
+                          <p
+                            className={styles.projectDescription}
+                          >
                             {project.description}
                           </p>
                         )}

@@ -4,7 +4,6 @@
   grid-template-columns: 1fr 1fr;
 }
 
-/* ── Left — Form side ─────────────────────────── */
 .left {
   background: #f8fafc;
   display: flex;
@@ -173,7 +172,7 @@
 .rightBg {
   position: absolute;
   inset: 0;
-  background-image: url("../assets/BG.png");
+  background-image: url("../assets/img.png");
   background-size: cover;
   background-position: center;
   z-index: 0;

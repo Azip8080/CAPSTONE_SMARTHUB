@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
 
 import BarangayContributionRanking from "./components/BarangayContributionRanking";
 import SDGOverview from "./components/SDGOverview";
@@ -30,43 +29,28 @@ function Dashboard() {
 
   const recentProjects = projects.slice(0, 5);
 
-
-const quickActions = [
+const statCards = [
   {
-    label: "Add Project",
-    path: "/data-management",
-    color: "#3b82f6",
+    label: "Total Projects",
+    value: stats?.totalProjects,
+    color: "#4470AD",
   },
   {
-    label: "Add Event",
-    path: "/events-projects",
-    color: "#10b981",
+    label: "Active Users",
+    value: stats?.totalUsers,
+    color: "#6F94C5",
+  },
+  {
+    label: "Total Events",
+    value: stats?.totalEvents,
+    color: "#2F5488",
+  },
+  {
+    label: "Barangays Covered",
+    value: stats?.totalBarangays,
+    color: "#4DADBC",
   },
 ];
-
-
-  const statCards = [
-    {
-      label: "Total Projects",
-      value: stats?.totalProjects,
-      color: "#3b82f6",
-    },
-    {
-      label: "Active Users",
-      value: stats?.totalUsers,
-      color: "#10b981",
-    },
-    {
-      label: "Total Events",
-      value: stats?.totalEvents,
-      color: "#f59e0b",
-    },
-    {
-      label: "Barangays Covered",
-      value: stats?.totalBarangays,
-      color: "#8b5cf6",
-    },
-  ];
 
   return (
     <div className={styles.page}>
@@ -75,33 +59,6 @@ const quickActions = [
           Dashboard
         </h1>
       </div>
-
-      {/* Quick Actions - moved to the top */}
-      <div className={styles.card}>
-        <p className={styles.cardTitle}>
-          Quick Actions
-        </p>
-
-        <div className={styles.quickActions}>
-          {quickActions.map((action) => (
-            <Link
-              key={action.label}
-              to={action.path}
-              className={styles.quickAction}
-            >
-              <div
-                className={styles.quickActionDot}
-                style={{
-                  background: action.color,
-                }}
-              />
-
-              {action.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {error && (
         <p className={styles.error}>
           {error}

@@ -1,12 +1,13 @@
+
 .section {
   width: 100%;
   min-width: 0;
   padding: 26px;
-  background: #ffffff;
-  border: 1px solid #e8eee9;
+  background: #FFFFFF;
+  border: 1px solid #D8E1ED;
   border-radius: 18px;
-  box-shadow: 0 4px 18px rgba(23, 57, 36, 0.04);
-  color: #1d3326;
+  box-shadow: 0 4px 18px rgba(47, 84, 136, 0.05);
+  color: #24364B;
   box-sizing: border-box;
 }
 
@@ -21,7 +22,7 @@
 .eyebrow {
   display: inline-block;
   margin-bottom: 8px;
-  color: #23824c;
+  color: #4470AD;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 1.2px;
@@ -29,7 +30,7 @@
 
 .heading h2 {
   margin: 0;
-  color: #183b28;
+  color: #24364B;
   font-size: 22px;
   font-weight: 750;
   line-height: 1.35;
@@ -38,7 +39,7 @@
 .heading p {
   max-width: 620px;
   margin: 7px 0 0;
-  color: #78877d;
+  color: #64748B;
   font-size: 13px;
   line-height: 1.6;
 }
@@ -46,10 +47,10 @@
 .totalBadge {
   flex-shrink: 0;
   padding: 8px 12px;
-  border: 1px solid #d9efdf;
+  border: 1px solid #D8E1ED;
   border-radius: 999px;
-  background: #f0faf2;
-  color: #23824c;
+  background: #EDF2F8;
+  color: #2F5488;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
@@ -64,18 +65,18 @@
 .barangayItem {
   min-width: 0;
   padding: 18px;
-  border: 1px solid #e8eee9;
+  border: 1px solid #D8E1ED;
   border-radius: 14px;
-  background: #ffffff;
+  background: #FFFFFF;
   transition:
     border-color 160ms ease,
-    background 160ms ease,
+    background-color 160ms ease,
     transform 160ms ease;
 }
 
 .barangayItem:hover {
-  border-color: #cfe7d5;
-  background: #fbfefb;
+  border-color: #B8CAE2;
+  background: #F8FAFD;
   transform: translateY(-1px);
 }
 
@@ -94,7 +95,7 @@
 .barangayInfo h3 {
   overflow-wrap: anywhere;
   margin: 0;
-  color: #233b2c;
+  color: #24364B;
   font-size: 15px;
   font-weight: 750;
   line-height: 1.4;
@@ -103,14 +104,14 @@
 .barangayInfo span {
   display: block;
   margin-top: 4px;
-  color: #87938a;
+  color: #64748B;
   font-size: 11px;
   line-height: 1.4;
 }
 
 .projectCount {
   flex-shrink: 0;
-  color: #1d653b;
+  color: #2F5488;
   font-size: 21px;
   font-weight: 800;
   line-height: 1;
@@ -123,14 +124,14 @@
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: #edf4ee;
+  background: #EDF2F8;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
 }
 
 .barTrackButton:hover .barFill {
-  background: #237c47;
+  background: #2F5488;
 }
 
 .barFill {
@@ -138,10 +139,10 @@
   height: 100%;
   min-width: 0;
   border-radius: inherit;
-  background: #39a65d;
+  background: #4470AD;
   transition:
     width 500ms ease,
-    background 160ms ease;
+    background-color 160ms ease;
 }
 
 .sdgSection {
@@ -151,7 +152,7 @@
 .sdgLabel {
   display: block;
   margin-bottom: 7px;
-  color: #78877d;
+  color: #64748B;
   font-size: 11px;
   font-weight: 700;
 }
@@ -166,17 +167,17 @@
   display: inline-flex;
   align-items: center;
   padding: 5px 9px;
-  border: 1px solid #dcecdf;
+  border: 1px solid #D8E1ED;
   border-radius: 7px;
-  background: #f0f7f1;
-  color: #287346;
+  background: #EDF2F8;
+  color: #2F5488;
   font-size: 11px;
   font-weight: 650;
   line-height: 1.4;
 }
 
 .noSdg {
-  color: #9aa69d;
+  color: #94A3B8;
   font-size: 11px;
 }
 
@@ -188,7 +189,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #247746;
+  color: #4470AD;
   font-size: 12px;
   font-weight: 750;
   cursor: pointer;
@@ -200,7 +201,7 @@
 }
 
 .viewButton:hover {
-  color: #175c32;
+  color: #2F5488;
 }
 
 .viewButton:hover span {
@@ -212,9 +213,9 @@
   align-items: flex-start;
   gap: 14px;
   padding: 28px 20px;
-  border: 1px dashed #dce7de;
+  border: 1px dashed #D8E1ED;
   border-radius: 13px;
-  background: #fbfdfb;
+  background: #F8FAFD;
 }
 
 .stateIcon {
@@ -225,21 +226,21 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: #edf7ef;
-  color: #26804a;
+  background: #DCE7F5;
+  color: #2F5488;
   font-size: 18px;
   font-weight: 800;
 }
 
 .state h3 {
   margin: 1px 0 6px;
-  color: #24422e;
+  color: #24364B;
   font-size: 14px;
 }
 
 .state p {
   margin: 0;
-  color: #7c8b80;
+  color: #64748B;
   font-size: 13px;
   line-height: 1.6;
   overflow-wrap: anywhere;
@@ -251,8 +252,8 @@
   gap: 9px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid #eef2ef;
-  color: #87938a;
+  border-top: 1px solid #E5EAF1;
+  color: #64748B;
   font-size: 11px;
   line-height: 1.5;
 }
@@ -262,7 +263,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #39a65d;
+  background: #4470AD;
 }
 
 .rowArrow {
@@ -271,29 +272,29 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid #e1ebe3;
+  border: 1px solid #D8E1ED;
   border-radius: 10px;
-  background: #ffffff;
-  color: #247746;
+  background: #FFFFFF;
+  color: #2F5488;
   font-size: 22px;
   cursor: pointer;
   transition:
-    background 160ms ease,
+    background-color 160ms ease,
     color 160ms ease,
     border-color 160ms ease;
 }
 
 .rowArrow:hover {
-  background: #eaf6ed;
-  border-color: #b8ddc2;
-  color: #175c32;
+  background: #EDF2F8;
+  border-color: #B8CAE2;
+  color: #2F5488;
 }
 
 .rowArrow:focus-visible,
 .closeButton:focus-visible,
 .viewButton:focus-visible,
 .barTrackButton:focus-visible {
-  outline: 3px solid #9ed5ad;
+  outline: 3px solid #9DB9DE;
   outline-offset: 3px;
 }
 
@@ -303,7 +304,7 @@
   z-index: 1000;
   display: flex;
   justify-content: flex-end;
-  background: rgba(20, 37, 27, 0.4);
+  background: rgba(36, 54, 75, 0.4);
   backdrop-filter: blur(3px);
 }
 
@@ -315,8 +316,8 @@
   overflow-y: auto;
   padding: 28px;
   box-sizing: border-box;
-  background: #ffffff;
-  box-shadow: -12px 0 40px rgba(16, 45, 26, 0.12);
+  background: #FFFFFF;
+  box-shadow: -12px 0 40px rgba(36, 54, 75, 0.12);
   animation: slideIn 220ms ease-out;
 }
 
@@ -326,19 +327,19 @@
   justify-content: space-between;
   gap: 20px;
   padding-bottom: 22px;
-  border-bottom: 1px solid #e9f0eb;
+  border-bottom: 1px solid #D8E1ED;
 }
 
 .panelHeader h2 {
   margin: 0;
-  color: #183b28;
+  color: #24364B;
   font-size: 23px;
   font-weight: 750;
 }
 
 .panelHeader p {
   margin: 7px 0 0;
-  color: #77877c;
+  color: #64748B;
   font-size: 14px;
 }
 
@@ -349,17 +350,17 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border: 1px solid #e6ede8;
+  border: 1px solid #D8E1ED;
   border-radius: 11px;
-  background: #ffffff;
-  color: #4d6053;
+  background: #FFFFFF;
+  color: #475569;
   font-size: 27px;
   line-height: 1;
   cursor: pointer;
 }
 
 .closeButton:hover {
-  background: #f1f7f2;
+  background: #EDF2F8;
 }
 
 .projectList {
@@ -374,9 +375,9 @@
   align-items: flex-start;
   gap: 14px;
   padding: 17px;
-  border: 1px solid #e8efe9;
+  border: 1px solid #D8E1ED;
   border-radius: 14px;
-  background: #ffffff;
+  background: #FFFFFF;
 }
 
 .projectIcon {
@@ -387,8 +388,8 @@
   width: 43px;
   height: 43px;
   border-radius: 12px;
-  background: #eaf6ed;
-  color: #247746;
+  background: #DCE7F5;
+  color: #2F5488;
   font-size: 11px;
   font-weight: 800;
 }
@@ -400,7 +401,7 @@
 
 .projectInfo h3 {
   margin: 2px 0 10px;
-  color: #233b2c;
+  color: #24364B;
   font-size: 15px;
   font-weight: 750;
   line-height: 1.5;
@@ -409,7 +410,7 @@
 
 .projectDescription {
   margin: 11px 0 0;
-  color: #728177;
+  color: #64748B;
   font-size: 12px;
   line-height: 1.6;
   overflow-wrap: anywhere;
@@ -418,17 +419,17 @@
 .projectDate {
   display: block;
   margin-top: 12px;
-  color: #87938a;
+  color: #64748B;
   font-size: 11px;
 }
 
 .publishedBadge {
   flex-shrink: 0;
   padding: 6px 8px;
-  border: 1px solid #d7eddd;
+  border: 1px solid #C7D8ED;
   border-radius: 999px;
-  background: #f0faf2;
-  color: #247746;
+  background: #EDF2F8;
+  color: #2F5488;
   font-size: 10px;
   font-weight: 750;
 }
@@ -442,12 +443,12 @@
   min-height: 180px;
   padding: 24px;
   text-align: center;
-  color: #7b8b80;
+  color: #64748B;
 }
 
 .panelState h3 {
   margin: 0 0 8px;
-  color: #24422e;
+  color: #24364B;
   font-size: 15px;
 }
 
@@ -460,8 +461,8 @@
 .panelFooter {
   margin-top: auto;
   padding-top: 18px;
-  border-top: 1px solid #e9f0eb;
-  color: #7b8b80;
+  border-top: 1px solid #D8E1ED;
+  color: #64748B;
   font-size: 12px;
 }
 

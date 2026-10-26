@@ -12,7 +12,7 @@
 .leftBg {
   position: absolute;
   inset: 0;
-  background-image: url("../assets/BG.png");
+  background-image: url("../assets/photo.png");
   background-size: cover;
   background-position: center;
   z-index: 0;

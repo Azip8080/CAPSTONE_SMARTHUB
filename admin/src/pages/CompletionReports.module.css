@@ -1,10 +1,13 @@
 
 .page {
-  --report-border: #e2e8f0;
-  --report-muted: #64748b;
-  --report-text: #172033;
-  --report-primary: #16734b;
-  --report-surface: #ffffff;
+  --report-border: #D8E1ED;
+  --report-muted: #64748B;
+  --report-text: #24364B;
+  --report-primary: #4470AD;
+  --report-primary-dark: #2F5488;
+  --report-primary-soft: #6F94C5;
+  --report-primary-light: #DCE7F5;
+  --report-surface: #FFFFFF;
 
   display: flex;
   flex-direction: column;
@@ -12,6 +15,8 @@
   width: 100%;
   color: var(--report-text);
 }
+
+/* Header */
 
 .header {
   display: flex;
@@ -50,6 +55,8 @@
   gap: 10px;
 }
 
+/* Buttons */
+
 .primaryButton,
 .secondaryButton {
   display: inline-flex;
@@ -63,17 +70,31 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .primaryButton {
   border-color: var(--report-primary);
   background: var(--report-primary);
-  color: #ffffff;
+  color: #FFFFFF;
+}
+
+.primaryButton:hover:not(:disabled) {
+  border-color: var(--report-primary-dark);
+  background: var(--report-primary-dark);
 }
 
 .secondaryButton {
-  background: #ffffff;
-  color: var(--report-text);
+  background: #FFFFFF;
+  color: var(--report-primary-dark);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--report-primary-soft);
+  background: #F5F8FC;
 }
 
 .primaryButton:disabled,
@@ -81,6 +102,8 @@
   cursor: not-allowed;
   opacity: 0.55;
 }
+
+/* Main Sections */
 
 .filters,
 .reportSection,
@@ -117,6 +140,8 @@
   line-height: 1.5;
 }
 
+/* Filters */
+
 .filterGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -138,18 +163,22 @@
   min-width: 0;
   height: 42px;
   padding: 0 11px;
-  border: 1px solid #d8e0e9;
+  border: 1px solid var(--report-border);
   border-radius: 8px;
-  background: #ffffff;
+  background: #FFFFFF;
   color: var(--report-text);
   font: inherit;
   font-size: 13px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .filterGrid input:focus,
 .filterGrid select:focus {
-  outline: 2px solid rgb(22 115 75 / 15%);
+  outline: none;
   border-color: var(--report-primary);
+  box-shadow: 0 0 0 3px rgb(68 112 173 / 14%);
 }
 
 .moduleFilter {
@@ -178,9 +207,18 @@
   padding: 9px 12px;
   border: 1px solid var(--report-border);
   border-radius: 8px;
+  background: #FFFFFF;
   color: #334155;
   font-size: 12px;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.checkOption:hover {
+  border-color: var(--report-primary-soft);
+  background: #F5F8FC;
 }
 
 .checkOption input {
@@ -194,7 +232,7 @@
   gap: 12px;
   margin-top: 18px;
   padding-top: 15px;
-  border-top: 1px solid #edf0f4;
+  border-top: 1px solid #EDF0F4;
   color: var(--report-muted);
   font-size: 12px;
 }
@@ -209,15 +247,22 @@
   cursor: pointer;
 }
 
+.textButton:hover {
+  color: var(--report-primary-dark);
+  text-decoration: underline;
+}
+
+/* Error Message */
+
 .errorBanner {
   display: flex;
   align-items: flex-start;
   gap: 12px;
   padding: 15px;
-  border: 1px solid #fecaca;
+  border: 1px solid #FECACA;
   border-radius: 10px;
-  background: #fff7f7;
-  color: #991b1b;
+  background: #FFF7F7;
+  color: #991B1B;
 }
 
 .errorBanner p {
@@ -225,6 +270,8 @@
   font-size: 13px;
   line-height: 1.5;
 }
+
+/* Loading */
 
 .loading {
   display: flex;
@@ -246,11 +293,15 @@
   }
 }
 
+/* Report Body */
+
 .reportBody {
   display: flex;
   flex-direction: column;
   gap: 22px;
 }
+
+/* Report Identity */
 
 .reportIdentity {
   display: flex;
@@ -259,7 +310,7 @@
   padding: 22px;
   border: 1px solid var(--report-border);
   border-radius: 14px;
-  background: #ffffff;
+  background: #FFFFFF;
 }
 
 .reportIdentityIcon {
@@ -268,8 +319,8 @@
   flex: 0 0 52px;
   height: 52px;
   border-radius: 12px;
-  background: #e7f5ed;
-  color: var(--report-primary);
+  background: var(--report-primary-light);
+  color: var(--report-primary-dark);
 }
 
 .reportIdentity .eyebrow {
@@ -288,6 +339,8 @@
   font-size: 12px;
 }
 
+/* Summary Cards */
+
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -302,7 +355,17 @@
   padding: 20px;
   border: 1px solid var(--report-border);
   border-radius: 12px;
-  background: #ffffff;
+  background: #FFFFFF;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.summaryCard:hover {
+  border-color: #C4D4E8;
+  box-shadow: 0 4px 14px rgb(47 84 136 / 7%);
+  transform: translateY(-2px);
 }
 
 .summaryCard > span {
@@ -312,6 +375,7 @@
 }
 
 .summaryCard strong {
+  color: var(--report-text);
   font-size: 30px;
   font-weight: 800;
   letter-spacing: -0.7px;
@@ -322,6 +386,8 @@
   font-size: 11px;
   line-height: 1.5;
 }
+
+/* Module Summary */
 
 .moduleGrid {
   display: grid;
@@ -337,7 +403,15 @@
   padding: 16px;
   border: 1px solid var(--report-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: #FFFFFF;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.moduleCard:hover {
+  border-color: #C4D4E8;
+  background: #F8FAFD;
 }
 
 .moduleCard svg {
@@ -352,9 +426,12 @@
 
 .moduleCard strong {
   grid-column: 2;
+  color: var(--report-primary-dark);
   font-size: 22px;
   font-weight: 800;
 }
+
+/* Report Tables */
 
 .tableWrap {
   width: 100%;
@@ -372,8 +449,8 @@
 
 .tableWrap th {
   padding: 13px 14px;
-  background: #f8fafc;
-  color: #475569;
+  background: #EDF2F8;
+  color: #2F5488;
   font-size: 11px;
   font-weight: 750;
   white-space: nowrap;
@@ -381,14 +458,18 @@
 
 .tableWrap td {
   padding: 13px 14px;
-  border-top: 1px solid #edf0f4;
+  border-top: 1px solid #EDF0F4;
   color: #334155;
   line-height: 1.5;
   vertical-align: top;
 }
 
+.tableWrap tbody tr {
+  transition: background 0.15s ease;
+}
+
 .tableWrap tbody tr:hover {
-  background: #fbfdfc;
+  background: #F5F8FC;
 }
 
 .recordTitle {
@@ -404,6 +485,8 @@
   color: var(--report-muted) !important;
 }
 
+/* Recommendations */
+
 .recommendationList {
   display: flex;
   flex-direction: column;
@@ -417,7 +500,15 @@
   padding: 17px;
   border: 1px solid var(--report-border);
   border-radius: 10px;
-  background: #ffffff;
+  background: #FFFFFF;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.recommendationCard:hover {
+  border-color: #C4D4E8;
+  box-shadow: 0 3px 10px rgb(47 84 136 / 5%);
 }
 
 .recommendationNumber {
@@ -426,14 +517,15 @@
   flex: 0 0 38px;
   height: 38px;
   border-radius: 9px;
-  background: #eef6f1;
-  color: var(--report-primary);
+  background: var(--report-primary-light);
+  color: var(--report-primary-dark);
   font-size: 12px;
   font-weight: 800;
 }
 
 .recommendationCard h3 {
   margin: 0 0 8px;
+  color: var(--report-text);
   font-size: 14px;
   font-weight: 750;
 }
@@ -445,8 +537,11 @@
   line-height: 1.65;
 }
 
+/* Limitations */
+
 .limitations h2 {
   margin: 0 0 12px;
+  color: var(--report-text);
   font-size: 15px;
 }
 
@@ -458,6 +553,8 @@
   line-height: 1.8;
 }
 
+/* Footer */
+
 .reportFooter {
   display: flex;
   justify-content: space-between;
@@ -466,6 +563,8 @@
   color: var(--report-muted);
   font-size: 10px;
 }
+
+/* Tablet */
 
 @media (max-width: 1100px) {
   .filterGrid {
@@ -477,6 +576,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Mobile */
 
 @media (max-width: 600px) {
   .filters,
@@ -500,10 +601,30 @@
     flex: 1;
   }
 
+  .reportIdentity {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .reportIdentity h2 {
+    font-size: 18px;
+  }
+
+  .sectionHeading {
+    flex-direction: column;
+  }
+
+  .filterFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .reportFooter {
     flex-direction: column;
   }
 }
+
+/* Print */
 
 @media print {
   @page {
@@ -512,7 +633,7 @@
   }
 
   :global(body) {
-    background: #ffffff !important;
+    background: #FFFFFF !important;
     color: #111827 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
@@ -539,9 +660,14 @@
   .moduleCard,
   .reportSection,
   .moduleSection,
-  .limitations {
+  .limitations,
+  .recommendationCard {
     break-inside: avoid;
     box-shadow: none;
+  }
+
+  .summaryCard:hover {
+    transform: none;
   }
 
   .tableWrap {
@@ -558,6 +684,6 @@
   }
 
   .reportFooter {
-    border-top: 1px solid #d1d5db;
+    border-top: 1px solid #D1D5DB;
   }
 }

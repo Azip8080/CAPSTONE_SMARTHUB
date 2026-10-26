@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
 
@@ -17,7 +18,7 @@ function Home() {
 
         <div className="hero-content">
           <p className="hero-eyebrow">
-            Sustainable Development City of Manila
+            Empowering Communities. Advancing Sustainability.
           </p>
 
           <h1 className="hero-title">
@@ -53,35 +54,34 @@ function Home() {
             onClick={() =>
               document
                 .getElementById("analytics")
-                ?.scrollIntoView({
-                  behavior: "smooth",
-                })
+                ?.scrollIntoView({ behavior: "smooth" })
             }
             aria-label="Scroll to SDG Analytics"
           >
             <span>Explore Analytics</span>
-
-            <span className="scroll-down-icon">
-              ↓
-            </span>
+            <span className="scroll-down-icon">↓</span>
           </button>
         </div>
       </section>
 
       <AuthGate>
         <section className="protected-section">
-          <SummaryCards />
+          {/* SDG Analytics now appears first */}
+          <section id="analytics" className="home-analytics-section">
+            <SDGCharts />
+          </section>
 
+          {/* Summary cards appear below analytics */}
+          <section className="home-summary-section">
+            <SummaryCards />
+          </section>
+
+          {/* Barangay contributions appear below the summaries */}
           <section className="barangay-ranking-section">
             <BarangayContributionRanking />
           </section>
-
-          <div id="analytics">
-            <SDGCharts />
-          </div>
         </section>
       </AuthGate>
-
     </main>
   );
 }

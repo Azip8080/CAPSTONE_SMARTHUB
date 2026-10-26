@@ -3,6 +3,11 @@ import { useState } from "react";
 import styles from "./Form.module.css";
 import { SDG_OPTIONS, EMPTY_EVENT } from "./Constants.js";
 
+const BARANGAY_OPTIONS = Array.from(
+  { length: 146 },
+  (_, i) => `Barangay ${i + 1}`
+);
+
 function formatDateTimeLocal(date) {
   if (!date) return "";
 
@@ -10,22 +15,33 @@ function formatDateTimeLocal(date) {
   if (Number.isNaN(value.getTime())) return "";
 
   const offset = value.getTimezoneOffset();
-  const localDate = new Date(
-    value.getTime() - offset * 60 * 1000
-  );
+  const localDate = new Date(value.getTime() - offset * 60 * 1000);
 
   return localDate.toISOString().slice(0, 16);
 }
 
 function EventForm({ initialData, onClose, onSubmit }) {
+  const initialBarangay = initialData?.barangay || "All Barangays";
+  const isSpecific = initialBarangay !== "All Barangays";
+
+  const [scope, setScope] = useState(
+    isSpecific ? "specific" : "all"
+  );
+
   const [form, setForm] = useState(() => ({
     ...EMPTY_EVENT,
     ...initialData,
+    barangay: initialBarangay,
     date: formatDateTimeLocal(initialData?.date),
     document: null,
   }));
 
+  const [barangaySearch, setBarangaySearch] = useState(
+    isSpecific ? initialBarangay : ""
+  );
+
   const [saving, setSaving] = useState(false);
+
   const [documentName, setDocumentName] = useState(
     initialData?.document?.originalName ||
       initialData?.document?.filename ||
@@ -41,17 +57,50 @@ function EventForm({ initialData, onClose, onSubmit }) {
 
   const handleDocumentChange = (e) => {
     const file = e.target.files?.[0] || null;
-
     handleChange("document", file);
     setDocumentName(file?.name || "");
   };
 
+  const filteredBarangays = BARANGAY_OPTIONS.filter((name) =>
+    name.toLowerCase().includes(barangaySearch.trim().toLowerCase())
+  );
+
+  const handleScopeChange = (newScope) => {
+    setScope(newScope);
+
+    if (newScope === "all") {
+      handleChange("barangay", "All Barangays");
+      setBarangaySearch("");
+    } else {
+      const current = form.barangay;
+      if (current === "All Barangays") {
+        handleChange("barangay", "");
+        setBarangaySearch("");
+      } else {
+        setBarangaySearch(current);
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (
+      scope === "specific" &&
+      !BARANGAY_OPTIONS.includes(form.barangay)
+    ) {
+      alert("Please select a valid barangay from the suggestions.");
+      return;
+    }
+
     setSaving(true);
 
     try {
-      await onSubmit(form);
+      await onSubmit({
+        ...form,
+        barangay:
+          scope === "all" ? "All Barangays" : form.barangay,
+      });
     } finally {
       setSaving(false);
     }
@@ -65,9 +114,7 @@ function EventForm({ initialData, onClose, onSubmit }) {
           <input
             className={styles.input}
             value={form.title || ""}
-            onChange={(e) =>
-              handleChange("title", e.target.value)
-            }
+            onChange={(e) => handleChange("title", e.target.value)}
             required
           />
         </div>
@@ -91,9 +138,7 @@ function EventForm({ initialData, onClose, onSubmit }) {
             <select
               className={styles.select}
               value={form.sdgTag || ""}
-              onChange={(e) =>
-                handleChange("sdgTag", e.target.value)
-              }
+              onChange={(e) => handleChange("sdgTag", e.target.value)}
               required
             >
               {SDG_OPTIONS.map((sdg) => (
@@ -110,12 +155,114 @@ function EventForm({ initialData, onClose, onSubmit }) {
               className={styles.input}
               type="datetime-local"
               value={form.date || ""}
-              onChange={(e) =>
-                handleChange("date", e.target.value)
-              }
+              onChange={(e) => handleChange("date", e.target.value)}
               required
             />
           </div>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>Event Barangay</label>
+
+          <div className={styles.barangayScope}>
+            <label
+              className={`${styles.barangayScopeOption} ${
+                scope === "all"
+                  ? styles.barangayScopeOptionActive
+                  : ""
+              }`}
+            >
+              <input
+                type="radio"
+                name="barangayScope"
+                checked={scope === "all"}
+                onChange={() => handleScopeChange("all")}
+              />
+              All Barangays
+            </label>
+
+            <label
+              className={`${styles.barangayScopeOption} ${
+                scope === "specific"
+                  ? styles.barangayScopeOptionActive
+                  : ""
+              }`}
+            >
+              <input
+                type="radio"
+                name="barangayScope"
+                checked={scope === "specific"}
+                onChange={() => handleScopeChange("specific")}
+              />
+              Specific Barangay
+            </label>
+          </div>
+
+          {scope === "specific" && (
+            <>
+              <div className={styles.barangaySearchWrapper}>
+                <span
+                  className={styles.barangaySearchIcon}
+                  aria-hidden="true"
+                >
+                  ⌕
+                </span>
+
+                <input
+                  className={styles.barangaySearch}
+                  list="event-barangay-options"
+                  value={barangaySearch}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setBarangaySearch(value);
+                    handleChange("barangay", value);
+                  }}
+                  placeholder="Search barangay 1–146"
+                  autoComplete="off"
+                  required
+                />
+
+                {barangaySearch && (
+                  <button
+                    type="button"
+                    className={styles.barangaySearchClear}
+                    aria-label="Clear barangay search"
+                    onClick={() => {
+                      setBarangaySearch("");
+                      handleChange("barangay", "");
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+
+                <datalist id="event-barangay-options">
+                  {filteredBarangays.map((barangay) => (
+                    <option key={barangay} value={barangay} />
+                  ))}
+                </datalist>
+              </div>
+
+              <p className={styles.barangayHelp}>
+                Search and select one of the 146 barangays. Only
+                members of the selected barangay can see this event.
+              </p>
+            </>
+          )}
+
+          {scope === "all" && (
+            <div className={styles.barangayStatus}>
+              <div className={styles.barangayStatusIcon}>◎</div>
+              <div>
+                <p className={styles.barangayStatusTitle}>
+                  Available to everyone
+                </p>
+                <p className={styles.barangayStatusDescription}>
+                  Members from all barangays can view this event.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.field}>
@@ -123,9 +270,8 @@ function EventForm({ initialData, onClose, onSubmit }) {
           <input
             className={styles.input}
             value={form.location || ""}
-            onChange={(e) =>
-              handleChange("location", e.target.value)
-            }
+            onChange={(e) => handleChange("location", e.target.value)}
+            placeholder="e.g. Manila Public Library Computer Center"
             required
           />
         </div>
@@ -134,24 +280,16 @@ function EventForm({ initialData, onClose, onSubmit }) {
           <label className={styles.label}>
             Event Document (optional)
           </label>
-
           <input
             className={styles.input}
             type="file"
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+            accept=".pdf,.txt,.docx"
             onChange={handleDocumentChange}
           />
 
-          {documentName && (
-            <p>
-              Selected document: {documentName}
-            </p>
-          )}
+          {documentName && <p>Selected document: {documentName}</p>}
 
-          <small>
-            Upload a document that the admin can open from
-            the event details.
-          </small>
+          <small>Upload a PDF, TXT, or DOCX document.</small>
         </div>
       </div>
 

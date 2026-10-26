@@ -3,14 +3,10 @@ import styles from "./Login.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-const API_URL = (
+const API_BASE = (
   import.meta.env.VITE_API_URL ||
   "https://sdg-smarthub-api.onrender.com/api"
-)
-  .replace(/\/+$/, "")
-  .replace(/\/api$/i, "");
-
-const API_BASE = `${API_URL}/api`;
+).replace(/\/+$/, "");
 
 function Login() {
   const navigate = useNavigate();
@@ -40,6 +36,7 @@ function Login() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           email: form.email.trim(),
@@ -69,6 +66,7 @@ function Login() {
       navigate("/");
     } catch (err) {
       console.error("Community login error:", err);
+
       setError(
         err.message || "Unable to connect to the server."
       );

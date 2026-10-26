@@ -1,12 +1,55 @@
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Main blue theme */
+  --primary-blue: #4470AD;
+  --deep-blue: #2F5488;
+  --soft-blue: #6F94C5;
+  --pale-blue: #DCE7F5;
+
+  /* Backgrounds */
+  --page-background: #F1F5FB;
+  --card-bg: #FFFFFF;
+  --card-subtle-bg: #F5F8FD;
+  --input-bg: #FFFFFF;
+
+  /* Text */
+  --text-primary: #24364B;
+  --text-secondary: #64748B;
+
+  /* Borders and chart elements */
+  --border-color: #D5DFED;
+  --track-bg: #E2EAF5;
+}
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
+  background: var(--page-background);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
-button { font-family: inherit; cursor: pointer; }
-input, select, textarea { font-family: inherit; }
-a { text-decoration: none; }
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: var(--primary-blue);
+}
+
+a:hover {
+  color: var(--deep-blue);
+}

@@ -1,3 +1,4 @@
+
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
@@ -29,10 +30,8 @@ module.exports = async function auth(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Fetch the current user from MongoDB.
-    // This ensures account status changes take effect immediately.
     const user = await User.findById(decoded.id).select(
-      "_id role accountStatus"
+      "_id role accountStatus barangay"
     );
 
     if (!user) {
@@ -41,8 +40,6 @@ module.exports = async function auth(req, res, next) {
       });
     }
 
-    // Only approved community members may access protected routes.
-    // Admins and barangay personnel retain their existing access.
     if (
       user.role === "community_member" &&
       user.accountStatus !== "Active"
@@ -64,10 +61,10 @@ module.exports = async function auth(req, res, next) {
       });
     }
 
-    // Use current database roles rather than relying on an old JWT role.
     req.user = {
       id: user._id.toString(),
       role: user.role,
+      barangay: user.barangay || "",
     };
 
     return next();
