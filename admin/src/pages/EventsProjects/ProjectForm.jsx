@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import styles from "./Form.module.css";
 import {
@@ -6,41 +7,58 @@ import {
   EMPTY_PROJECT,
 } from "./Constants.js";
 
-function ProjectForm({
-  initialData,
-  onClose,
-  onSubmit,
-}) {
-  const [form, setForm] = useState(
-    initialData || EMPTY_PROJECT
-  );
+// Your local backend address.
+const API_BASE_URL = "http://localhost:5000";
 
+// Convert saved relative paths into URLs pointing to the backend.
+const getPhotoUrl = (photo) => {
+  if (!photo || typeof photo !== "string") {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(photo)) {
+    return photo;
+  }
+
+  return `${API_BASE_URL}${photo.startsWith("/") ? "" : "/"}${photo}`;
+};
+
+function ProjectForm({ initialData, onClose, onSubmit }) {
+  const [form, setForm] = useState(initialData || EMPTY_PROJECT);
   const [saving, setSaving] = useState(false);
-  const [photoPreviews, setPhotoPreviews] =
-    useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
 
   useEffect(() => {
-    const data =
-      initialData || EMPTY_PROJECT;
+    const data = initialData || EMPTY_PROJECT;
+
+    const existingPhotos = Array.isArray(data.photos)
+      ? data.photos.filter((photo) => typeof photo === "string")
+      : [];
 
     setForm({
       ...data,
-      photos: data.photos || [],
+      photos: existingPhotos,
     });
 
-    const existingPhotos =
-      data.photos || [];
-
-    const previews = existingPhotos.map(
-      (photo) => ({
+    setPhotoPreviews(
+      existingPhotos.map((photo) => ({
         source: photo,
-        preview: photo,
+        preview: getPhotoUrl(photo),
         existing: true,
-      })
+      }))
     );
-
-    setPhotoPreviews(previews);
   }, [initialData]);
+
+  // Release temporary browser URLs when the component unmounts.
+  useEffect(() => {
+    return () => {
+      photoPreviews.forEach((photo) => {
+        if (!photo.existing && photo.preview) {
+          URL.revokeObjectURL(photo.preview);
+        }
+      });
+    };
+  }, [photoPreviews]);
 
   const handleChange = (field, value) => {
     setForm((current) => ({
@@ -50,180 +68,111 @@ function ProjectForm({
   };
 
   const handlePhotoChange = (e) => {
-  const files = Array.from(
-    e.target.files || []
-  );
+    const files = Array.from(e.target.files || []);
 
-  console.log("PHOTO INPUT FIRED");
-  console.log("SELECTED FILES:", files);
+    if (!files.length) {
+      return;
+    }
 
-  if (!files.length) {
-    return;
-  }
+    const availableSlots = Math.max(0, 10 - photoPreviews.length);
+    const selectedFiles = files
+      .filter((file) => file.type.startsWith("image/"))
+      .slice(0, availableSlots);
 
-  const availableSlots =
-    10 - photoPreviews.length;
+    if (selectedFiles.length === 0) {
+      e.target.value = "";
+      return;
+    }
 
-  const selectedFiles =
-    files.slice(0, availableSlots);
-
-  console.log(
-    "FILES TO SAVE:",
-    selectedFiles
-  );
-
-  const newPhotos =
-    selectedFiles.map((file) => ({
+    const newPhotos = selectedFiles.map((file) => ({
       source: file,
-      preview: URL.createObjectURL(
-        file
-      ),
+      preview: URL.createObjectURL(file),
       existing: false,
     }));
 
-  setPhotoPreviews((current) => [
-    ...current,
-    ...newPhotos,
-  ]);
+    setPhotoPreviews((current) => [...current, ...newPhotos]);
 
-  setForm((current) => ({
-    ...current,
-    photos: [
-      ...(current.photos || []),
-      ...selectedFiles,
-    ],
-  }));
+    setForm((current) => ({
+      ...current,
+      photos: [
+        ...(Array.isArray(current.photos) ? current.photos : []),
+        ...selectedFiles,
+      ],
+    }));
 
-  e.target.value = "";
-};
+    e.target.value = "";
+  };
 
   const removePhoto = (index) => {
-    const photo =
-      photoPreviews[index];
+    const photo = photoPreviews[index];
 
-    if (
-      photo &&
-      !photo.existing &&
-      photo.preview
-    ) {
-      URL.revokeObjectURL(
-        photo.preview
-      );
+    if (!photo) {
+      return;
+    }
+
+    if (!photo.existing && photo.preview) {
+      URL.revokeObjectURL(photo.preview);
     }
 
     setPhotoPreviews((current) =>
-      current.filter(
-        (_, photoIndex) =>
-          photoIndex !== index
-      )
+      current.filter((_, photoIndex) => photoIndex !== index)
     );
 
     setForm((current) => {
-      const photos = [
-        ...(current.photos || []),
-      ];
+      const photos = Array.isArray(current.photos)
+        ? [...current.photos]
+        : [];
 
       if (photo.existing) {
-        const existingPhotos =
-          photos.filter(
-            (item) =>
-              typeof item === "string"
-          );
-
-        const filePhotos =
-          photos.filter(
-            (item) =>
-              item instanceof File
-          );
-
-        const existingIndex =
-          photoPreviews
-            .slice(0, index)
-            .filter(
-              (item) =>
-                item.existing
-            ).length;
-
-        existingPhotos.splice(
-          existingIndex,
-          1
+        // Remove only the matching saved path.
+        const existingIndex = photos.findIndex(
+          (item) => typeof item === "string" && item === photo.source
         );
 
-        return {
-          ...current,
-          photos: [
-            ...existingPhotos,
-            ...filePhotos,
-          ],
-        };
+        if (existingIndex !== -1) {
+          photos.splice(existingIndex, 1);
+        }
+      } else {
+        // Remove only the matching newly selected File.
+        const fileIndex = photos.indexOf(photo.source);
+
+        if (fileIndex !== -1) {
+          photos.splice(fileIndex, 1);
+        }
       }
-
-      const fileIndex =
-        photoPreviews
-          .slice(0, index)
-          .filter(
-            (item) =>
-              !item.existing
-          ).length;
-
-      const filePhotos =
-        photos.filter(
-          (item) =>
-            item instanceof File
-        );
-
-      filePhotos.splice(
-        fileIndex,
-        1
-      );
-
-      const existingPhotos =
-        photos.filter(
-          (item) =>
-            typeof item === "string"
-        );
 
       return {
         ...current,
-        photos: [
-          ...existingPhotos,
-          ...filePhotos,
-        ],
+        photos,
       };
     });
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  console.log("FORM SUBMIT");
-  console.log("FORM DATA:", form);
-  console.log("FORM PHOTOS:", form.photos);
+    setSaving(true);
 
-  setSaving(true);
+    try {
+      await onSubmit(form);
+    } catch (error) {
+      console.error("Failed to save project:", error);
+      window.alert(
+        "Unable to save the project. Please check the server and try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  try {
-    await onSubmit(form);
-  } finally {
-    setSaving(false);
-  }
-};
-
-  const isEditing = Boolean(
-    initialData?._id
-  );
+  const isEditing = Boolean(initialData?._id);
 
   return (
-    <form
-      className={styles.form}
-      onSubmit={handleSubmit}
-    >
+    <form className={styles.form} onSubmit={handleSubmit}>
       <div className={styles.formHeader}>
         <div>
           <h2 className={styles.formTitle}>
-            {isEditing
-              ? "Edit Project"
-              : "Add Project"}
+            {isEditing ? "Edit Project" : "Add Project"}
           </h2>
 
           <p className={styles.formSubtitle}>
@@ -249,20 +198,13 @@ function ProjectForm({
           <div className={styles.field}>
             <label className={styles.label}>
               Project Title
-              <span className={styles.required}>
-                *
-              </span>
+              <span className={styles.required}>*</span>
             </label>
 
             <input
               className={styles.input}
               value={form.title || ""}
-              onChange={(e) =>
-                handleChange(
-                  "title",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleChange("title", e.target.value)}
               placeholder="Enter project title"
               required
             />
@@ -271,22 +213,15 @@ function ProjectForm({
           <div className={styles.field}>
             <label className={styles.label}>
               Description
-              <span className={styles.required}>
-                *
-              </span>
+              <span className={styles.required}>*</span>
             </label>
 
             <textarea
               className={styles.textarea}
               rows={4}
-              value={
-                form.description || ""
-              }
+              value={form.description || ""}
               onChange={(e) =>
-                handleChange(
-                  "description",
-                  e.target.value
-                )
+                handleChange("description", e.target.value)
               }
               placeholder="Describe the project's purpose, activities, and expected results"
               required
@@ -297,26 +232,17 @@ function ProjectForm({
             <div className={styles.field}>
               <label className={styles.label}>
                 SDG Goal
-                <span className={styles.required}>
-                  *
-                </span>
+                <span className={styles.required}>*</span>
               </label>
 
               <select
                 className={styles.select}
                 value={form.sdgTag || ""}
-                onChange={(e) =>
-                  handleChange(
-                    "sdgTag",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleChange("sdgTag", e.target.value)}
+                required
               >
                 {SDG_OPTIONS.map((sdg) => (
-                  <option
-                    key={sdg}
-                    value={sdg}
-                  >
+                  <option key={sdg} value={sdg}>
                     {sdg}
                   </option>
                 ))}
@@ -326,31 +252,20 @@ function ProjectForm({
             <div className={styles.field}>
               <label className={styles.label}>
                 Status
-                <span className={styles.required}>
-                  *
-                </span>
+                <span className={styles.required}>*</span>
               </label>
 
               <select
                 className={styles.select}
                 value={form.status || ""}
-                onChange={(e) =>
-                  handleChange(
-                    "status",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleChange("status", e.target.value)}
+                required
               >
-                {STATUS_OPTIONS.map(
-                  (status) => (
-                    <option
-                      key={status}
-                      value={status}
-                    >
-                      {status}
-                    </option>
-                  )
-                )}
+                {STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -358,20 +273,13 @@ function ProjectForm({
           <div className={styles.field}>
             <label className={styles.label}>
               Barangay
-              <span className={styles.required}>
-                *
-              </span>
+              <span className={styles.required}>*</span>
             </label>
 
             <input
               className={styles.input}
               value={form.barangay || ""}
-              onChange={(e) =>
-                handleChange(
-                  "barangay",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleChange("barangay", e.target.value)}
               placeholder="Enter barangay"
               required
             />
@@ -381,13 +289,11 @@ function ProjectForm({
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div>
-              <h3 className={styles.sectionTitle}>
-                Project Photos
-              </h3>
+              <h3 className={styles.sectionTitle}>Project Photos</h3>
 
               <p className={styles.sectionDescription}>
-                Add photos showing project activities,
-                events, participants, or results.
+                Add photos showing project activities, events,
+                participants, or results.
               </p>
             </div>
 
@@ -408,77 +314,56 @@ function ProjectForm({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 multiple
-                onChange={
-                  handlePhotoChange
-                }
-                disabled={
-                  photoPreviews.length >=
-                  10
-                }
+                onChange={handlePhotoChange}
+                disabled={photoPreviews.length >= 10}
               />
 
-              <span className={styles.uploadIcon}>
-                +
-              </span>
-
-              <span className={styles.uploadTitle}>
-                Add Photos
-              </span>
-
-              <span className={styles.uploadText}>
-                JPG, PNG or WebP
-              </span>
+              <span className={styles.uploadIcon}>+</span>
+              <span className={styles.uploadTitle}>Add Photos</span>
+              <span className={styles.uploadText}>JPG, PNG or WebP</span>
             </label>
 
-            {photoPreviews.map(
-              (photo, index) => (
-                <div
-                  key={`${photo.preview}-${index}`}
-                  className={
-                    styles.photoPreview
-                  }
-                >
+            {photoPreviews.map((photo, index) => (
+              <div
+                key={`${photo.preview}-${index}`}
+                className={styles.photoPreview}
+              >
+                {photo.preview ? (
                   <img
                     src={photo.preview}
-                    alt={`Project photo ${
-                      index + 1
-                    }`}
+                    alt={`Project photo ${index + 1}`}
+                    onError={() => {
+                      console.error(
+                        "Failed to load project photo:",
+                        photo.preview
+                      );
+                    }}
                   />
+                ) : (
+                  <div className={styles.uploadText}>
+                    Image unavailable
+                  </div>
+                )}
 
-                  <button
-                    type="button"
-                    className={
-                      styles.removePhoto
-                    }
-                    onClick={() =>
-                      removePhoto(index)
-                    }
-                    aria-label={`Remove photo ${
-                      index + 1
-                    }`}
-                  >
-                    ×
-                  </button>
+                <button
+                  type="button"
+                  className={styles.removePhoto}
+                  onClick={() => removePhoto(index)}
+                  aria-label={`Remove photo ${index + 1}`}
+                >
+                  ×
+                </button>
 
-                  {photo.existing && (
-                    <span
-                      className={
-                        styles.existingBadge
-                      }
-                    >
-                      Saved
-                    </span>
-                  )}
-                </div>
-              )
-            )}
+                {photo.existing && (
+                  <span className={styles.existingBadge}>Saved</span>
+                )}
+              </div>
+            ))}
           </div>
 
           <p className={styles.photoHint}>
-            You can upload up to 10 photos.
-            Use clear images of activities,
-            events, participants, or project
-            results.
+            You can upload up to 10 photos. Use clear images of activities,
+            events, participants, or project results.
           </p>
         </section>
       </div>

@@ -1,15 +1,37 @@
+
 import styles from "./ArticleCard.module.css";
 import { getSdgInfo } from "./constants.js";
+import { getFileUrl } from "../../utils/fileUrl";
 
-function ArticleCard({
-  article,
-  onView,
-  onEdit,
-  onDelete,
-}) {
-  const sdg = getSdgInfo(
-    article.sdgTag
-  );
+function formatUploadDate(article) {
+  const uploadedAt = article.createdAt || article.uploadedAt;
+
+  if (!uploadedAt) {
+    return "Upload date unavailable";
+  }
+
+  const date = new Date(uploadedAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Upload date unavailable";
+  }
+
+  return date.toLocaleDateString("en-PH", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function ArticleCard({ article, onView, onEdit, onDelete }) {
+  const sdg = getSdgInfo(article.sdgTag);
+
+  const photos = Array.isArray(article.photos)
+    ? article.photos
+    : [];
+
+  const firstPhoto = photos[0];
+  const photoUrl = firstPhoto ? getFileUrl(firstPhoto) : "";
 
   return (
     <div
@@ -19,18 +41,13 @@ function ArticleCard({
       <div
         className={styles.cardTop}
         style={{
-          borderTop: `3px solid ${
-            sdg.color || "#e2e8f0"
-          }`,
+          borderTop: `3px solid ${sdg?.color || "#e2e8f0"}`,
         }}
       >
         <div className={styles.cardBadges}>
           <span
             className={styles.sdgChip}
-            style={{
-              background:
-                sdg.color || "#888",
-            }}
+            style={{ background: sdg?.color || "#888" }}
           >
             {article.sdgTag}
           </span>
@@ -41,26 +58,32 @@ function ArticleCard({
         </div>
       </div>
 
-      {article.photos?.length > 0 ? (
+      {photoUrl ? (
         <img
           className={styles.cardImage}
-          src={`${import.meta.env.VITE_API_URL}${article.photos[0]}`}
-          alt={article.title}
+          src={photoUrl}
+          alt={article.title || "Knowledge resource"}
+          loading="lazy"
+          onError={(event) => {
+            console.error("Article card image failed to load:", {
+              storedPath: firstPhoto,
+              resolvedUrl: photoUrl,
+              actualUrl: event.currentTarget.currentSrc,
+            });
+          }}
         />
       ) : (
-        <div
-          className={
-            styles.cardImagePlaceholder
-          }
-        >
+        <div className={styles.cardImagePlaceholder}>
           No photo
         </div>
       )}
 
       <div className={styles.cardBody}>
-        <h3 className={styles.cardTitle}>
-          {article.title}
-        </h3>
+        <h3 className={styles.cardTitle}>{article.title}</h3>
+
+        <p className={styles.uploadDate}>
+          <span>Uploaded:</span> {formatUploadDate(article)}
+        </p>
 
         <p className={styles.cardContent}>
           {article.content}
@@ -68,9 +91,10 @@ function ArticleCard({
 
         <div className={styles.cardFooter}>
           <button
+            type="button"
             className={styles.editBtn}
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onEdit(article);
             }}
           >
@@ -78,9 +102,10 @@ function ArticleCard({
           </button>
 
           <button
+            type="button"
             className={styles.deleteBtn}
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={(event) => {
+              event.stopPropagation();
               onDelete(article._id);
             }}
           >

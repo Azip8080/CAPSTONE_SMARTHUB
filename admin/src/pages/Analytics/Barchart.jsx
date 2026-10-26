@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import styles from "./BarChart.module.css";
 import { api } from "../../services/api";
@@ -10,9 +11,14 @@ function BarChart({ range }) {
 
   useEffect(() => {
     setLoading(true);
+
     api
       .get(`/analytics/distribution?range=${range}`)
       .then((d) => setData(d.data ?? []))
+      .catch((err) => {
+        console.error("Failed to load project distribution:", err);
+        setData([]);
+      })
       .finally(() => setLoading(false));
   }, [range]);
 
@@ -45,11 +51,29 @@ function BarChart({ range }) {
               },
             },
             scales: {
-              x: { grid: { display: false }, ticks: { font: { size: 10 }, color: "#94a3b8" } },
+              x: {
+                grid: { display: false },
+                ticks: {
+                  font: { size: 10 },
+                  color: "#94a3b8",
+                },
+              },
               y: {
-                grid: { color: "rgba(0,0,0,0.04)" },
-                ticks: { font: { size: 11 }, color: "#94a3b8" },
-                border: { display: false },
+                beginAtZero: true,
+                grid: {
+                  color: "rgba(0,0,0,0.04)",
+                },
+                ticks: {
+                  stepSize: 1,
+                  precision: 0,
+                  font: { size: 11 },
+                  color: "#94a3b8",
+                  callback: (value) =>
+                    Number.isInteger(Number(value)) ? value : "",
+                },
+                border: {
+                  display: false,
+                },
               },
             },
           },
@@ -58,7 +82,9 @@ function BarChart({ range }) {
 
   useChart(canvasRef, config);
 
-  const isEmpty = !loading && data.every((d) => d.count === 0);
+  const isEmpty =
+    !loading &&
+    (data.length === 0 || data.every((d) => Number(d.count) === 0));
 
   return (
     <div className={styles.chartCard}>
@@ -66,13 +92,20 @@ function BarChart({ range }) {
         <p className={styles.chartEyebrow}>Distribution</p>
         <p className={styles.chartTitle}>Project Distribution by SDG</p>
       </div>
-      {loading && <p className={styles.chartEmpty}>Loading…</p>}
+
+      {loading && (
+        <p className={styles.chartEmpty}>Loading…</p>
+      )}
+
       {isEmpty && (
         <div className={styles.chartEmpty}>
           <p>No data yet.</p>
-          <p className={styles.chartEmptySub}>Projects will appear here once they're tagged with an SDG.</p>
+          <p className={styles.chartEmptySub}>
+            Projects will appear here once they're tagged with an SDG.
+          </p>
         </div>
       )}
+
       {!loading && !isEmpty && (
         <div style={{ height: 260 }}>
           <canvas ref={canvasRef} />

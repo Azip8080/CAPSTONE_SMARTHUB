@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import styles from "./ProjectShowcase.module.css";
 import { useShowcaseProjects } from "./useShowcaseProjects.js";
@@ -21,30 +22,33 @@ function ProjectShowcase() {
     featuredCount,
     toggleFeatured,
     updateProject,
+    dateFilter,
+    setDateFilter,
   } = useShowcaseProjects();
 
-  const [selected, setSelected] =
-    useState(null);
+  const [selected, setSelected] = useState(null);
 
-  const handleFeatureToggle =
-    async (project) => {
-      try {
-        await toggleFeatured(project);
-        setSelected(null);
-      } catch (e) {
-        alert(e.message);
-      }
-    };
+  const handleFeatureToggle = async (project) => {
+    try {
+      await toggleFeatured(project);
+      setSelected(null);
+    } catch (error) {
+      console.error("Failed to update featured status:", error);
+      alert(
+        error.message || "Failed to update featured status."
+      );
+    }
+  };
 
-  const handleUpdate = async (
-    id,
-    form
-  ) => {
+  const handleUpdate = async (id, form) => {
     try {
       await updateProject(id, form);
       setSelected(null);
-    } catch (e) {
-      alert(e.message);
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      alert(
+        error.message || "Failed to update project."
+      );
     }
   };
 
@@ -56,13 +60,8 @@ function ProjectShowcase() {
             Project Showcase
           </h1>
 
-          <p
-            className={
-              styles.pageSubtitle
-            }
-          >
-            Highlight outstanding SDG
-            projects from Manila's
+          <p className={styles.pageSubtitle}>
+            Highlight outstanding SDG projects from Manila's
             barangays
           </p>
         </div>
@@ -80,31 +79,23 @@ function ProjectShowcase() {
         sdgFilter={sdgFilter}
         onSdgFilter={setSdgFilter}
         statusFilter={statusFilter}
-        onStatusFilter={
-          setStatusFilter
-        }
-        resultCount={
-          filteredProjects.length
-        }
+        onStatusFilter={setStatusFilter}
+        dateFilter={dateFilter}
+        onDateFilter={setDateFilter}
+        resultCount={filteredProjects.length}
       />
 
       <ProjectGrid
         loading={loading}
         projects={filteredProjects}
         onView={setSelected}
-        onFeatureToggle={
-          handleFeatureToggle
-        }
+        onFeatureToggle={handleFeatureToggle}
       />
 
       <ProjectDetailModal
         project={selected}
-        onClose={() =>
-          setSelected(null)
-        }
-        onFeatureToggle={
-          handleFeatureToggle
-        }
+        onClose={() => setSelected(null)}
+        onFeatureToggle={handleFeatureToggle}
         onUpdate={handleUpdate}
       />
     </div>

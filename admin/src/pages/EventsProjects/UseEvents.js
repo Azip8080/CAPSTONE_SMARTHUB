@@ -1,3 +1,4 @@
+
 import {
   useState,
   useEffect,
@@ -8,98 +9,89 @@ import {
 import { api } from "../../services/api";
 
 export function useEvents() {
-  const [events, setEvents] =
-    useState([]);
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [sdgFilter, setSdgFilter] = useState("All");
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [sdgFilter, setSdgFilter] =
-    useState("All");
-
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     setLoading(true);
 
-    api
-      .get("/events")
-      .then((data) =>
-        setEvents(data.data ?? data)
-      )
-      .finally(() =>
-        setLoading(false)
-      );
+    try {
+      const response = await api.get("/events");
+      const data = response.data ?? response;
+
+      setEvents(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to load events:", error);
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  const buildFormData = (form) => {
+    const formData = new FormData();
+
+    formData.append("title", form.title || "");
+    formData.append("description", form.description || "");
+    formData.append("sdgTag", form.sdgTag || "");
+    formData.append("date", form.date || "");
+    formData.append("location", form.location || "");
+
+    if (form.document instanceof File) {
+      formData.append("document", form.document);
+    }
+
+    return formData;
+  };
+
   const createEvent = useCallback(
     async (form) => {
-      await api.post(
-        "/events",
-        form
-      );
-
-      load();
+      await api.postForm("/events", buildFormData(form));
+      await load();
     },
     [load]
   );
 
   const updateEvent = useCallback(
     async (id, form) => {
-      await api.put(
+      await api.putForm(
         `/events/${id}`,
-        form
+        buildFormData(form)
       );
-
-      load();
+      await load();
     },
     [load]
   );
 
   const deleteEvent = useCallback(
     async (id) => {
-      await api.delete(
-        `/events/${id}`
-      );
-
-      load();
+      await api.delete(`/events/${id}`);
+      await load();
     },
     [load]
   );
 
-  const filteredEvents =
-    useMemo(() => {
-      const query =
-        search.toLowerCase();
+  const filteredEvents = useMemo(() => {
+    const query = search.toLowerCase();
 
-      return events.filter((event) => {
-        const matchSearch =
-          event.title
-            ?.toLowerCase()
-            .includes(query) ||
-          event.location
-            ?.toLowerCase()
-            .includes(query);
+    return events.filter((event) => {
+      const matchesSearch =
+        event.title?.toLowerCase().includes(query) ||
+        event.location?.toLowerCase().includes(query);
 
-        const matchSDG =
-          sdgFilter === "All" ||
-          event.sdgTag === sdgFilter;
+      const matchesSdg =
+        sdgFilter === "All" ||
+        event.sdgTag === sdgFilter;
 
-        return (
-          matchSearch &&
-          matchSDG
-        );
-      });
-    }, [
-      events,
-      search,
-      sdgFilter,
-    ]);
+      return matchesSearch && matchesSdg;
+    });
+  }, [events, search, sdgFilter]);
 
   return {
     loading,
@@ -111,5 +103,6 @@ export function useEvents() {
     createEvent,
     updateEvent,
     deleteEvent,
+    reloadEvents: load,
   };
 }

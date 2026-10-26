@@ -1,8 +1,13 @@
+
 .resultCard {
   --text: #17233b;
   --muted: #718096;
   --border: #e5eaf2;
   --surface: #ffffff;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #eff6ff;
+  --primary-border: #dbeafe;
 
   width: 100%;
   min-width: 0;
@@ -129,16 +134,20 @@
   font-size: 10px;
   font-weight: 650;
   white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .tabButton:hover {
-  color: #3478f6;
+  color: var(--primary);
   background: #f8faff;
 }
 
 .activeTab {
-  border-bottom-color: #3478f6;
-  color: #2867d8;
+  border-bottom-color: var(--primary);
+  color: var(--primary-dark);
 }
 
 .tabCount {
@@ -156,8 +165,8 @@
 }
 
 .activeTab .tabCount {
-  background: #e8f0ff;
-  color: #2867d8;
+  background: var(--primary-light);
+  color: var(--primary-dark);
 }
 
 .tabPanel {
@@ -224,13 +233,21 @@
 
 .primaryButton {
   margin-top: 16px;
-  border: 1px solid var(--sdg-color);
-  background: var(--sdg-color);
+  border: 1px solid var(--primary);
+  background: var(--primary);
   color: #ffffff;
 }
 
 .primaryButton:hover {
-  filter: brightness(0.94);
+  border-color: var(--primary-dark);
+  background: var(--primary-dark);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.smallButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .summaryCard {
@@ -271,8 +288,8 @@
   flex-shrink: 0;
   place-items: center;
   border-radius: 9px;
-  background: #f0f5ff;
-  color: #3478f6;
+  background: var(--primary-light);
+  color: var(--primary);
   font-size: 18px;
 }
 
@@ -414,7 +431,7 @@
   padding: 6px 0;
   border: 0;
   background: transparent;
-  color: #2867d8;
+  color: var(--primary-dark);
 }
 
 .textButton:hover {
@@ -478,13 +495,14 @@
 .smallButton {
   min-height: 30px;
   padding: 6px 10px;
-  border: 1px solid #dce8ff;
-  background: #f0f5ff;
-  color: #2867d8;
+  border: 1px solid var(--primary-border);
+  background: var(--primary-light);
+  color: var(--primary-dark);
 }
 
 .smallButton:hover {
-  background: #e4edff;
+  border-color: #bfdbfe;
+  background: #dbeafe;
 }
 
 .extractedText {
@@ -517,7 +535,7 @@
   gap: 12px;
   margin-top: 22px;
   padding: 14px;
-  border: 1px solid #dce8ff;
+  border: 1px solid var(--primary-border);
   border-radius: 10px;
   background: #f5f8ff;
 }
@@ -570,7 +588,7 @@
 .textButton:focus-visible,
 .tabButton:focus-visible,
 .groupToggle:focus-visible {
-  outline: 2px solid #3478f6;
+  outline: 2px solid var(--primary);
   outline-offset: 3px;
 }
 
@@ -619,8 +637,8 @@
   height: 52px;
   place-items: center;
   border-radius: 14px;
-  background: #edf4ff;
-  color: #3478f6;
+  background: var(--primary-light);
+  color: var(--primary);
   font-size: 25px;
 }
 
@@ -647,8 +665,8 @@
 .spinner {
   width: 34px;
   height: 34px;
-  border: 3px solid #e0eaff;
-  border-top-color: #3478f6;
+  border: 3px solid var(--primary-border);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

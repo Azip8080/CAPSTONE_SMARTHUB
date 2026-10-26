@@ -1,7 +1,17 @@
+
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const pdfParse = require("pdf-parse");
+const path = require("path");
+
+const UploadedDocument = require("../models/UploadedDocument");
+
+const {
+  saveDocument,
+  getDocumentDownloadStream,
+  deleteStoredDocument,
+} = require("../utils/documentStorage");
 
 const {
   generateSDGRelevance,
@@ -30,10 +40,12 @@ const {
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/adminOnly");
 
-const MAX_FILE_SIZE =
-  10 * 1024 * 1024;
-
-const MAX_ANALYSIS_TEXT = 20000;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_RETURNED_TEXT = 100000;
+const ALLOWED_TYPES = {
+  "application/pdf": ".pdf",
+  "text/plain": ".txt",
+};
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -42,30 +54,19 @@ const upload = multer({
     fileSize: MAX_FILE_SIZE,
   },
 
-  fileFilter: (
-    req,
-    file,
-    callback
-  ) => {
+  fileFilter: (req, file, callback) => {
     console.log(
       "[AI DEBUG] Checking file:",
       file.originalname
     );
 
-    console.log(
-      "[AI DEBUG] MIME type:",
-      file.mimetype
-    );
-
-    const allowedTypes = [
-      "application/pdf",
-      "text/plain",
-    ];
+    const extension = path.extname(
+      file.originalname
+    ).toLowerCase();
 
     if (
-      allowedTypes.includes(
-        file.mimetype
-      )
+      ALLOWED_TYPES[file.mimetype] &&
+      ALLOWED_TYPES[file.mimetype] === extension
     ) {
       return callback(null, true);
     }
@@ -78,126 +79,60 @@ const upload = multer({
   },
 });
 
-function logAuthPassed(
-  req,
-  res,
-  next
-) {
+function logAuthPassed(req, res, next) {
   console.log(
     "[AI DEBUG] Authentication passed"
   );
-
   next();
 }
 
-function logAdminPassed(
-  req,
-  res,
-  next
-) {
+function logAdminPassed(req, res, next) {
   console.log(
     "[AI DEBUG] Admin authorization passed"
   );
-
   next();
 }
 
-function handleFileUpload(
-  req,
-  res,
-  next
-) {
-  console.log(
-    "[AI DEBUG] Starting upload middleware"
-  );
-
-  upload.single("file")(
-    req,
-    res,
-    (error) => {
-      if (error) {
-        console.error(
-          "[AI DEBUG] Upload middleware error:",
-          error
-        );
-
-        const status =
-          error.code ===
-          "LIMIT_FILE_SIZE"
-            ? 413
-            : 400;
-
-        return res
-          .status(status)
-          .json({
-            success: false,
-            message:
-              error.code ===
-              "LIMIT_FILE_SIZE"
-                ? "File is too large. Maximum size is 10 MB."
-                : error.message ||
-                  "File upload failed.",
-          });
-      }
-
-      console.log(
-        "[AI DEBUG] Upload middleware finished"
+function handleFileUpload(req, res, next) {
+  upload.single("file")(req, res, (error) => {
+    if (error) {
+      console.error(
+        "[AI DEBUG] Upload middleware error:",
+        error.message
       );
 
-      console.log(
-        "[AI DEBUG] Uploaded filename:",
-        req.file?.originalname ||
-          "No file received"
-      );
+      const tooLarge =
+        error.code === "LIMIT_FILE_SIZE";
 
-      next();
+      return res.status(tooLarge ? 413 : 400).json({
+        success: false,
+        message: tooLarge
+          ? "File is too large. Maximum size is 10 MB."
+          : error.message || "File upload failed.",
+      });
     }
-  );
+
+    next();
+  });
 }
 
-async function extractPdfText(
-  buffer
-) {
+async function extractPdfText(buffer) {
   console.log(
     "[AI DEBUG] PDF extraction started"
   );
 
-  console.log(
-    "[AI DEBUG] PDF buffer size:",
-    buffer.length
-  );
-
-  if (
-    typeof pdfParse ===
-    "function"
-  ) {
-    const parsed =
-      await pdfParse(buffer);
-
-    console.log(
-      "[AI DEBUG] PDF extraction completed"
-    );
-
+  if (typeof pdfParse === "function") {
+    const parsed = await pdfParse(buffer);
     return parsed.text || "";
   }
 
-  if (
-    typeof pdfParse.PDFParse ===
-    "function"
-  ) {
-    const parser =
-      new pdfParse.PDFParse({
-        data: buffer,
-      });
+  if (typeof pdfParse.PDFParse === "function") {
+    const parser = new pdfParse.PDFParse({
+      data: buffer,
+    });
 
     try {
-      const parsed =
-        await parser.getText();
-
-      console.log(
-        "[AI DEBUG] PDF extraction completed"
-      );
-
+      const parsed = await parser.getText();
       return parsed.text || "";
     } finally {
       await parser.destroy();
@@ -209,119 +144,47 @@ async function extractPdfText(
   );
 }
 
-async function buildClassification(
-  text
-) {
-  const startedAt =
-    Date.now();
-
-  const fullText =
-    String(text || "").trim();
+async function buildClassification(text) {
+  const startedAt = Date.now();
+  const fullText = String(text || "").trim();
 
   if (!fullText) {
-    throw new Error(
-      "There is no text to classify."
-    );
+    throw new Error("There is no text to classify.");
   }
 
-  const textTruncated =
-    fullText.length >
-    MAX_ANALYSIS_TEXT;
+  console.log(
+    `[AI] Analyzing full document: ${fullText.length} characters`
+  );
 
-  const extractedText =
-    fullText.slice(
-      0,
-      MAX_ANALYSIS_TEXT
-    );
+  const result = await classifyText(fullText);
+
+  const keywordMatches = findKeywordMatches(fullText);
+  const automaticTags = generateTags(fullText);
+  const missingInformation = detectMissingInformation(fullText);
+
+  const sdgRelevance = generateSDGRelevance(
+    fullText,
+    result.tag || result.sdgTag,
+    result.relatedSDGs,
+    keywordMatches.evidenceBySDG
+  );
+
+  const projectSummary = generateProjectSummary(fullText);
+
+  const extractedText = fullText.slice(0, MAX_RETURNED_TEXT);
+  const returnedTextTruncated =
+    fullText.length > MAX_RETURNED_TEXT;
 
   console.log(
-    `[AI] Text preparation took ${
-      Date.now() - startedAt
-    } ms`
+    `[AI] Full text analyzed: ${fullText.length} characters`
   );
 
   console.log(
-    `[AI] Analyzing ${extractedText.length} characters`
+    `[AI] Text returned to frontend: ${extractedText.length} characters`
   );
 
-  const classificationStartedAt =
-    Date.now();
-
-  const result =
-    await classifyText(
-      extractedText
-    );
-
   console.log(
-    `[AI] Classification took ${
-      Date.now() -
-      classificationStartedAt
-    } ms`
-  );
-
-  const matchesStartedAt =
-    Date.now();
-
-  const keywordMatches =
-    findKeywordMatches(
-      extractedText
-    );
-
-  console.log(
-    `[AI] Evidence matching took ${
-      Date.now() -
-      matchesStartedAt
-    } ms`
-  );
-
-  const tagsStartedAt =
-    Date.now();
-
-  const automaticTags =
-    generateTags(
-      extractedText
-    );
-
-  console.log(
-    `[AI] Automatic tags took ${
-      Date.now() -
-      tagsStartedAt
-    } ms`
-  );
-
-  const missingInfoStartedAt =
-    Date.now();
-
-  const missingInformation =
-    detectMissingInformation(
-      extractedText
-    );
-
-  console.log(
-    `[AI] Missing information detection took ${
-      Date.now() -
-      missingInfoStartedAt
-    } ms`
-  );
-
-  const sdgRelevance =
-    generateSDGRelevance(
-      extractedText,
-      result.tag ||
-        result.sdgTag,
-      result.relatedSDGs,
-      keywordMatches.evidenceBySDG
-    );
-
-  const projectSummary =
-    generateProjectSummary(
-      extractedText
-    );
-
-  console.log(
-    `[AI] Total processing time: ${
-      Date.now() - startedAt
-    } ms`
+    `[AI] Total processing time: ${Date.now() - startedAt} ms`
   );
 
   return {
@@ -330,7 +193,9 @@ async function buildClassification(
     keywordMatches,
     automaticTags,
     missingInformation,
-    textTruncated,
+    textTruncated: false,
+    returnedTextTruncated,
+    fullTextLength: fullText.length,
     sdgRelevance,
     projectSummary,
   };
@@ -338,53 +203,26 @@ async function buildClassification(
 
 router.post(
   "/classify-text",
-  (req, res, next) => {
-    console.log(
-      "[AI DEBUG] Incoming classify-text request"
-    );
-
-    next();
-  },
   auth,
-  logAuthPassed,
   adminOnly,
-  logAdminPassed,
   async (req, res) => {
-    console.log(
-      "[AI DEBUG] Text route reached"
-    );
-
     try {
       const {
         title = "",
         description = "",
       } = req.body || {};
 
-      const text =
-        `${title}\n${description}`.trim();
+      const text = `${title}\n${description}`.trim();
 
       if (!text) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "A project title or description is required.",
-          });
+        return res.status(400).json({
+          success: false,
+          message:
+            "A title or description is required.",
+        });
       }
 
-      console.log(
-        "[AI DEBUG] Starting text classification"
-      );
-
-      const data =
-        await buildClassification(
-          text
-        );
-
-      console.log(
-        "[AI DEBUG] Text classification completed"
-      );
+      const data = await buildClassification(text);
 
       return res.json({
         success: true,
@@ -392,170 +230,277 @@ router.post(
       });
     } catch (error) {
       console.error(
-        "[AI DEBUG] Text classification error:",
+        "[AI] Text classification error:",
         error
       );
 
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message:
-            error.message ||
-            "Text classification failed.",
-        });
+      return res.status(500).json({
+        success: false,
+        message:
+          error.message ||
+          "Text classification failed.",
+      });
     }
   }
 );
 
+/**
+ * POST /api/ai/classify-file
+ * Classify and store an original PDF/TXT file.
+ * Admins only.
+ */
 router.post(
   "/classify-file",
-  (req, res, next) => {
-    console.log(
-      "========================================"
-    );
-
-    console.log(
-      "[AI DEBUG] Incoming classify-file request"
-    );
-
-    console.log(
-      "[AI DEBUG] Method:",
-      req.method
-    );
-
-    console.log(
-      "[AI DEBUG] Content-Type:",
-      req.headers["content-type"]
-    );
-
-    next();
-  },
   auth,
-  logAuthPassed,
   adminOnly,
-  logAdminPassed,
   handleFileUpload,
   async (req, res) => {
-    console.log(
-      "[AI DEBUG] File route reached"
-    );
+    let storedFile = null;
+    let documentRecord = null;
 
     try {
       if (!req.file) {
-        console.error(
-          "[AI DEBUG] No file received"
-        );
-
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "Please upload a PDF or TXT file.",
-          });
+        return res.status(400).json({
+          success: false,
+          message:
+            "Please upload a PDF or TXT file.",
+        });
       }
 
-      console.log(
-        "[AI DEBUG] File received:",
-        req.file.originalname
-      );
-
-      console.log(
-        "[AI DEBUG] File size:",
-        req.file.size
-      );
-
-      console.log(
-        "[AI DEBUG] File MIME type:",
-        req.file.mimetype
-      );
-
+      const file = req.file;
       let text = "";
 
-      if (
-        req.file.mimetype ===
-        "application/pdf"
-      ) {
-        console.log(
-          "[AI DEBUG] Extracting PDF text"
-        );
-
-        text =
-          await extractPdfText(
-            req.file.buffer
-          );
-
-        console.log(
-          "[AI DEBUG] PDF extraction finished"
-        );
-      } else if (
-        req.file.mimetype ===
-        "text/plain"
-      ) {
-        console.log(
-          "[AI DEBUG] Reading TXT file"
-        );
-
-        text =
-          req.file.buffer.toString(
-            "utf-8"
-          );
-
-        console.log(
-          "[AI DEBUG] TXT reading finished"
-        );
+      if (file.mimetype === "application/pdf") {
+        text = await extractPdfText(file.buffer);
+      } else if (file.mimetype === "text/plain") {
+        text = file.buffer.toString("utf-8");
       }
-
-      console.log(
-        "[AI DEBUG] Extracted character count:",
-        text.length
-      );
 
       if (!text.trim()) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message:
-              "No readable text was found. The PDF may be scanned or contain no selectable text.",
-          });
+        return res.status(400).json({
+          success: false,
+          message:
+            "No readable text was found. The PDF may be scanned or contain no selectable text.",
+        });
       }
 
-      console.log(
-        "[AI DEBUG] Starting file classification"
+      // Run classification before storing the original.
+      const data = await buildClassification(text);
+
+      const originalName = path
+        .basename(file.originalname)
+        .replace(/[\r\n"]/g, "_");
+
+      const storedName =
+        `${Date.now()}-${originalName.replace(
+          /[^a-zA-Z0-9._-]/g,
+          "_"
+        )}`;
+
+      // Save original bytes to MongoDB GridFS.
+      storedFile = await saveDocument(
+        file.buffer,
+        storedName,
+        {
+          originalName,
+          mimeType: file.mimetype,
+          uploadedBy: req.user.id,
+          source: "AI Classifier",
+        }
       );
 
-      const data =
-        await buildClassification(
-          text
-        );
-
-      console.log(
-        "[AI DEBUG] File classification completed"
-      );
+      // Save searchable metadata.
+      documentRecord = await UploadedDocument.create({
+        originalName,
+        storedName,
+        gridFsId: storedFile.id,
+        mimeType: file.mimetype,
+        size: file.size,
+        uploadedBy: req.user.id,
+        source: "AI Classifier",
+      });
 
       return res.json({
         success: true,
-        filename:
-          req.file.originalname,
+        filename: originalName,
+        document: {
+          id: documentRecord._id,
+          originalName: documentRecord.originalName,
+          mimeType: documentRecord.mimeType,
+          size: documentRecord.size,
+          uploadedAt: documentRecord.createdAt,
+        },
         data,
       });
     } catch (error) {
       console.error(
-        "[AI DEBUG] File classification error:",
+        "[AI] File classification/storage error:",
         error
       );
 
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message:
-            error.message ||
-            "File classification failed. Check the server terminal.",
-        });
+      // If metadata creation failed, remove the stored GridFS file.
+      if (storedFile?.id && !documentRecord) {
+        try {
+          await deleteStoredDocument(
+            storedFile.id.toString()
+          );
+        } catch (cleanupError) {
+          console.error(
+            "[AI] GridFS cleanup failed:",
+            cleanupError
+          );
+        }
+      }
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "File classification or storage failed. Check the backend logs.",
+      });
     }
   }
 );
+
+/**
+ * GET /api/ai/documents
+ * List files uploaded through the AI classifier.
+ * Admins only.
+ */
+router.get(
+  "/documents",
+  auth,
+  adminOnly,
+  async (req, res) => {
+    try {
+      const documents = await UploadedDocument.find({
+        source: "AI Classifier",
+      })
+        .select(
+          "originalName mimeType size uploadedBy destination destinationId createdAt"
+        )
+        .sort({ createdAt: -1 })
+        .lean();
+
+      return res.json({
+        success: true,
+        data: documents,
+      });
+    } catch (error) {
+      console.error(
+        "[AI DOCUMENTS] Listing failed:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to retrieve uploaded documents.",
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/ai/documents/:id/download
+ * Download an original stored file.
+ * Admins only.
+ */
+router.get(
+  "/documents/:id/download",
+  auth,
+  adminOnly,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid document ID.",
+        });
+      }
+
+      const document = await UploadedDocument.findOne({
+        _id: id,
+        source: "AI Classifier",
+      }).lean();
+
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          message: "Uploaded document not found.",
+        });
+      }
+
+      const stream = getDocumentDownloadStream(
+        document.gridFsId.toString()
+      );
+
+      let responseStarted = false;
+
+      stream.once("file", () => {
+        responseStarted = true;
+
+        res.setHeader(
+          "Content-Type",
+          document.mimeType === "application/pdf"
+            ? "application/pdf"
+            : "text/plain; charset=utf-8"
+        );
+
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename="${document.originalName.replace(
+            /["\\\r\n]/g,
+            "_"
+          )}"`
+        );
+
+        res.setHeader(
+          "X-Content-Type-Options",
+          "nosniff"
+        );
+
+        stream.pipe(res);
+      });
+
+      stream.once("error", (error) => {
+        console.error(
+          "[AI DOCUMENTS] Download failed:",
+          error
+        );
+
+        if (!responseStarted && !res.headersSent) {
+          return res.status(404).json({
+            success: false,
+            message:
+              "Stored file could not be found.",
+          });
+        }
+
+        if (!res.writableEnded) {
+          res.destroy();
+        }
+      });
+    } catch (error) {
+      console.error(
+        "[AI DOCUMENTS] Download request failed:",
+        error
+      );
+
+      if (!res.headersSent) {
+        return res.status(500).json({
+          success: false,
+          message:
+            "Failed to download the document.",
+        });
+      }
+
+      if (!res.writableEnded) {
+        res.destroy();
+      }
+    }
+  }
+);
+
 module.exports = router;

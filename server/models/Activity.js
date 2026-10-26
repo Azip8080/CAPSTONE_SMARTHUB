@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const ActivitySchema = new mongoose.Schema(
@@ -12,16 +13,20 @@ const ActivitySchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      lowercase: true,
+      enum: [
+        "created",
+        "updated",
+        "deleted",
+        "published",
+        "unpublished",
+      ],
     },
 
     entityType: {
       type: String,
       required: true,
-      enum: [
-        "Project",
-        "Event",
-        "User",
-      ],
+      enum: ["Project", "Event", "User"],
     },
 
     entityId: {
@@ -46,12 +51,6 @@ const ActivitySchema = new mongoose.Schema(
   }
 );
 
-ActivitySchema.index({
-  createdAt: -1,
-});
+ActivitySchema.index({ createdAt: -1 });
 
-module.exports =
-  mongoose.model(
-    "Activity",
-    ActivitySchema
-  );
+module.exports = mongoose.model("Activity", ActivitySchema);

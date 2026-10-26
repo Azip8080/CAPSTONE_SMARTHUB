@@ -1,13 +1,16 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
+
 import BarangayContributionRanking from "./components/BarangayContributionRanking";
-import styles from "./Dashboard.module.css";
-import { useDashboard } from "./useDashboard";
 import SDGOverview from "./components/SDGOverview";
 import ProjectStatus from "./components/ProjectStatus";
 import ProjectDetailsModal from "./components/ProjectDetailsModal";
 import EventDetailsModal from "./components/EventDetailsModal";
 import ActivityLog from "./components/ActivityLog";
+
+import styles from "./Dashboard.module.css";
+import { useDashboard } from "./useDashboard";
 
 function Dashboard() {
   const {
@@ -19,44 +22,102 @@ function Dashboard() {
     error,
   } = useDashboard();
 
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedProject, setSelectedProject] =
+    useState(null);
+
+  const [selectedEvent, setSelectedEvent] =
+    useState(null);
 
   const recentProjects = projects.slice(0, 5);
+
+
+const quickActions = [
+  {
+    label: "Add Project",
+    path: "/data-management",
+    color: "#3b82f6",
+  },
+  {
+    label: "Add Event",
+    path: "/events-projects",
+    color: "#10b981",
+  },
+];
+
+
+  const statCards = [
+    {
+      label: "Total Projects",
+      value: stats?.totalProjects,
+      color: "#3b82f6",
+    },
+    {
+      label: "Active Users",
+      value: stats?.totalUsers,
+      color: "#10b981",
+    },
+    {
+      label: "Total Events",
+      value: stats?.totalEvents,
+      color: "#f59e0b",
+    },
+    {
+      label: "Barangays Covered",
+      value: stats?.totalBarangays,
+      color: "#8b5cf6",
+    },
+  ];
 
   return (
     <div className={styles.page}>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>Dashboard</h1>
+        <h1 className={styles.pageTitle}>
+          Dashboard
+        </h1>
       </div>
 
-      {error && <p className={styles.error}>{error}</p>}
+      {/* Quick Actions - moved to the top */}
+      <div className={styles.card}>
+        <p className={styles.cardTitle}>
+          Quick Actions
+        </p>
 
+        <div className={styles.quickActions}>
+          {quickActions.map((action) => (
+            <Link
+              key={action.label}
+              to={action.path}
+              className={styles.quickAction}
+            >
+              <div
+                className={styles.quickActionDot}
+                style={{
+                  background: action.color,
+                }}
+              />
+
+              {action.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {error && (
+        <p className={styles.error}>
+          {error}
+        </p>
+      )}
+
+      {/* Dashboard Statistics */}
       <div className={styles.statsGrid}>
-        {[
-          {
-            label: "Total Projects",
-            value: stats?.totalProjects,
-            color: "#3b82f6",
-          },
-          {
-            label: "Active Users",
-            value: stats?.totalUsers,
-            color: "#10b981",
-          },
-          {
-            label: "Total Events",
-            value: stats?.totalEvents,
-            color: "#f59e0b",
-          },
-          {
-            label: "Barangays Covered",
-            value: stats?.totalBarangays,
-            color: "#8b5cf6",
-          },
-        ].map((card) => (
-          <div key={card.label} className={styles.statCard}>
-            <p className={styles.statLabel}>{card.label}</p>
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className={styles.statCard}
+          >
+            <p className={styles.statLabel}>
+              {card.label}
+            </p>
 
             <div className={styles.statBottom}>
               <p className={styles.statValue}>
@@ -65,27 +126,41 @@ function Dashboard() {
 
               <div
                 className={styles.statDot}
-                style={{ background: card.color }}
+                style={{
+                  background: card.color,
+                }}
               />
             </div>
           </div>
         ))}
       </div>
 
+      {/* SDG Overview */}
       <SDGOverview projects={projects} />
 
+      {/* Project Status */}
       <ProjectStatus projects={projects} />
 
+      {/* Barangay Contribution Ranking */}
       <BarangayContributionRanking />
 
+      {/* Recent Projects, Upcoming Events, Activity Log */}
       <div className={styles.mainGrid}>
         <div className={styles.card}>
-          <p className={styles.cardTitle}>Recent Projects</p>
+          <p className={styles.cardTitle}>
+            Recent Projects
+          </p>
 
-          {loading && <p className={styles.empty}>Loading…</p>}
+          {loading && (
+            <p className={styles.empty}>
+              Loading…
+            </p>
+          )}
 
           {!loading && recentProjects.length === 0 && (
-            <p className={styles.empty}>No projects yet.</p>
+            <p className={styles.empty}>
+              No projects yet.
+            </p>
           )}
 
           <div className={styles.list}>
@@ -94,7 +169,9 @@ function Dashboard() {
                 key={project._id}
                 type="button"
                 className={styles.projectButton}
-                onClick={() => setSelectedProject(project)}
+                onClick={() =>
+                  setSelectedProject(project)
+                }
               >
                 <div className={styles.listItemLeft}>
                   <p className={styles.listItemTitle}>
@@ -119,12 +196,20 @@ function Dashboard() {
         </div>
 
         <div className={styles.card}>
-          <p className={styles.cardTitle}>Upcoming Events</p>
+          <p className={styles.cardTitle}>
+            Upcoming Events
+          </p>
 
-          {loading && <p className={styles.empty}>Loading…</p>}
+          {loading && (
+            <p className={styles.empty}>
+              Loading…
+            </p>
+          )}
 
           {!loading && events.length === 0 && (
-            <p className={styles.empty}>No events yet.</p>
+            <p className={styles.empty}>
+              No events yet.
+            </p>
           )}
 
           <div className={styles.list}>
@@ -136,7 +221,9 @@ function Dashboard() {
                   key={event._id}
                   type="button"
                   className={styles.eventButton}
-                  onClick={() => setSelectedEvent(event)}
+                  onClick={() =>
+                    setSelectedEvent(event)
+                  }
                 >
                   <div className={styles.dateBlock}>
                     <span className={styles.dateDay}>
@@ -166,50 +253,7 @@ function Dashboard() {
         </div>
 
         <div className={styles.card}>
-          <p className={styles.cardTitle}>Quick Actions</p>
-
-          <div className={styles.quickActions}>
-            {[
-              {
-                label: "Add Project",
-                path: "/data-management",
-                color: "#3b82f6",
-              },
-              {
-                label: "Add Event",
-                path: "/events-projects",
-                color: "#10b981",
-              },
-              {
-                label: "Manage Users",
-                path: "/user-management",
-                color: "#f59e0b",
-              },
-              {
-                label: "View Reports",
-                path: "/analytics",
-                color: "#8b5cf6",
-              },
-            ].map((action) => (
-              <Link
-                key={action.label}
-                to={action.path}
-                className={styles.quickAction}
-              >
-                <div
-                  className={styles.quickActionDot}
-                  style={{ background: action.color }}
-                />
-
-                {action.label}
-              </Link>
-            ))}
-          </div>
-
-          <p
-            className={styles.cardTitle}
-            style={{ marginTop: 24 }}
-          >
+          <p className={styles.cardTitle}>
             Activity Log
           </p>
 
@@ -220,11 +264,13 @@ function Dashboard() {
         </div>
       </div>
 
+      {/* Project Details Modal */}
       <ProjectDetailsModal
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
       />
 
+      {/* Event Details Modal */}
       <EventDetailsModal
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}

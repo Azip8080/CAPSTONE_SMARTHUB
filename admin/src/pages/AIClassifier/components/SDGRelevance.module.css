@@ -1,5 +1,8 @@
+
 .container {
   width: 100%;
+  min-width: 0;
+  color: #17233b;
 }
 
 .header {
@@ -13,24 +16,25 @@
 .eyebrow {
   display: block;
   margin-bottom: 6px;
+  color: #2563eb;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  opacity: 0.55;
 }
 
 .header h3 {
   margin: 0;
+  color: #17233b;
   font-size: 20px;
   font-weight: 700;
 }
 
 .header p {
-  margin: 6px 0 0;
   max-width: 620px;
+  margin: 6px 0 0;
+  color: #738198;
   font-size: 14px;
   line-height: 1.6;
-  opacity: 0.65;
 }
 
 .countBadge {
@@ -38,17 +42,19 @@
   align-items: baseline;
   gap: 5px;
   padding: 8px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid #dce3ed;
   border-radius: 10px;
+  background: #ffffff;
+  color: #17233b;
   font-size: 18px;
   font-weight: 700;
   white-space: nowrap;
 }
 
 .countBadge span {
+  color: #738198;
   font-size: 12px;
   font-weight: 600;
-  opacity: 0.6;
 }
 
 .sdgList {
@@ -59,7 +65,7 @@
 
 .sdgCard {
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5eaf2;
   border-radius: 16px;
   background: #ffffff;
 }
@@ -69,7 +75,8 @@
   align-items: center;
   gap: 14px;
   padding: 18px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  border-bottom: 1px solid #e5eaf2;
+  background: #ffffff;
 }
 
 .sdgNumber {
@@ -79,8 +86,10 @@
   width: 46px;
   height: 46px;
   flex-shrink: 0;
+  border: 1px solid #dbeafe;
   border-radius: 12px;
-  background: #f1f5f9;
+  background: #eff6ff;
+  color: #2563eb;
   font-size: 16px;
   font-weight: 800;
 }
@@ -93,22 +102,23 @@
 .sdgTitle span {
   display: block;
   margin-bottom: 2px;
+  color: #738198;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  opacity: 0.5;
 }
 
 .sdgTitle h4 {
   margin: 0;
+  color: #17233b;
   font-size: 16px;
   font-weight: 700;
 }
 
 .rank {
+  color: #738198;
   font-size: 12px;
   font-weight: 700;
-  opacity: 0.45;
 }
 
 .section {
@@ -116,7 +126,7 @@
 }
 
 .section + .section {
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid #e5eaf2;
 }
 
 .sectionTitle {
@@ -124,6 +134,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
+  color: #17233b;
   font-size: 13px;
 }
 
@@ -134,16 +145,17 @@
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: #f1f5f9;
+  background: #eff6ff;
+  color: #2563eb;
   font-size: 11px;
   font-weight: 700;
 }
 
 .explanation {
   margin: 0;
+  color: #52637c;
   font-size: 14px;
   line-height: 1.7;
-  opacity: 0.75;
 }
 
 .keywordList {
@@ -154,17 +166,19 @@
 
 .keyword {
   padding: 6px 10px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid #dbeafe;
   border-radius: 8px;
-  background: #f8fafc;
+  background: #eff6ff;
+  color: #1d4ed8;
   font-size: 12px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .evidence {
   padding: 18px 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  background: #fafafa;
+  border-top: 1px solid #e5eaf2;
+  background: #f8fafc;
 }
 
 .evidenceList {
@@ -178,7 +192,7 @@
   align-items: flex-start;
   gap: 10px;
   padding: 12px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.07);
+  border: 1px solid #e5eaf2;
   border-radius: 10px;
   background: #ffffff;
 }
@@ -189,14 +203,15 @@
   margin-top: 7px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: currentColor;
+  background: #2563eb;
 }
 
 .evidenceItem p {
   margin: 0;
+  color: #52637c;
   font-size: 13px;
   line-height: 1.65;
-  opacity: 0.75;
+  overflow-wrap: anywhere;
 }
 
 .emptyState {
@@ -216,27 +231,31 @@
   width: 52px;
   height: 52px;
   margin-bottom: 14px;
+  border: 1px solid #dbeafe;
   border-radius: 14px;
-  background: #f1f5f9;
+  background: #eff6ff;
+  color: #2563eb;
   font-size: 22px;
 }
 
 .emptyState h3 {
   margin: 0;
+  color: #17233b;
   font-size: 16px;
 }
 
 .emptyState p {
   max-width: 360px;
   margin: 7px 0 0;
+  color: #738198;
   font-size: 13px;
   line-height: 1.6;
-  opacity: 0.6;
 }
 
 @media (max-width: 640px) {
   .header {
     align-items: flex-start;
+    gap: 12px;
   }
 
   .cardHeader {
@@ -254,5 +273,10 @@
 
   .sdgTitle h4 {
     font-size: 14px;
+  }
+
+  .countBadge {
+    padding: 7px 9px;
+    font-size: 16px;
   }
 }

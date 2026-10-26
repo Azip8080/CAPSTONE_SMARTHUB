@@ -1,3 +1,4 @@
+
 .evidenceSection {
   --evidence-text: #17233b;
   --evidence-muted: #718096;
@@ -43,10 +44,10 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px solid #d8e5ff;
+  border: 1px solid #dbeafe;
   border-radius: 10px;
-  background: #f0f5ff;
-  color: #285db5;
+  background: #eff6ff;
+  color: #1d4ed8;
   font-size: 11px;
   font-weight: 750;
   white-space: nowrap;
@@ -73,8 +74,8 @@
   height: 22px;
   place-items: center;
   border-radius: 7px;
-  background: #e8effb;
-  color: #42669e;
+  background: #dbeafe;
+  color: #1d4ed8;
   font-size: 12px;
   font-weight: 800;
 }
@@ -96,7 +97,7 @@
 }
 
 .evidenceCardOpen {
-  border-color: #cbdaf3;
+  border-color: #bfdbfe;
   box-shadow: 0 4px 14px rgb(23 35 59 / 5%);
 }
 
@@ -122,7 +123,7 @@
 
 .evidenceToggle:focus-visible {
   position: relative;
-  outline: 2px solid #3478f6;
+  outline: 2px solid #2563eb;
   outline-offset: -3px;
 }
 
@@ -267,10 +268,10 @@
   justify-content: center;
   min-height: 36px;
   padding: 8px 12px;
-  border: 1px solid #d8e5ff;
+  border: 1px solid #dbeafe;
   border-radius: 9px;
-  background: #f0f5ff;
-  color: #285db5;
+  background: #eff6ff;
+  color: #1d4ed8;
   cursor: pointer;
   font: inherit;
   font-size: 11px;
@@ -279,11 +280,11 @@
 }
 
 .showMoreButton:hover {
-  background: #e4edff;
+  background: #dbeafe;
 }
 
 .showMoreButton:focus-visible {
-  outline: 2px solid #3478f6;
+  outline: 2px solid #2563eb;
   outline-offset: 3px;
 }
 

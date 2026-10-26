@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const EventSchema = new mongoose.Schema(
@@ -7,46 +8,29 @@ const EventSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
     description: {
       type: String,
       required: true,
       trim: true,
     },
-
     location: {
       type: String,
       required: true,
       trim: true,
     },
-
     date: {
       type: Date,
       required: true,
     },
-
     sdgTag: {
       type: String,
       required: true,
-      enum: [
-        "SDG 1",
-        "SDG 2",
-        "SDG 3",
-        "SDG 4",
-        "SDG 5",
-        "SDG 6",
-        "SDG 7",
-        "SDG 8",
-        "SDG 9",
-        "SDG 10",
-        "SDG 11",
-        "SDG 12",
-        "SDG 13",
-        "SDG 14",
-        "SDG 15",
-        "SDG 16",
-        "SDG 17",
-      ],
+      enum: Array.from({ length: 17 }, (_, index) => `SDG ${index + 1}`),
+    },
+    document: {
+      path: { type: String, default: "" },
+      originalName: { type: String, default: "" },
+      mimeType: { type: String, default: "" },
     },
   },
   {
@@ -54,8 +38,4 @@ const EventSchema = new mongoose.Schema(
   }
 );
 
-module.exports =
-  mongoose.model(
-    "Event",
-    EventSchema
-  );
+module.exports = mongoose.model("Event", EventSchema);

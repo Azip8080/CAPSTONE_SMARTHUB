@@ -1,3 +1,4 @@
+
 const mongoose = require("mongoose");
 
 const ProjectSchema = new mongoose.Schema(
@@ -7,86 +8,77 @@ const ProjectSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
     description: {
       type: String,
       required: true,
       trim: true,
     },
-
     sdgTag: {
       type: String,
       required: true,
       trim: true,
     },
-
     sdgTags: {
       type: [String],
       default: [],
     },
-
     tags: {
       type: [String],
       default: [],
     },
-
     barangay: {
       type: String,
       required: true,
       trim: true,
     },
-
     status: {
       type: String,
-      enum: [
-        "Planned",
-        "Ongoing",
-        "Completed",
-      ],
+      enum: ["Planned", "Ongoing", "Completed"],
       default: "Planned",
     },
-
     photos: {
       type: [String],
       default: [],
+    },
+
+    // The actual uploaded project document
+    document: {
+      path: {
+        type: String,
+        default: "",
+      },
+      originalName: {
+        type: String,
+        default: "",
+      },
+      mimeType: {
+        type: String,
+        default: "",
+      },
     },
 
     featured: {
       type: Boolean,
       default: false,
     },
-
     publicationStatus: {
       type: String,
-      enum: [
-        "Draft",
-        "Published",
-      ],
+      enum: ["Draft", "Published"],
       default: "Draft",
       index: true,
     },
-
     publishedAt: {
       type: Date,
       default: null,
     },
-
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-ProjectSchema.index({
-  publicationStatus: 1,
-  createdAt: -1,
-});
+ProjectSchema.index({ publicationStatus: 1, createdAt: -1 });
 
-module.exports = mongoose.model(
-  "Project",
-  ProjectSchema
-);
+module.exports = mongoose.model("Project", ProjectSchema);

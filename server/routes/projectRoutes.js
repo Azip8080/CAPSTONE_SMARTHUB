@@ -1,3 +1,4 @@
+
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -14,35 +15,71 @@ const uploadDir = path.join(__dirname, "../uploads/projects");
 
 fs.mkdirSync(uploadDir, { recursive: true });
 
+const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+
+const allowedMimeTypes = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+
+const allowedDocuments = {
+  ".pdf": "application/pdf",
+  ".txt": "text/plain",
+  ".docx":
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
     callback(null, uploadDir);
   },
+
   filename: (req, file, callback) => {
     const extension = path.extname(file.originalname).toLowerCase();
-    const filename = `project-${Date.now()}-${Math.round(
-      Math.random() * 1e9
-    )}${extension}`;
-    callback(null, filename);
+
+    callback(
+      null,
+      `project-${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`
+    );
   },
 });
 
 const upload = multer({
   storage,
   limits: {
-    files: 10,
-    fileSize: 10 * 1024 * 1024,
+    files: 11,
+    fileSize: 20 * 1024 * 1024,
   },
-  fileFilter: (req, file, callback) => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
-    if (allowedTypes.includes(file.mimetype)) {
+  fileFilter: (req, file, callback) => {
+    const extension = path.extname(file.originalname).toLowerCase();
+
+    const isImage =
+      file.fieldname === "photos" &&
+      allowedExtensions.includes(extension) &&
+      allowedMimeTypes.includes(file.mimetype);
+
+    const isDocument =
+      file.fieldname === "document" &&
+      allowedDocuments[extension] === file.mimetype;
+
+    if (isImage || isDocument) {
       return callback(null, true);
     }
 
-    callback(new Error("Only JPG, PNG, and WebP images are allowed."));
+    callback(
+      new Error(
+        "Photos must be JPG, PNG, or WebP. Documents must be PDF, TXT, or DOCX."
+      )
+    );
   },
 });
+
+const projectUpload = upload.fields([
+  { name: "photos", maxCount: 10 },
+  { name: "document", maxCount: 1 },
+]);
 
 const editableFields = [
   "title",
@@ -64,19 +101,13 @@ function getEditableFields(body) {
     }
   }
 
-  if (typeof fields.sdgTags === "string") {
-    try {
-      fields.sdgTags = JSON.parse(fields.sdgTags);
-    } catch {
-      fields.sdgTags = [];
-    }
-  }
-
-  if (typeof fields.tags === "string") {
-    try {
-      fields.tags = JSON.parse(fields.tags);
-    } catch {
-      fields.tags = [];
+  for (const field of ["sdgTags", "tags"]) {
+    if (typeof fields[field] === "string") {
+      try {
+        fields[field] = JSON.parse(fields[field]);
+      } catch {
+        fields[field] = [];
+      }
     }
   }
 
@@ -87,21 +118,79 @@ function getEditableFields(body) {
   return fields;
 }
 
-function getPhotoPaths(files) {
-  return files.map((file) => `/uploads/projects/${file.filename}`);
+function getPhotoPaths(files = []) {
+  return files.map(
+    (file) => `/uploads/projects/${file.filename}`
+  );
 }
 
-function removePhotoFile(photoPath) {
-  if (!photoPath) return;
+function getUploadedDocument(req) {
+  const file = req.files?.document?.[0];
 
-  const filename = path.basename(photoPath);
-  const filePath = path.join(uploadDir, filename);
+  if (!file) return null;
 
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+  return {
+    path: `/uploads/projects/${file.filename}`,
+    originalName: path.basename(file.originalname),
+    mimeType: file.mimetype,
+  };
+}
+
+function removeProjectFile(filePath) {
+  if (!filePath) return;
+
+  const filename = path.basename(filePath);
+  const fullPath = path.join(uploadDir, filename);
+
+  if (fs.existsSync(fullPath)) {
+    try {
+      fs.unlinkSync(fullPath);
+    } catch (error) {
+      console.error("Unable to remove project file:", error.message);
+    }
   }
 }
 
+function removeUploadedFiles(files) {
+  if (!files) return;
+
+  for (const group of Object.values(files)) {
+    for (const file of group) {
+      removeProjectFile(file.filename);
+    }
+  }
+}
+
+function handleUploadError(req, res, next) {
+  projectUpload(req, res, (error) => {
+    if (!error) return next();
+
+    removeUploadedFiles(req.files);
+
+    const status =
+      error.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+
+    return res.status(status).json({
+      success: false,
+      message: error.message || "Project upload failed.",
+    });
+  });
+}
+
+function parseExistingPhotos(value, fallback = []) {
+  if (value === undefined) return fallback;
+
+  if (Array.isArray(value)) return value;
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// GET ALL PROJECTS FOR ADMIN
 router.get("/admin/all", auth, adminOnly, async (req, res) => {
   try {
     const projects = await Project.find().sort({ updatedAt: -1 });
@@ -110,8 +199,8 @@ router.get("/admin/all", auth, adminOnly, async (req, res) => {
       success: true,
       data: projects,
     });
-  } catch (err) {
-    console.error("Admin projects error:", err);
+  } catch (error) {
+    console.error("Admin projects error:", error);
 
     return res.status(500).json({
       success: false,
@@ -120,19 +209,22 @@ router.get("/admin/all", auth, adminOnly, async (req, res) => {
   }
 });
 
+// CREATE PROJECT DRAFT
 router.post(
   "/",
   auth,
   adminOnly,
-  upload.array("photos", 10),
+  handleUploadError,
   async (req, res) => {
     try {
       const fields = getEditableFields(req.body);
-      const photos = getPhotoPaths(req.files || []);
+      const photos = getPhotoPaths(req.files?.photos || []);
+      const document = getUploadedDocument(req);
 
       const project = await Project.create({
         ...fields,
         photos,
+        document: document || undefined,
         publicationStatus: "Draft",
         publishedAt: null,
         createdBy: req.user.id,
@@ -141,7 +233,7 @@ router.post(
       await logActivity({
         actor: req.user.id,
         action: "created",
-        entityType: "project",
+        entityType: "Project",
         entityId: project._id,
         entityTitle: project.title,
         details: "Created a new project draft.",
@@ -152,17 +244,19 @@ router.post(
         message: "Project saved as a draft.",
         data: project,
       });
-    } catch (err) {
-      console.error("Create project error:", err);
+    } catch (error) {
+      removeUploadedFiles(req.files);
+      console.error("Create project error:", error);
 
       return res.status(400).json({
         success: false,
-        message: err.message || "Failed to create project.",
+        message: error.message || "Failed to create project.",
       });
     }
   }
 );
 
+// UPDATE FEATURED STATUS
 router.patch("/:id/featured", auth, adminOnly, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -174,13 +268,16 @@ router.patch("/:id/featured", auth, adminOnly, async (req, res) => {
       });
     }
 
-    project.featured = Boolean(req.body.featured);
+    project.featured =
+      req.body.featured === true ||
+      req.body.featured === "true";
+
     await project.save();
 
     await logActivity({
       actor: req.user.id,
       action: "updated",
-      entityType: "project",
+      entityType: "Project",
       entityId: project._id,
       entityTitle: project.title,
       details: project.featured
@@ -195,26 +292,29 @@ router.patch("/:id/featured", auth, adminOnly, async (req, res) => {
         : "Project removed from showcase.",
       data: project,
     });
-  } catch (err) {
-    console.error("Feature project error:", err);
+  } catch (error) {
+    console.error("Feature project error:", error);
 
     return res.status(400).json({
       success: false,
-      message: err.message || "Failed to update showcase status.",
+      message: error.message || "Failed to update showcase status.",
     });
   }
 });
 
+// EDIT PROJECT
 router.put(
   "/:id",
   auth,
   adminOnly,
-  upload.array("photos", 10),
+  handleUploadError,
   async (req, res) => {
     try {
       const project = await Project.findById(req.params.id);
 
       if (!project) {
+        removeUploadedFiles(req.files);
+
         return res.status(404).json({
           success: false,
           message: "Project not found.",
@@ -222,34 +322,53 @@ router.put(
       }
 
       const fields = getEditableFields(req.body);
-      let existingPhotos = [];
-
-      if (req.body.existingPhotos) {
-        try {
-          existingPhotos = JSON.parse(req.body.existingPhotos);
-        } catch {
-          existingPhotos = [];
-        }
-      }
-
-      const uploadedPhotos = getPhotoPaths(req.files || []);
       const oldPhotos = project.photos || [];
 
-      const removedPhotos = oldPhotos.filter(
-        (photo) => !existingPhotos.includes(photo)
+      const existingPhotos = parseExistingPhotos(
+        req.body.existingPhotos,
+        oldPhotos
       );
 
-      removedPhotos.forEach(removePhotoFile);
+      const validExistingPhotos = existingPhotos.filter(
+        (photo) =>
+          typeof photo === "string" &&
+          oldPhotos.includes(photo)
+      );
 
-      fields.photos = [...existingPhotos, ...uploadedPhotos];
+      const uploadedPhotos = getPhotoPaths(
+        req.files?.photos || []
+      );
+
+      const removedPhotos = oldPhotos.filter(
+        (photo) => !validExistingPhotos.includes(photo)
+      );
+
+      fields.photos = [
+        ...validExistingPhotos,
+        ...uploadedPhotos,
+      ];
+
+      const previousDocumentPath = project.document?.path;
+      const newDocument = getUploadedDocument(req);
+
+      if (newDocument) {
+        fields.document = newDocument;
+      }
 
       Object.assign(project, fields);
+
       await project.save();
+
+      removedPhotos.forEach(removeProjectFile);
+
+      if (newDocument && previousDocumentPath) {
+        removeProjectFile(previousDocumentPath);
+      }
 
       await logActivity({
         actor: req.user.id,
         action: "updated",
-        entityType: "project",
+        entityType: "Project",
         entityId: project._id,
         entityTitle: project.title,
         details: "Updated project details.",
@@ -260,17 +379,19 @@ router.put(
         message: "Project details updated.",
         data: project,
       });
-    } catch (err) {
-      console.error("Update project error:", err);
+    } catch (error) {
+      removeUploadedFiles(req.files);
+      console.error("Update project error:", error);
 
       return res.status(400).json({
         success: false,
-        message: err.message || "Failed to update project.",
+        message: error.message || "Failed to update project.",
       });
     }
   }
 );
 
+// PUBLISH PROJECT
 router.patch("/:id/publish", auth, adminOnly, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -282,15 +403,20 @@ router.patch("/:id/publish", auth, adminOnly, async (req, res) => {
       });
     }
 
-    const requiredFields = ["title", "description", "sdgTag", "barangay"];
+    const requiredFields = [
+      "title",
+      "description",
+      "sdgTag",
+      "barangay",
+    ];
 
     const missingFields = requiredFields.filter(
       (field) =>
         typeof project[field] !== "string" ||
-        project[field].trim().length === 0
+        !project[field].trim()
     );
 
-    if (missingFields.length > 0) {
+    if (missingFields.length) {
       return res.status(400).json({
         success: false,
         message: "Complete the required project details before publishing.",
@@ -306,7 +432,7 @@ router.patch("/:id/publish", auth, adminOnly, async (req, res) => {
     await logActivity({
       actor: req.user.id,
       action: "published",
-      entityType: "project",
+      entityType: "Project",
       entityId: project._id,
       entityTitle: project.title,
       details: "Published a project.",
@@ -317,16 +443,17 @@ router.patch("/:id/publish", auth, adminOnly, async (req, res) => {
       message: "Project published successfully.",
       data: project,
     });
-  } catch (err) {
-    console.error("Publish project error:", err);
+  } catch (error) {
+    console.error("Publish project error:", error);
 
     return res.status(400).json({
       success: false,
-      message: err.message || "Failed to publish project.",
+      message: error.message || "Failed to publish project.",
     });
   }
 });
 
+// UNPUBLISH PROJECT
 router.patch("/:id/unpublish", auth, adminOnly, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -346,7 +473,7 @@ router.patch("/:id/unpublish", auth, adminOnly, async (req, res) => {
     await logActivity({
       actor: req.user.id,
       action: "unpublished",
-      entityType: "project",
+      entityType: "Project",
       entityId: project._id,
       entityTitle: project.title,
       details: "Returned a project to draft status.",
@@ -357,16 +484,17 @@ router.patch("/:id/unpublish", auth, adminOnly, async (req, res) => {
       message: "Project returned to draft status.",
       data: project,
     });
-  } catch (err) {
-    console.error("Unpublish project error:", err);
+  } catch (error) {
+    console.error("Unpublish project error:", error);
 
     return res.status(400).json({
       success: false,
-      message: err.message || "Failed to unpublish project.",
+      message: error.message || "Failed to unpublish project.",
     });
   }
 });
 
+// DELETE PROJECT
 router.delete("/:id", auth, adminOnly, async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
@@ -378,12 +506,13 @@ router.delete("/:id", auth, adminOnly, async (req, res) => {
       });
     }
 
-    project.photos?.forEach(removePhotoFile);
+    (project.photos || []).forEach(removeProjectFile);
+    removeProjectFile(project.document?.path);
 
     await logActivity({
       actor: req.user.id,
       action: "deleted",
-      entityType: "project",
+      entityType: "Project",
       entityId: project._id,
       entityTitle: project.title,
       details: "Deleted a project.",
@@ -393,16 +522,17 @@ router.delete("/:id", auth, adminOnly, async (req, res) => {
       success: true,
       message: "Project deleted successfully.",
     });
-  } catch (err) {
-    console.error("Delete project error:", err);
+  } catch (error) {
+    console.error("Delete project error:", error);
 
     return res.status(400).json({
       success: false,
-      message: err.message || "Failed to delete project.",
+      message: error.message || "Failed to delete project.",
     });
   }
 });
 
+// GET ALL PUBLISHED PROJECTS
 router.get("/", async (req, res) => {
   try {
     const projects = await Project.find({
@@ -412,12 +542,12 @@ router.get("/", async (req, res) => {
       createdAt: -1,
     });
 
-    return res.status(200).json({
+    return res.json({
       success: true,
       data: projects,
     });
-  } catch (err) {
-    console.error("Published projects error:", err);
+  } catch (error) {
+    console.error("Published projects error:", error);
 
     return res.status(500).json({
       success: false,
@@ -426,114 +556,35 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/barangay-ranking", async (req, res) => {
-  try {
-    const ranking = await Project.aggregate([
-      {
-        $match: {
-          publicationStatus: "Published",
-          barangay: {
-            $exists: true,
-            $ne: "",
-            $ne: null,
-          },
-        },
-      },
-      {
-        $project: {
-          barangay: 1,
-          sdgValues: {
-            $cond: [
-              {
-                $and: [
-                  { $isArray: "$sdgTags" },
-                  { $gt: [{ $size: "$sdgTags" }, 0] },
-                ],
-              },
-              "$sdgTags",
-              ["$sdgTag"],
-            ],
-          },
-        },
-      },
-      {
-        $unwind: {
-          path: "$sdgValues",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $group: {
-          _id: "$barangay",
-          projectIds: {
-            $addToSet: "$_id",
-          },
-          sdgContributions: {
-            $addToSet: "$sdgValues",
-          },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          barangay: "$_id",
-          projectCount: {
-            $size: "$projectIds",
-          },
-          sdgContributions: {
-            $size: {
-              $filter: {
-                input: "$sdgContributions",
-                as: "sdg",
-                cond: {
-                  $and: [
-                    { $ne: ["$$sdg", null] },
-                    { $ne: ["$$sdg", ""] },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
-      {
-        $sort: {
-          projectCount: -1,
-          sdgContributions: -1,
-          barangay: 1,
-        },
-      },
-      {
-        $limit: 5,
-      },
-    ]);
-
-    return res.status(200).json({
-      success: true,
-      data: ranking,
-    });
-  } catch (err) {
-    console.error("Barangay ranking error:", err);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to retrieve barangay contribution ranking.",
-    });
-  }
-});
+// GET PUBLISHED PROJECTS FOR A SPECIFIC BARANGAY
 router.get("/barangay/:barangay/published", async (req, res) => {
   try {
-    const barangay = decodeURIComponent(req.params.barangay);
+    const barangay = String(req.params.barangay || "").trim();
+
+    if (!barangay) {
+      return res.status(400).json({
+        success: false,
+        message: "Barangay name is required.",
+      });
+    }
+
+    const escapedBarangay = barangay.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
 
     const projects = await Project.find({
-      barangay: barangay,
       publicationStatus: "Published",
-    })
-      .select("title projectTitle sdgTag sdgTags publishedAt description")
-      .sort({ publishedAt: -1, createdAt: -1 })
-      .lean();
+      barangay: {
+        $regex: `^${escapedBarangay}$`,
+        $options: "i",
+      },
+    }).sort({
+      publishedAt: -1,
+      createdAt: -1,
+    });
 
-    return res.status(200).json({
+    return res.json({
       success: true,
       data: projects,
     });
@@ -542,7 +593,126 @@ router.get("/barangay/:barangay/published", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Failed to retrieve published projects.",
+      message: "Failed to retrieve published projects for this barangay.",
+    });
+  }
+});
+
+// GET BARANGAY PROJECT RANKING
+router.get("/barangay-ranking", async (req, res) => {
+  try {
+    const projects = await Project.find({
+      publicationStatus: "Published",
+      barangay: {
+        $exists: true,
+        $nin: ["", null],
+      },
+    })
+      .select("barangay sdgTag sdgTags")
+      .lean();
+
+    const barangays = new Map();
+
+    function normalizeSdg(value) {
+      if (typeof value === "string") return value.trim();
+
+      if (typeof value === "number") {
+        return `SDG ${value}`;
+      }
+
+      if (value && typeof value === "object") {
+        const label =
+          value.label ||
+          value.name ||
+          value.title ||
+          value.value ||
+          value.tag ||
+          value.sdgTag;
+
+        return typeof label === "string" ? label.trim() : "";
+      }
+
+      return "";
+    }
+
+    for (const project of projects) {
+      const barangay = project.barangay?.trim();
+
+      if (!barangay) continue;
+
+      if (!barangays.has(barangay)) {
+        barangays.set(barangay, {
+          barangay,
+          projectCount: 0,
+          sdgTags: new Set(),
+        });
+      }
+
+      const entry = barangays.get(barangay);
+      entry.projectCount += 1;
+
+      let arrayTags = [];
+
+      if (Array.isArray(project.sdgTags)) {
+        arrayTags = project.sdgTags;
+      } else if (typeof project.sdgTags === "string") {
+        try {
+          const parsed = JSON.parse(project.sdgTags);
+          arrayTags = Array.isArray(parsed)
+            ? parsed
+            : [project.sdgTags];
+        } catch {
+          arrayTags = [project.sdgTags];
+        }
+      }
+
+      const validArrayTags = arrayTags
+        .map(normalizeSdg)
+        .filter(Boolean);
+
+      const singleTag = normalizeSdg(project.sdgTag);
+
+      const tagsToAdd = validArrayTags.length
+        ? validArrayTags
+        : singleTag
+          ? [singleTag]
+          : [];
+
+      for (const tag of tagsToAdd) {
+        entry.sdgTags.add(tag);
+      }
+    }
+
+    const data = [...barangays.values()]
+      .map((entry) => {
+        const sdgTags = [...entry.sdgTags].sort(
+          (a, b) =>
+            a.localeCompare(b, undefined, { numeric: true })
+        );
+
+        return {
+          barangay: entry.barangay,
+          projectCount: entry.projectCount,
+          sdgTags,
+          sdgContributions: sdgTags.length,
+        };
+      })
+      .sort(
+        (a, b) =>
+          b.projectCount - a.projectCount ||
+          a.barangay.localeCompare(b.barangay)
+      );
+
+    return res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Barangay contribution error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve barangay contributions.",
     });
   }
 });

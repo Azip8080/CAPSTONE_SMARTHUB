@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import styles from "./SDGTracker.module.css";
 import { api } from "../../services/api";
 
@@ -32,117 +33,237 @@ function getToday() {
   ].join("-");
 }
 
+function normalizeStatus(status) {
+  return String(status || "Planned")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "");
+}
+
+function getProjectSdgs(project) {
+  const tags = [
+    project.sdgTag,
+    ...(Array.isArray(project.sdgTags) ? project.sdgTags : []),
+  ];
+
+  return [...new Set(tags.filter(Boolean))];
+}
+
 function SDGTracker() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
-  const [selectedDate, setSelectedDate] =
-    useState(getToday());
+  const [selectedDate, setSelectedDate] = useState(getToday());
+  const [projectFilter, setProjectFilter] = useState(
+    searchParams.get("filter") || "all"
+  );
 
   useEffect(() => {
+    setProjectFilter(searchParams.get("filter") || "all");
+  }, [searchParams]);
+
+  useEffect(() => {
+    let isMounted = true;
+
     api
       .get("/projects")
-      .then((d) =>
-        setProjects(d.data ?? d)
-      )
-      .finally(() =>
-        setLoading(false)
-      );
+      .then((response) => {
+        const result = response.data;
+        const projectData = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+            ? result.data
+            : [];
+
+        if (isMounted) {
+          setProjects(projectData);
+          setError("");
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(
+            err.response?.data?.message ||
+              "Unable to load projects. Please try again."
+          );
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const visibleProjects = projects.filter(
-    (project) => {
-      const projectDate =
-        project.publishedAt ||
-        project.createdAt;
+  const dateFilteredProjects = useMemo(() => {
+    const selectedEnd = new Date(`${selectedDate}T23:59:59.999`);
+
+    return projects.filter((project) => {
+      const projectDate = project.publishedAt || project.createdAt;
 
       if (!projectDate) {
         return true;
       }
 
-      const selectedEnd = new Date(
-        `${selectedDate}T23:59:59`
-      );
+      const parsedDate = new Date(projectDate);
 
-      return (
-        new Date(projectDate) <=
-        selectedEnd
-      );
-    }
-  );
+      if (Number.isNaN(parsedDate.getTime())) {
+        return true;
+      }
+
+      return parsedDate <= selectedEnd;
+    });
+  }, [projects, selectedDate]);
+
+  const summaryProjects = useMemo(() => {
+    return dateFilteredProjects.filter((project) => {
+      if (
+        projectFilter === "published" &&
+        normalizeStatus(project.publicationStatus) !== "published"
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [dateFilteredProjects, projectFilter]);
+
+  const visibleProjects = useMemo(() => {
+    return summaryProjects.filter((project) => {
+      const status = normalizeStatus(project.status);
+
+      if (projectFilter === "ongoing") {
+        return status === "ongoing" || status === "inprogress";
+      }
+
+      if (projectFilter === "completed") {
+        return status === "completed";
+      }
+
+      return true;
+    });
+  }, [summaryProjects, projectFilter]);
 
   const getStats = (tag) => {
-    const group = visibleProjects.filter(
-      (project) => {
-        if (
-          Array.isArray(project.sdgTags) &&
-          project.sdgTags.length > 0
-        ) {
-          return project.sdgTags.includes(tag);
-        }
-
-        return project.sdgTag === tag;
-      }
+    const summarySdgProjects = summaryProjects.filter((project) =>
+      getProjectSdgs(project).includes(tag)
     );
 
+    const displayedSdgProjects = visibleProjects.filter((project) =>
+      getProjectSdgs(project).includes(tag)
+    );
+
+    const planned = summarySdgProjects.filter(
+      (project) => normalizeStatus(project.status) === "planned"
+    ).length;
+
+    const ongoing = summarySdgProjects.filter((project) => {
+      const status = normalizeStatus(project.status);
+      return status === "ongoing" || status === "inprogress";
+    }).length;
+
+    const completed = summarySdgProjects.filter(
+      (project) => normalizeStatus(project.status) === "completed"
+    ).length;
+
     return {
-      total: group.length,
-      planned: group.filter(
-        (project) =>
-          project.status === "Planned"
-      ).length,
-      ongoing: group.filter(
-        (project) =>
-          project.status === "Ongoing"
-      ).length,
-      completed: group.filter(
-        (project) =>
-          project.status === "Completed"
-      ).length,
-      projects: group,
+      total: summarySdgProjects.length,
+      displayedTotal: displayedSdgProjects.length,
+      planned,
+      ongoing,
+      completed,
+      projects: displayedSdgProjects,
     };
   };
 
-  const totalProjects =
-    visibleProjects.length;
+  const totalProjects = summaryProjects.length;
 
-  const totalCompleted =
-    visibleProjects.filter(
-      (project) =>
-        project.status === "Completed"
-    ).length;
+  const totalOngoing = summaryProjects.filter((project) => {
+    const status = normalizeStatus(project.status);
+    return status === "ongoing" || status === "inprogress";
+  }).length;
 
-  const totalOngoing =
-    visibleProjects.filter(
-      (project) =>
-        project.status === "Ongoing"
-    ).length;
+  const totalCompleted = summaryProjects.filter(
+    (project) => normalizeStatus(project.status) === "completed"
+  ).length;
 
-  const activeSdgs =
-    SDG_LIST.filter(
-      (sdg) =>
-        getStats(sdg.tag).total > 0
-    ).length;
+  const activeSdgs = SDG_LIST.filter(
+    (sdg) => getStats(sdg.tag).total > 0
+  ).length;
+
+  const displayedSdgs = ["active-sdgs", "ongoing", "completed"].includes(
+    projectFilter
+  )
+    ? SDG_LIST.filter((sdg) => getStats(sdg.tag).displayedTotal > 0)
+    : SDG_LIST;
+
+  const changeFilter = (filter) => {
+    setProjectFilter(filter);
+    setSelected(null);
+
+    if (filter === "all") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ filter });
+    }
+  };
+
+  const filterLabels = {
+    all: "Showing all projects",
+    published: "Showing published projects",
+    "active-sdgs": "Showing SDGs with projects",
+    ongoing: "Showing ongoing projects",
+    completed: "Showing completed projects",
+  };
+
+  const summaryCards = [
+    {
+      label: "Total Projects",
+      value: totalProjects,
+      color: "#3b82f6",
+      filter: "all",
+    },
+    {
+      label: "Active SDGs",
+      value: activeSdgs,
+      color: "#10b981",
+      filter: "active-sdgs",
+    },
+    {
+      label: "Ongoing",
+      value: totalOngoing,
+      color: "#f59e0b",
+      filter: "ongoing",
+    },
+    {
+      label: "Completed",
+      value: totalCompleted,
+      color: "#8b5cf6",
+      filter: "completed",
+    },
+  ];
 
   return (
-    <div>
+    <div className={styles.trackerPage}>
       <div className={styles.pageHeader}>
         <div>
-          <h1 className={styles.pageTitle}>
-            SDG Tracker
-          </h1>
+          <h1 className={styles.pageTitle}>SDG Tracker</h1>
 
           <p className={styles.pageSubtitle}>
-            Monitor project progress across
-            all 17 Sustainable Development Goals
+            Monitor project progress across all 17 Sustainable Development
+            Goals
           </p>
         </div>
 
         <div className={styles.dateControl}>
-          <label
-            htmlFor="tracker-date"
-            className={styles.dateLabel}
-          >
+          <label htmlFor="tracker-date" className={styles.dateLabel}>
             View as of
           </label>
 
@@ -151,256 +272,148 @@ function SDGTracker() {
             type="date"
             value={selectedDate}
             max={getToday()}
-            onChange={(e) =>
-              setSelectedDate(
-                e.target.value
-              )
-            }
+            onChange={(event) => {
+              setSelectedDate(event.target.value);
+              setSelected(null);
+            }}
             className={styles.dateInput}
           />
         </div>
       </div>
 
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
       <div className={styles.summaryGrid}>
-        {[
-          {
-            label: "Total Projects",
-            value: totalProjects,
-            color: "#3b82f6",
-          },
-          {
-            label: "Active SDGs",
-            value: activeSdgs,
-            color: "#10b981",
-          },
-          {
-            label: "Ongoing",
-            value: totalOngoing,
-            color: "#f59e0b",
-          },
-          {
-            label: "Completed",
-            value: totalCompleted,
-            color: "#8b5cf6",
-          },
-        ].map((summary) => (
-          <div
+        {summaryCards.map((summary) => (
+          <button
             key={summary.label}
-            className={styles.summaryCard}
-            style={{
-              borderTop: `3px solid ${summary.color}`,
-            }}
+            type="button"
+            className={`${styles.summaryCard} ${
+              projectFilter === summary.filter ? styles.selectedCard : ""
+            }`}
+            style={{ borderTop: `3px solid ${summary.color}` }}
+            onClick={() => changeFilter(summary.filter)}
           >
-            <p className={styles.summaryLabel}>
-              {summary.label}
-            </p>
+            <p className={styles.summaryLabel}>{summary.label}</p>
 
             <p className={styles.summaryValue}>
-              {loading
-                ? "—"
-                : summary.value}
+              {loading ? "—" : summary.value}
             </p>
-          </div>
+          </button>
         ))}
       </div>
 
-      <div className={styles.sdgGrid}>
-        {SDG_LIST.map((sdg) => {
-          const stats = getStats(sdg.tag);
+      {projectFilter !== "all" && (
+        <div className={styles.filterNotice}>
+          <span>{filterLabels[projectFilter] || "Filtered projects"}</span>
 
-          const pct = Math.min(
-            stats.total * 5,
-            100
-          );
+          <button type="button" onClick={() => changeFilter("all")}>
+            Show all projects
+          </button>
+        </div>
+      )}
 
-          return (
-            <div
-              key={sdg.tag}
-              className={`${styles.sdgCard} ${
-                selected === sdg.tag
-                  ? styles.selectedCard
-                  : ""
-              }`}
-              onClick={() =>
-                setSelected(
-                  selected === sdg.tag
-                    ? null
-                    : sdg.tag
-                )
-              }
-            >
+      {loading ? (
+        <div className={styles.loadingMessage}>Loading projects...</div>
+      ) : (
+        <div className={styles.sdgGrid}>
+          {displayedSdgs.map((sdg) => {
+            const stats = getStats(sdg.tag);
+
+            const pct = Math.min(stats.total * 5, 100);
+
+            return (
               <div
-                className={
-                  styles.sdgCardTop
+                key={sdg.tag}
+                className={`${styles.sdgCard} ${
+                  selected === sdg.tag ? styles.selectedCard : ""
+                }`}
+                onClick={() =>
+                  setSelected(selected === sdg.tag ? null : sdg.tag)
                 }
               >
-                <div
-                  className={
-                    styles.sdgColorBar
-                  }
-                  style={{
-                    background:
-                      sdg.color,
-                  }}
-                />
+                <div className={styles.sdgCardTop}>
+                  <div
+                    className={styles.sdgColorBar}
+                    style={{ background: sdg.color }}
+                  />
 
-                <div
-                  className={
-                    styles.sdgCardInfo
-                  }
-                >
-                  <span
-                    className={
-                      styles.sdgTag
-                    }
-                  >
-                    {sdg.tag}
+                  <div className={styles.sdgCardInfo}>
+                    <span className={styles.sdgTag}>{sdg.tag}</span>
+
+                    <p className={styles.sdgLabel}>{sdg.label}</p>
+                  </div>
+
+                  <span className={styles.sdgCount}>
+                    {stats.displayedTotal}
                   </span>
-
-                  <p
-                    className={
-                      styles.sdgLabel
-                    }
-                  >
-                    {sdg.label}
-                  </p>
                 </div>
 
-                <span
-                  className={
-                    styles.sdgCount
-                  }
-                >
-                  {stats.total}
-                </span>
-              </div>
-
-              <div
-                className={
-                  styles.progressBar
-                }
-              >
-                <div
-                  className={
-                    styles.progressFill
-                  }
-                  style={{
-                    width: `${pct}%`,
-                    background:
-                      sdg.color,
-                  }}
-                />
-              </div>
-
-              <div
-                className={
-                  styles.sdgMini
-                }
-              >
-                <span
-                  className={
-                    styles.miniPlanned
-                  }
-                >
-                  Planned: {stats.planned}
-                </span>
-
-                <span
-                  className={
-                    styles.miniOngoing
-                  }
-                >
-                  Ongoing: {stats.ongoing}
-                </span>
-
-                <span
-                  className={
-                    styles.miniCompleted
-                  }
-                >
-                  Done: {stats.completed}
-                </span>
-              </div>
-
-              {selected === sdg.tag &&
-                stats.projects.length >
-                  0 && (
+                <div className={styles.progressBar}>
                   <div
-                    className={
-                      styles.projectList
-                    }
-                  >
-                    <p
-                      className={
-                        styles.projectListTitle
-                      }
-                    >
-                      Projects
-                    </p>
+                    className={styles.progressFill}
+                    style={{
+                      width: `${pct}%`,
+                      background: sdg.color,
+                    }}
+                  />
+                </div>
 
-                    {stats.projects.map(
-                      (project) => (
-                        <div
-                          key={project._id}
-                          className={
-                            styles.projectItem
-                          }
-                        >
-                          <div>
-                            <p
-                              className={
-                                styles.projectItemTitle
-                              }
-                            >
-                              {
-                                project.title
-                              }
-                            </p>
+                <div className={styles.sdgMini}>
+                  <span className={styles.miniPlanned}>
+                    Planned: {stats.planned}
+                  </span>
 
-                            <p
-                              className={
-                                styles.projectItemSub
-                              }
-                            >
-                              {
-                                project.barangay
-                              }
-                            </p>
-                          </div>
+                  <span className={styles.miniOngoing}>
+                    Ongoing: {stats.ongoing}
+                  </span>
 
-                          <span
-                            className={`${styles.statusBadge} ${
-                              styles[
-                                project.status?.toLowerCase()
-                              ]
-                            }`}
-                          >
-                            {
-                              project.status
-                            }
-                          </span>
+                  <span className={styles.miniCompleted}>
+                    Done: {stats.completed}
+                  </span>
+                </div>
+
+                {selected === sdg.tag && stats.projects.length > 0 && (
+                  <div className={styles.projectList}>
+                    <p className={styles.projectListTitle}>Projects</p>
+
+                    {stats.projects.map((project) => (
+                      <div
+                        key={project._id}
+                        className={styles.projectItem}
+                      >
+                        <div className={styles.projectItemInfo}>
+                          <p className={styles.projectItemTitle}>
+                            {project.title || project.projectTitle || "Untitled project"}
+                          </p>
+
+                          <p className={styles.projectItemSub}>
+                            {project.barangay || "Community not specified"}
+                          </p>
                         </div>
-                      )
-                    )}
+
+                        <span
+                          className={`${styles.statusBadge} ${
+                            styles[normalizeStatus(project.status)]
+                          }`}
+                        >
+                          {project.status || "Planned"}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 )}
 
-              {selected === sdg.tag &&
-                stats.projects.length ===
-                  0 && (
-                  <p
-                    className={
-                      styles.noProjects
-                    }
-                  >
-                    No projects under this
-                    goal yet.
+                {selected === sdg.tag && stats.projects.length === 0 && (
+                  <p className={styles.noProjects}>
+                    No matching projects under this goal.
                   </p>
                 )}
-            </div>
-          );
-        })}
-      </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

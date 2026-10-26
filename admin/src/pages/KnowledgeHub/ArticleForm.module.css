@@ -133,3 +133,36 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+.documentUploadInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.documentUploadInfo p {
+  margin: 0;
+  color: #334155;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.documentUploadInfo button {
+  padding: 7px 10px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: #fff1f2;
+  color: #b91c1c;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.documentUploadInfo button:hover {
+  background: #ffe4e6;
+}

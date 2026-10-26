@@ -1,130 +1,42 @@
+
 const SUMMARY_LIMIT = 4000;
 
 const STOP_WORDS = new Set([
-  "the",
-  "a",
-  "an",
-  "and",
-  "or",
-  "of",
-  "to",
-  "in",
-  "for",
-  "on",
-  "with",
-  "from",
-  "by",
-  "this",
-  "that",
-  "is",
-  "are",
-  "will",
-  "be",
-  "as",
-  "at",
-  "it",
-  "its",
-  "their",
-  "they",
-  "through",
-  "into",
-  "also",
+  "the", "a", "an", "and", "or", "of", "to", "in", "for",
+  "on", "with", "from", "by", "this", "that", "is", "are",
+  "will", "be", "as", "at", "it", "its", "their", "they",
+  "through", "into", "also",
 ]);
 
 const PROJECT_TERMS = [
-  "project",
-  "program",
-  "proposal",
-  "initiative",
-  "community",
-  "center",
-  "development",
-  "activity",
-  "service",
+  "project", "program", "proposal", "initiative", "community",
+  "center", "development", "activity", "service",
 ];
 
 const ACTIVITY_TERMS = [
-  "provide",
-  "provides",
-  "providing",
-  "offer",
-  "offers",
-  "offering",
-  "organize",
-  "organizes",
-  "organizing",
-  "conduct",
-  "conducts",
-  "conducting",
-  "collect",
-  "distribution",
-  "distribute",
-  "training",
-  "tutoring",
-  "workshop",
-  "seminar",
-  "education",
-  "assistance",
-  "support",
-  "access",
-  "establish",
-  "develop",
-  "development",
-  "consultation",
-  "vaccination",
-  "nutrition",
-  "livelihood",
-  "install",
-  "installing",
-  "monitor",
-  "monitoring",
-  "train",
-  "training",
-  "encourage",
+  "provide", "provides", "providing", "offer", "offers",
+  "offering", "organize", "organizes", "organizing", "conduct",
+  "conducts", "conducting", "collect", "distribution", "distribute",
+  "training", "tutoring", "workshop", "seminar", "education",
+  "assistance", "support", "access", "establish", "develop",
+  "development", "consultation", "vaccination", "nutrition",
+  "livelihood", "install", "installing", "monitor", "monitoring",
+  "train", "training", "encourage",
 ];
 
 const BENEFICIARY_TERMS = [
-  "children",
-  "students",
-  "families",
-  "households",
-  "residents",
-  "farmers",
-  "women",
-  "youth",
-  "elderly",
-  "older residents",
-  "pwd",
-  "persons with disabilities",
-  "community members",
-  "workers",
-  "unemployed",
-  "low-income",
-  "disadvantaged",
-  "adults",
-  "young people",
+  "children", "students", "families", "households", "residents",
+  "farmers", "women", "youth", "elderly", "older residents",
+  "pwd", "persons with disabilities", "community members",
+  "workers", "unemployed", "low-income", "disadvantaged",
+  "adults", "young people",
 ];
 
 const OUTCOME_TERMS = [
-  "aims to",
-  "aim to",
-  "goal",
-  "goals",
-  "objective",
-  "objectives",
-  "improve",
-  "increase",
-  "reduce",
-  "strengthen",
-  "promote",
-  "support",
-  "help",
-  "benefit",
-  "enhance",
-  "provide opportunities",
-  "lower",
-  "prevent",
-  "encourage",
+  "aims to", "aim to", "goal", "goals", "objective", "objectives",
+  "improve", "increase", "reduce", "strengthen", "promote",
+  "support", "help", "benefit", "enhance", "provide opportunities",
+  "lower", "prevent", "encourage",
 ];
 
 const EXCLUDE_TERMS = [
@@ -151,232 +63,123 @@ function splitSentences(text) {
   return text
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
-    .filter(
-      (sentence) =>
-        sentence.length >= 20
-    );
+    .filter((sentence) => sentence.length >= 20);
 }
 
 function getWords(text) {
   return text
     .toLowerCase()
     .split(/\s+/)
-    .map((word) =>
-      word.replace(
-        /[^a-z0-9-]/g,
-        ""
-      )
-    )
-    .filter(
-      (word) =>
-        word.length > 2 &&
-        !STOP_WORDS.has(word)
-    );
+    .map((word) => word.replace(/[^a-z0-9-]/g, ""))
+    .filter((word) => word.length > 2 && !STOP_WORDS.has(word));
 }
 
 function getImportantWords(text) {
-  const words =
-    getWords(text);
-
+  const words = getWords(text);
   const counts = {};
 
   for (const word of words) {
-    counts[word] =
-      (counts[word] || 0) + 1;
+    counts[word] = (counts[word] || 0) + 1;
   }
 
   return Object.entries(counts)
-    .sort(
-      (a, b) =>
-        b[1] - a[1]
-    )
+    .sort((a, b) => b[1] - a[1])
     .slice(0, 30)
     .map(([word]) => word);
 }
 
-function countMatches(
-  sentence,
-  terms
-) {
-  const normalized =
-    sentence.toLowerCase();
+function countMatches(sentence, terms) {
+  const normalized = sentence.toLowerCase();
 
   return terms.reduce(
     (count, term) =>
-      normalized.includes(term)
-        ? count + 1
-        : count,
+      normalized.includes(term) ? count + 1 : count,
     0
   );
 }
 
-function hasExcludedContent(
-  sentence
-) {
-  const normalized =
-    sentence.toLowerCase();
+function hasExcludedContent(sentence) {
+  const normalized = sentence.toLowerCase();
 
-  return EXCLUDE_TERMS.some(
-    (term) =>
-      normalized.includes(term)
+  return EXCLUDE_TERMS.some((term) =>
+    normalized.includes(term)
   );
 }
 
-function isLikelyHeading(
-  sentence
-) {
-  const words =
-    sentence.split(/\s+/);
+function isLikelyHeading(sentence) {
+  const words = sentence.split(/\s+/);
 
-  if (
-    words.length < 2 ||
-    words.length > 12
-  ) {
+  if (words.length < 2 || words.length > 12) {
     return false;
   }
 
-  if (
-    /[.!?]$/.test(sentence)
-  ) {
+  if (/[.!?]$/.test(sentence)) {
     return false;
   }
 
-  if (
-    hasExcludedContent(
-      sentence
-    )
-  ) {
+  if (hasExcludedContent(sentence)) {
     return false;
   }
 
-  const normalized =
-    sentence.toLowerCase();
+  const normalized = sentence.toLowerCase();
 
-  const hasProjectTerm =
-    PROJECT_TERMS.some(
-      (term) =>
-        normalized.includes(term)
-    );
+  const hasProjectTerm = PROJECT_TERMS.some((term) =>
+    normalized.includes(term)
+  );
 
-  const hasActivity =
-    ACTIVITY_TERMS.some(
-      (term) =>
-        normalized.includes(term)
-    );
+  const hasActivity = ACTIVITY_TERMS.some((term) =>
+    normalized.includes(term)
+  );
 
-  const hasBeneficiary =
-    BENEFICIARY_TERMS.some(
-      (term) =>
-        normalized.includes(term)
-    );
+  const hasBeneficiary = BENEFICIARY_TERMS.some((term) =>
+    normalized.includes(term)
+  );
 
-  const hasOutcome =
-    OUTCOME_TERMS.some(
-      (term) =>
-        normalized.includes(term)
-    );
+  const hasOutcome = OUTCOME_TERMS.some((term) =>
+    normalized.includes(term)
+  );
 
-  if (
-    hasActivity ||
-    hasBeneficiary ||
-    hasOutcome
-  ) {
+  if (hasActivity || hasBeneficiary || hasOutcome) {
     return false;
   }
 
   return (
     hasProjectTerm ||
-    /^[A-Z0-9][A-Za-z0-9\s&-]+$/.test(
-      sentence
-    )
+    /^[A-Z0-9][A-Za-z0-9\s&-]+$/.test(sentence)
   );
 }
 
-function cleanHeading(
-  heading
-) {
+function cleanHeading(heading) {
   return heading
-    .replace(
-      /^project proposal:\s*/i,
-      ""
-    )
-    .replace(
-      /^project description:\s*/i,
-      ""
-    )
-    .replace(
-      /--\s*\d+\s+of\s+\d+\s*--/gi,
-      ""
-    )
+    .replace(/^project proposal:\s*/i, "")
+    .replace(/^project description:\s*/i, "")
+    .replace(/--\s*\d+\s+of\s+\d+\s*--/gi, "")
     .trim();
 }
 
-function cleanSentence(
-  sentence
-) {
+function cleanSentence(sentence) {
   return sentence
-    .replace(
-      /^project proposal:\s*/i,
-      ""
-    )
-    .replace(
-      /^project description:\s*/i,
-      ""
-    )
-    .replace(
-      /--\s*\d+\s+of\s+\d+\s*--/gi,
-      ""
-    )
+    .replace(/^project proposal:\s*/i, "")
+    .replace(/^project description:\s*/i, "")
+    .replace(/--\s*\d+\s+of\s+\d+\s*--/gi, "")
     .trim();
 }
 
-function scoreSentence(
-  sentence,
-  importantWords
-) {
-  if (
-    hasExcludedContent(
-      sentence
-    )
-  ) {
+function scoreSentence(sentence, importantWords) {
+  if (hasExcludedContent(sentence)) {
     return -100;
   }
 
-  const normalized =
-    sentence.toLowerCase();
-
+  const normalized = sentence.toLowerCase();
   let score = 0;
 
-  score +=
-    countMatches(
-      normalized,
-      ACTIVITY_TERMS
-    ) * 3;
-
-  score +=
-    countMatches(
-      normalized,
-      BENEFICIARY_TERMS
-    ) * 3;
-
-  score +=
-    countMatches(
-      normalized,
-      OUTCOME_TERMS
-    ) * 3;
-
-  score +=
-    countMatches(
-      normalized,
-      PROJECT_TERMS
-    );
+  score += countMatches(normalized, ACTIVITY_TERMS) * 3;
+  score += countMatches(normalized, BENEFICIARY_TERMS) * 3;
+  score += countMatches(normalized, OUTCOME_TERMS) * 3;
+  score += countMatches(normalized, PROJECT_TERMS);
 
   for (const word of importantWords) {
-    if (
-      normalized.includes(
-        ` ${word} `
-      )
-    ) {
+    if (normalized.includes(` ${word} `)) {
       score += 1;
     }
   }
@@ -384,284 +187,176 @@ function scoreSentence(
   return score;
 }
 
-function removeDuplicateSentences(
-  sentences
-) {
+function removeDuplicateSentences(sentences) {
   const seen = new Set();
 
-  return sentences.filter(
-    (sentence) => {
-      const normalized =
-        sentence
-          .toLowerCase()
-          .replace(
-            /[^a-z0-9\s]/g,
-            ""
-          )
-          .trim();
+  return sentences.filter((sentence) => {
+    const normalized = sentence
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, "")
+      .trim();
 
-      if (
-        seen.has(normalized)
-      ) {
-        return false;
-      }
-
-      seen.add(normalized);
-
-      return true;
+    if (seen.has(normalized)) {
+      return false;
     }
-  );
+
+    seen.add(normalized);
+    return true;
+  });
 }
 
 function limitSummary(text) {
-  if (
-    text.length <=
-    SUMMARY_LIMIT
-  ) {
+  if (text.length <= SUMMARY_LIMIT) {
     return text;
   }
 
   return (
     text
-      .slice(
-        0,
-        SUMMARY_LIMIT
-      )
-      .replace(
-        /\s+\S*$/,
-        ""
-      )
-      .trim() +
-    "..."
+      .slice(0, SUMMARY_LIMIT)
+      .replace(/\s+\S*$/, "")
+      .trim() + "..."
   );
 }
 
-function buildSections(
-  sentences
-) {
+function buildSections(sentences) {
   const sections = [];
-  let current = null;
+
+  let current = {
+    title: "Project Overview",
+    sentences: [],
+  };
+
+  sections.push(current);
 
   for (const sentence of sentences) {
-    if (
-      isLikelyHeading(
-        sentence
-      )
-    ) {
+    if (hasExcludedContent(sentence)) {
+      continue;
+    }
+
+    if (isLikelyHeading(sentence)) {
+      const title = cleanHeading(sentence);
+
       current = {
-        title:
-          cleanHeading(
-            sentence
-          ),
+        title: title || "Project Details",
         sentences: [],
       };
 
       sections.push(current);
-
       continue;
     }
 
-    if (
-      hasExcludedContent(
-        sentence
-      )
-    ) {
-      continue;
-    }
-
-    if (current) {
-      current.sentences.push(
-        sentence
-      );
-    }
+    current.sentences.push(sentence);
   }
 
   return sections.filter(
-    (section) =>
-      section.sentences.length > 0
+    (section) => section.sentences.length > 0
   );
 }
 
-function summarizeSection(
-  section,
-  importantWords
-) {
-  const scored =
-    section.sentences
-      .map(
-        (
-          sentence,
-          index
-        ) => ({
-          sentence,
-          index,
-          score:
-            scoreSentence(
-              sentence,
-              importantWords
-            ),
-        })
-      )
-      .filter(
-        (item) =>
-          item.score > 0
-      )
-      .sort(
-        (a, b) => {
-          if (
-            b.score !==
-            a.score
-          ) {
-            return (
-              b.score -
-              a.score
-            );
-          }
+function summarizeSection(section, importantWords) {
+  const scored = section.sentences
+    .map((sentence, index) => ({
+      sentence,
+      index,
+      score: scoreSentence(sentence, importantWords),
+    }))
+    .filter((item) => item.score > 0);
 
-          return (
-            a.index -
-            b.index
-          );
-        }
-      );
+  if (!scored.length) {
+    return "";
+  }
 
-  const selected =
-    scored.slice(0, 4);
+  const selected = new Map();
 
-  selected.sort(
-    (a, b) =>
-      a.index - b.index
+  selected.set(scored[0].index, scored[0]);
+
+  if (scored.length > 1) {
+    const last = scored[scored.length - 1];
+    selected.set(last.index, last);
+  }
+
+  const ranked = [...scored].sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+
+    return a.index - b.index;
+  });
+
+  for (const item of ranked) {
+    if (selected.size >= 6) {
+      break;
+    }
+
+    selected.set(item.index, item);
+  }
+
+  const sentences = removeDuplicateSentences(
+    [...selected.values()]
+      .sort((a, b) => a.index - b.index)
+      .map((item) => cleanSentence(item.sentence))
   );
-
-  const sentences =
-    removeDuplicateSentences(
-      selected.map(
-        (item) =>
-          cleanSentence(
-            item.sentence
-          )
-      )
-    );
 
   if (!sentences.length) {
     return "";
   }
 
-  return `${section.title}: ${sentences.join(
-    " "
-  )}`;
+  if (section.title === "Project Overview") {
+    return sentences.join(" ");
+  }
+
+  return `${section.title}: ${sentences.join(" ")}`;
 }
 
-function generateProjectSummary(
-  text
-) {
-  const normalizedText =
-    normalizeText(text);
+function generateProjectSummary(text) {
+  const normalizedText = normalizeText(text);
 
   if (!normalizedText) {
     return "";
   }
 
-  const sentences =
-    splitSentences(
-      normalizedText
-    );
+  const sentences = splitSentences(normalizedText);
 
   if (!sentences.length) {
     return normalizedText;
   }
 
-  const importantWords =
-    getImportantWords(
-      normalizedText
-    );
-
-  const sections =
-    buildSections(
-      sentences
-    );
+  const importantWords = getImportantWords(normalizedText);
+  const sections = buildSections(sentences);
 
   if (sections.length) {
-    const sectionSummaries =
-      sections
-        .map(
-          (section) =>
-            summarizeSection(
-              section,
-              importantWords
-            )
-        )
-        .filter(Boolean);
+    const sectionSummaries = sections
+      .map((section) =>
+        summarizeSection(section, importantWords)
+      )
+      .filter(Boolean);
 
-    if (
-      sectionSummaries.length
-    ) {
-      return limitSummary(
-        sectionSummaries.join(
-          " "
-        )
-      );
+    if (sectionSummaries.length) {
+      return limitSummary(sectionSummaries.join(" "));
     }
   }
 
-  const fallback =
-    sentences
-      .map(
-        (
-          sentence,
-          index
-        ) => ({
-          sentence,
-          index,
-          score:
-            scoreSentence(
-              sentence,
-              importantWords
-            ),
-        })
-      )
-      .filter(
-        (item) =>
-          item.score > 0
-      )
-      .sort(
-        (a, b) => {
-          if (
-            b.score !==
-            a.score
-          ) {
-            return (
-              b.score -
-              a.score
-            );
-          }
+  const fallback = sentences
+    .map((sentence, index) => ({
+      sentence,
+      index,
+      score: scoreSentence(sentence, importantWords),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
 
-          return (
-            a.index -
-            b.index
-          );
-        }
-      )
-      .slice(0, 10)
-      .sort(
-        (a, b) =>
-          a.index - b.index
-      )
-      .map(
-        (item) =>
-          cleanSentence(
-            item.sentence
-          )
-      );
+      return a.index - b.index;
+    })
+    .slice(0, 10)
+    .sort((a, b) => a.index - b.index)
+    .map((item) => cleanSentence(item.sentence));
 
-  const unique =
-    removeDuplicateSentences(
-      fallback
-    );
+  const unique = removeDuplicateSentences(fallback);
 
-  return limitSummary(
-    unique.join(" ")
-  );
+  return limitSummary(unique.join(" "));
 }
 
 module.exports = {

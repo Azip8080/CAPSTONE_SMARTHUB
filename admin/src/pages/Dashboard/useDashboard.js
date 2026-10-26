@@ -7,7 +7,6 @@ import {
 import { api } from "../../services/api";
 
 function unwrapResponse(response, key) {
-  // Supports both direct JSON and common wrapped API responses.
   const payload = response?.data ?? response;
 
   if (key && payload?.[key] !== undefined) {

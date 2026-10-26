@@ -1,10 +1,11 @@
+
 .container {
   min-width: 0;
   margin-top: 16px;
   padding: 20px;
   border: 1px solid #e1e7f0;
   border-radius: 14px;
-  background: #fff;
+  background: #ffffff;
 }
 
 .header {
@@ -18,7 +19,7 @@
 .eyebrow {
   display: block;
   margin-bottom: 5px;
-  color: #3478f6;
+  color: #2563eb;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -32,7 +33,7 @@
 
 .header p {
   margin: 5px 0 0;
-  color: #7a879b;
+  color: #738198;
   font-size: 12px;
   line-height: 1.6;
 }

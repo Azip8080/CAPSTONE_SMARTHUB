@@ -1,8 +1,10 @@
+
 import {
   Outlet,
   NavLink,
   useNavigate,
 } from "react-router-dom";
+
 import {
   LayoutDashboard,
   Target,
@@ -15,13 +17,20 @@ import {
   Sparkles,
   LogOut,
 } from "lucide-react";
+
 import styles from "./AdminLayout.module.css";
-import logo from "../../assets/sdg-smarthub-admin.png";
+import logo from "../../assets/LOGO.png";
+import { FileCheck2 } from "lucide-react";
 
 const NAV_SECTIONS = [
   {
     title: "Overview",
     items: [
+      {
+        to: "/ai-classifier",
+        label: "AI Classifier",
+        icon: Sparkles,
+      },
       {
         to: "/dashboard",
         label: "Dashboard",
@@ -78,10 +87,10 @@ const NAV_SECTIONS = [
         icon: Users,
       },
       {
-        to: "/ai-classifier",
-        label: "AI Classifier",
-        icon: Sparkles,
-      },
+  to: "/completion-reports",
+  label: "Completion Reports",
+  icon: FileCheck2,
+},
     ],
   },
 ];
@@ -98,119 +107,89 @@ function AdminLayout() {
     localStorage.getItem("adminUser") || "{}"
   );
 
-  const adminName =
-    user.fullName || "Admin";
+  const adminName = user.fullName || "Admin";
 
-  const adminInitial =
-    adminName.charAt(0).toUpperCase();
+  const adminInitial = adminName
+    .charAt(0)
+    .toUpperCase();
 
   return (
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <div className={styles.brand}>
-            <img
-              src={logo}
-              alt="SDG Smart Hub Admin"
-              className={styles.brandLogo}
-            />
+            <NavLink
+              to="/dashboard"
+              end
+              aria-label="Go to Admin Dashboard"
+            >
+              <img
+                src={logo}
+                alt="SDG Smart Hub Admin"
+                className={styles.brandLogo}
+              />
+            </NavLink>
           </div>
 
           <nav className={styles.nav}>
-            {NAV_SECTIONS.map(
-              (section) => (
-                <div
-                  key={section.title}
-                  className={styles.navSection}
-                >
-                  <p
-                    className={
-                      styles.navSectionTitle
-                    }
-                  >
-                    {section.title}
-                  </p>
+            {NAV_SECTIONS.map((section) => (
+              <div
+                key={section.title}
+                className={styles.navSection}
+              >
+                <p className={styles.navSectionTitle}>
+                  {section.title}
+                </p>
 
-                  <div
-                    className={
-                      styles.navSectionItems
-                    }
-                  >
-                    {section.items.map(
-                      (item) => {
-                        const Icon =
-                          item.icon;
+                <div className={styles.navSectionItems}>
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
 
-                        return (
-                          <NavLink
-                            key={item.to}
-                            to={item.to}
-                            className={({
-                              isActive,
-                            }) =>
-                              `${styles.navItem} ${
-                                isActive
-                                  ? styles.active
-                                  : ""
-                              }`
-                            }
-                          >
-                            <Icon
-                              className={
-                                styles.navIcon
-                              }
-                              size={16}
-                              strokeWidth={1.8}
-                            />
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={({ isActive }) =>
+                          `${styles.navItem} ${
+                            isActive ? styles.active : ""
+                          }`
+                        }
+                      >
+                        <Icon
+                          className={styles.navIcon}
+                          size={16}
+                          strokeWidth={1.8}
+                        />
 
-                            <span>
-                              {item.label}
-                            </span>
-                          </NavLink>
-                        );
-                      }
-                    )}
-                  </div>
+                        <span>{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
                 </div>
-              )
-            )}
+              </div>
+            ))}
           </nav>
         </div>
 
         <div className={styles.sidebarBottom}>
           <div className={styles.sidebarAdmin}>
-            <div
-              className={
-                styles.sidebarAvatar
-              }
-            >
+            <div className={styles.sidebarAvatar}>
               {adminInitial}
             </div>
 
-            <div
-              className={
-                styles.sidebarAdminInfo
-              }
-            >
-              <span
-                className={
-                  styles.sidebarAdminName
-                }
-              >
+            <div className={styles.sidebarAdminInfo}>
+              <span className={styles.sidebarAdminName}>
                 {adminName}
               </span>
 
-              <span
-                className={
-                  styles.sidebarAdminRole
-                }
-              >
+              <span className={styles.sidebarAdminRole}>
                 Administrator
               </span>
             </div>
           </div>
 
           <button
+            type="button"
             className={styles.logoutBtn}
             onClick={handleLogout}
           >
@@ -228,19 +207,11 @@ function AdminLayout() {
       <div className={styles.mainWrapper}>
         <header className={styles.header}>
           <div className={styles.headerLeft}>
-            <p
-              className={
-                styles.headerEyebrow
-              }
-            >
+            <p className={styles.headerEyebrow}>
               SDG SMART HUB
             </p>
 
-            <p
-              className={
-                styles.headerGreeting
-              }
-            >
+            <p className={styles.headerGreeting}>
               Welcome back, Admin. Here's
               what's happening in your
               community.
@@ -248,35 +219,17 @@ function AdminLayout() {
           </div>
 
           <div className={styles.headerRight}>
-            <div
-              className={styles.adminBadge}
-            >
-              <div
-                className={
-                  styles.adminAvatar
-                }
-              >
+            <div className={styles.adminBadge}>
+              <div className={styles.adminAvatar}>
                 {adminInitial}
               </div>
 
-              <div
-                className={
-                  styles.adminInfo
-                }
-              >
-                <span
-                  className={
-                    styles.adminName
-                  }
-                >
+              <div className={styles.adminInfo}>
+                <span className={styles.adminName}>
                   {adminName}
                 </span>
 
-                <span
-                  className={
-                    styles.adminRole
-                  }
-                >
+                <span className={styles.adminRole}>
                   Administrator
                 </span>
               </div>

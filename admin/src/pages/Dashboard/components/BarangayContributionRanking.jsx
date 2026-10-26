@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import styles from "./BarangayContributionRanking.module.css";
 
@@ -7,10 +6,8 @@ const API_URL = (
   "https://sdg-smarthub-api.onrender.com/api"
 ).replace(/\/+$/, "");
 
-const ranks = ["1st", "2nd", "3rd", "4th", "5th"];
-
 function BarangayContributionRanking() {
-  const [ranking, setRanking] = useState([]);
+  const [barangays, setBarangays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedBarangay, setSelectedBarangay] = useState("");
@@ -21,27 +18,33 @@ function BarangayContributionRanking() {
   useEffect(() => {
     const controller = new AbortController();
 
-    async function fetchRanking() {
+    async function fetchBarangayContributions() {
       try {
         setLoading(true);
         setError("");
 
         const response = await fetch(
           `${API_URL}/projects/barangay-ranking`,
-          { signal: controller.signal }
+          {
+            signal: controller.signal,
+          }
         );
 
         if (!response.ok) {
-          throw new Error("Unable to load barangay rankings.");
+          throw new Error("Unable to load barangay contributions.");
         }
 
         const result = await response.json();
 
         if (!result.success) {
-          throw new Error(result.message || "Unable to load rankings.");
+          throw new Error(
+            result.message || "Unable to load barangay contributions."
+          );
         }
 
-        setRanking(Array.isArray(result.data) ? result.data : []);
+        const data = Array.isArray(result.data) ? result.data : [];
+
+        setBarangays(data);
       } catch (err) {
         if (err.name !== "AbortError") {
           setError(err.message || "Something went wrong.");
@@ -53,7 +56,7 @@ function BarangayContributionRanking() {
       }
     }
 
-    fetchRanking();
+    fetchBarangayContributions();
 
     return () => controller.abort();
   }, []);
@@ -119,104 +122,157 @@ function BarangayContributionRanking() {
     });
   }
 
+  function getBarangaySdgs(item) {
+    if (Array.isArray(item.sdgTags) && item.sdgTags.length) {
+      return [...new Set(item.sdgTags)];
+    }
+
+    if (Array.isArray(item.sdgs) && item.sdgs.length) {
+      return [...new Set(item.sdgs)];
+    }
+
+    if (item.sdgTag) {
+      return [item.sdgTag];
+    }
+
+    return [];
+  }
+
+  const maxProjects = Math.max(
+    ...barangays.map((item) => Number(item.projectCount) || 0),
+    1
+  );
+
   return (
     <>
       <section className={styles.section}>
         <div className={styles.heading}>
           <div>
             <span className={styles.eyebrow}>
-              COMMUNITY PERFORMANCE
+              COMMUNITY CONTRIBUTIONS
             </span>
-            <h2>Barangay Contribution Ranking</h2>
+
+            <h2>Barangay SDG Contributions</h2>
+
             <p>
-              Compare barangays based on their published SDG projects.
+              View the number of published projects and SDGs represented by
+              each registered barangay.
             </p>
           </div>
 
           <span className={styles.totalBadge}>
-            {loading ? "Loading..." : `${ranking.length} ranked`}
+            {loading ? "Loading..." : `${barangays.length} barangays`}
           </span>
         </div>
 
         {loading ? (
           <div className={styles.state}>
-            <p>Loading barangay rankings...</p>
+            <p>Loading barangay contributions...</p>
           </div>
         ) : error ? (
           <div className={styles.state}>
             <span className={styles.stateIcon}>!</span>
+
             <div>
-              <h3>Unable to load rankings</h3>
+              <h3>Unable to load barangay contributions</h3>
               <p>{error}</p>
             </div>
           </div>
-        ) : ranking.length === 0 ? (
+        ) : barangays.length === 0 ? (
           <div className={styles.state}>
             <span className={styles.stateIcon}>—</span>
+
             <div>
-              <h3>No published projects yet</h3>
+              <h3>No barangay project data yet</h3>
+
               <p>
-                Rankings will appear when published projects with barangay
-                information are available.
+                Barangay contributions will appear when published projects
+                with barangay information are available.
               </p>
             </div>
           </div>
         ) : (
-          <div className={styles.list}>
-            {ranking.map((item, index) => (
-              <article
-                className={styles.row}
-                key={item.barangay || index}
-              >
-                <div
-                  className={`${styles.rank} ${
-                    index < 3 ? styles[`rank${index + 1}`] : ""
-                  }`}
+          <div className={styles.chart}>
+            {barangays.map((item, index) => {
+              const projectCount = Number(item.projectCount) || 0;
+
+              const percentage = Math.max(
+                (projectCount / maxProjects) * 100,
+                projectCount > 0 ? 4 : 0
+              );
+
+              const sdgs = getBarangaySdgs(item);
+
+              return (
+                <article
+                  className={styles.barangayItem}
+                  key={item.barangay || index}
                 >
-                  {ranks[index] || `${index + 1}th`}
-                </div>
+                  <div className={styles.barHeader}>
+                    <div className={styles.barangayInfo}>
+                      <h3>
+                        {item.barangay || "Unnamed Barangay"}
+                      </h3>
 
-                <div className={styles.barangayInfo}>
-                  <h3>{item.barangay || "Unnamed Barangay"}</h3>
-                  <p>Published community projects</p>
-                </div>
+                      <span>
+                        {projectCount}{" "}
+                        {projectCount === 1 ? "published project" : "published projects"}
+                      </span>
+                    </div>
 
-                <div className={styles.metrics}>
-                  <div className={styles.metric}>
-                    <strong>{item.projectCount ?? 0}</strong>
-                    <span>Projects</span>
+                    <strong className={styles.projectCount}>
+                      {projectCount}
+                    </strong>
                   </div>
 
-                  <div className={styles.metricDivider} />
-
-                  <div className={styles.metric}>
-                    <strong>{item.sdgContributions ?? 0}</strong>
-                    <span>SDGs represented</span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  className={styles.rowArrow}
-                  onClick={() => handleOpenProjects(item.barangay)}
-                  aria-label={`View published projects for ${item.barangay}`}
-                  title="View published projects"
-                >
-                  →
-                </button>
-              </article>
-            ))}
+                  <button
+                    type="button"
+                    className={styles.barTrackButton}
+                    onClick={() =>
+                      handleOpenProjects(item.barangay)
+                    }
+                    aria-label={`View published projects for ${
+                      item.barangay
+                    }`}
+                    title="View published projects"
+                  >
+                    <span
+                      className={styles.barFill}
+                      style={{
+                        width: `${percentage}%`,
+                      }}
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.viewButton}
+                    onClick={() =>
+                      handleOpenProjects(item.barangay)
+                    }
+                  >
+                    View projects
+                    <span>→</span>
+                  </button>
+                </article>
+              );
+            })}
           </div>
         )}
 
         <div className={styles.footer}>
           <span className={styles.footerDot} />
-          <span>Rankings are based on published project records.</span>
+
+          <span>
+            Project totals are based on published project records.
+          </span>
         </div>
       </section>
 
       {selectedBarangay && (
-        <div className={styles.overlay} onClick={closeProjects}>
+        <div
+          className={styles.overlay}
+          onClick={closeProjects}
+        >
           <section
             className={styles.projectPanel}
             role="dialog"
@@ -226,8 +282,14 @@ function BarangayContributionRanking() {
           >
             <div className={styles.panelHeader}>
               <div>
-                <span className={styles.eyebrow}>BARANGAY DETAILS</span>
-                <h2 id="published-projects-title">Published Projects</h2>
+                <span className={styles.eyebrow}>
+                  BARANGAY DETAILS
+                </span>
+
+                <h2 id="published-projects-title">
+                  Published Projects
+                </h2>
+
                 <p>{selectedBarangay}</p>
               </div>
 
@@ -253,15 +315,18 @@ function BarangayContributionRanking() {
             ) : publishedProjects.length === 0 ? (
               <div className={styles.panelState}>
                 <h3>No published projects found</h3>
+
                 <p>
-                  This barangay has no published projects available to display.
+                  This barangay has no published projects available
+                  to display.
                 </p>
               </div>
             ) : (
               <div className={styles.projectList}>
                 {publishedProjects.map((project, index) => {
                   const sdgs =
-                    Array.isArray(project.sdgTags) && project.sdgTags.length
+                    Array.isArray(project.sdgTags) &&
+                    project.sdgTags.length
                       ? project.sdgTags
                       : project.sdgTag
                         ? [project.sdgTag]
@@ -303,7 +368,8 @@ function BarangayContributionRanking() {
                         )}
 
                         <span className={styles.projectDate}>
-                          Published: {formatDate(project.publishedAt)}
+                          Published:{" "}
+                          {formatDate(project.publishedAt)}
                         </span>
                       </div>
 
@@ -319,7 +385,9 @@ function BarangayContributionRanking() {
             {!projectsLoading && !projectsError && (
               <div className={styles.panelFooter}>
                 {publishedProjects.length} published{" "}
-                {publishedProjects.length === 1 ? "project" : "projects"}
+                {publishedProjects.length === 1
+                  ? "project"
+                  : "projects"}
               </div>
             )}
           </section>

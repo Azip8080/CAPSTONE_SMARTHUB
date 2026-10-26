@@ -102,3 +102,41 @@
   background: #ffedd5;
   color: #c2410c;
 }
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.photoWrapper {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+.projectPhoto {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.emptyPhotos {
+  color: #64748b;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+@media (max-width: 520px) {
+  .photoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .projectPhoto {
+    height: 200px;
+  }
+}

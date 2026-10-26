@@ -1,4 +1,3 @@
-// UserManagement.jsx
 
 import { useState } from "react";
 import styles from "./UserManagement.module.css";
@@ -49,11 +48,7 @@ function UserManagement() {
   };
 
   const handleApprove = async (user) => {
-    if (
-      !confirm(
-        `Approve the account for ${user.fullName}?`
-      )
-    ) {
+    if (!confirm(`Approve the account for ${user.fullName}?`)) {
       return;
     }
 
@@ -73,9 +68,7 @@ function UserManagement() {
       `Enter a reason for rejecting ${user.fullName}'s account:`
     );
 
-    if (reason === null) {
-      return;
-    }
+    if (reason === null) return;
 
     if (!reason.trim()) {
       alert("A rejection reason is required.");
@@ -112,21 +105,32 @@ function UserManagement() {
   };
 
   return (
-    <div>
-      <div className={styles.pageHeader}>
+    <div className={styles.userManagement}>
+      <header className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>User Management</h1>
           <p className={styles.pageSubtitle}>
             Manage registered users, roles, and account approvals.
           </p>
         </div>
+      </header>
+
+      <div className={styles.actionBar}>
+        <div className={styles.actionInfo}>
+          <span className={styles.actionLabel}>USER ADMINISTRATION</span>
+          <span className={styles.actionDescription}>
+            Create and manage administrator accounts.
+          </span>
+        </div>
 
         <button
           type="button"
           className={styles.createBtn}
           onClick={() => setCreating(true)}
+          disabled={creating}
         >
-          + Create Account
+          <span aria-hidden="true">+</span>
+          Create Account
         </button>
       </div>
 
@@ -141,7 +145,9 @@ function UserManagement() {
       />
 
       {error && (
-        <p className={styles.errorMsg}>{error}</p>
+        <p className={styles.errorMsg} role="alert">
+          {error}
+        </p>
       )}
 
       <UserTable

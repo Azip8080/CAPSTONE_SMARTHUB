@@ -17,6 +17,7 @@ import UserManagement from "./pages/UserManagement/UserManagement";
 import ProjectShowcase from "./pages/ProjectShowcase/ProjectShowcase";
 import KnowledgeHub from "./pages/KnowledgeHub/KnowledgeHub";
 import AIClassifier from "./pages/AIClassifier/AIClassifier";
+import CompletionReports from "./pages/CompletionReports";
 
 function AdminRoute({ children }) {
   const token = localStorage.getItem("adminToken");
@@ -50,6 +51,7 @@ function App() {
             </AdminRoute>
           }
         >
+          <Route path="completion-reports"element={<CompletionReports />}/>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="sdg-tracker" element={<SDGTracker />} />

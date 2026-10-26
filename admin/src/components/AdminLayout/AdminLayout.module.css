@@ -296,3 +296,137 @@
   box-sizing: border-box;
   padding: 32px;
 }
+/* ==================================
+   NATURE-INSPIRED ADMIN THEME
+   SDG Smart Hub
+================================== */
+
+/* Main workspace */
+.layout {
+  background: #E5E9DF;
+  color: #344238;
+}
+
+.mainWrapper,
+.main {
+  background: #E5E9DF;
+  color: #344238;
+}
+
+/* Forest-green sidebar */
+.sidebar {
+  background: #354B3D;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Sidebar section labels */
+.navSectionTitle {
+  color: #B4C3B5;
+}
+
+/* Sidebar navigation */
+.navItem {
+  color: #D0DAD0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
+}
+
+.navItem.active {
+  background: rgba(153, 190, 151, 0.20);
+  color: #E0F0DE;
+  font-weight: 600;
+}
+
+.navItem.active::before {
+  background: #A5C9A1;
+}
+
+/* Sidebar administrator profile */
+.sidebarAvatar {
+  background: #49644F;
+}
+
+.sidebarAdminName {
+  color: #FFFFFF;
+}
+
+.sidebarAdminRole {
+  color: #C1CEC2;
+}
+
+/* Logout */
+.logoutBtn {
+  color: #CED8CE;
+}
+
+.logoutBtn:hover {
+  background: rgba(239, 100, 91, 0.12);
+  color: #F2B5AD;
+}
+
+/* Warm cream header */
+.header {
+  background: #F5F3EA;
+  border-bottom: 1px solid #D7DED1;
+}
+
+/* Header text */
+.headerEyebrow {
+  color: #718073;
+}
+
+.headerGreeting {
+  color: #5C6B5F;
+}
+
+.adminName {
+  color: #344238;
+}
+
+.adminRole {
+  color: #718073;
+}
+
+.adminAvatar {
+  background: #49644F;
+}
+
+/* Dashboard cards — add this class to cards
+   if your existing cards use another class */
+.adminCard {
+  background: #F5F3EA;
+  color: #344238;
+  border: 1px solid #D7DED1;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(52, 66, 56, 0.04);
+}
+
+/* Nature-inspired primary buttons */
+.adminButton {
+  background: #54775D;
+  color: #FFFFFF;
+  border: 1px solid #54775D;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.adminButton:hover {
+  background: #41634A;
+}
+
+/* Inputs and search fields */
+.adminInput {
+  background: #F8F7F1;
+  color: #344238;
+  border: 1px solid #CDD7C9;
+  border-radius: 8px;
+}
+
+.adminInput:focus {
+  outline: 2px solid #8BAA8C;
+  outline-offset: 1px;
+}

@@ -288,16 +288,22 @@ function normalizeText(text) {
     .trim();
 }
 
-function getMatchedKeywords(text, keywords) {
-  return keywords.filter((keyword) => {
-    const regex = new RegExp(
-      `\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
-      "i"
-    );
 
-    return regex.test(text);
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function getMatchedKeywords(text, keywords) {
+  const normalizedText = normalizeText(text);
+
+  return keywords.filter((keyword) => {
+    const escapedKeyword = escapeRegex(keyword).replace(/\s+/g, "\\s+");
+    const regex = new RegExp(`\\b${escapedKeyword}\\b`, "i");
+
+    return regex.test(normalizedText);
   });
 }
+
 
 function getUniqueEvidence(evidence = []) {
   return [

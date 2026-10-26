@@ -120,3 +120,14 @@
 .deleteBtn:hover {
   background: #fecaca;
 }
+.uploadDate {
+  margin: 8px 0 12px;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.uploadDate span {
+  font-weight: 600;
+  color: #475569;
+}

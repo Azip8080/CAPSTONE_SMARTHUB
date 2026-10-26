@@ -2,13 +2,13 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  padding: 22px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px 24px;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  color: #0f172a;
 }
-
 .header {
   display: flex;
   align-items: flex-start;
@@ -18,159 +18,335 @@
 
 .title {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: #0f172a;
 }
 
 .subtitle {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: #94a3b8;
+  margin: 7px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #64748b;
 }
 
 .clearButton {
   flex-shrink: 0;
+  padding: 8px 12px;
   border: 1px solid #e2e8f0;
+  border-radius: 7px;
   background: #ffffff;
-  color: #64748b;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 11px;
+  color: #475569;
+  font-size: 12px;
   cursor: pointer;
 }
 
-.sdgGrid {
-  width: 100%;
-  min-width: 0;
+.clearButton:hover {
+  background: #f8fafc;
+}
+.metrics {
   display: grid;
-  grid-template-columns: repeat(
-    17,
-    minmax(32px, 1fr)
-  );
-  gap: 6px;
-  margin-top: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 0;
+  padding: 14px 16px;
+  text-align: left;
+  font: inherit;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.metric:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.metric:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+
+.metricActive {
+  background: #eff6ff;
+  border-color: #2563eb;
+}
+
+.metric span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.metric strong {
+  font-size: 22px;
+  line-height: 1.2;
+  color: #0f172a;
+}
+
+.metric small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #64748b;
+}
+.metricResults {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.metricResultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.metricResultsHeader h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #0f172a;
+}
+
+.metricResultsHeader p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.sectionHeading h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.sectionHeading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: #64748b;
+}
+.sdgGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto 0;
 }
 
 .sdgItem {
   position: relative;
+  display: block;
   width: 100%;
   min-width: 0;
-  aspect-ratio: 1;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   padding: 0;
-  border: 2px solid transparent;
-  border-radius: 7px;
-  background: var(--sdg-color);
+  border: 3px solid transparent;
+  border-radius: 8px;
+  background: var(--sdg-color, #e2e8f0);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-sizing: border-box;
   transition:
-    transform 0.15s ease,
-    border-color 0.15s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .sdgItem:hover {
   transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.12);
+}
+
+.sdgItem:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
 }
 
 .sdgItem.selected {
   border-color: #0f172a;
-  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px #0f172a;
 }
 
 .sdgImage {
+  display: block;
   width: 100%;
   height: 100%;
-  display: block;
   object-fit: cover;
 }
 
 .count {
   position: absolute;
-  right: 4px;
-  bottom: 4px;
-  min-width: 16px;
-  padding: 2px 5px;
-  border-radius: 4px;
-  background: rgba(15, 23, 42, 0.8);
+  right: 6px;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 23px;
+  min-height: 23px;
+  padding: 3px 6px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.85);
   color: #ffffff;
-  font-size: 9px;
-  font-weight: 600;
-  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 24px;
 }
 
+.paginationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.paginationButton:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+
+.paginationButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 .details {
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 3px solid;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 4px solid;
 }
 
 .detailsHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
 }
 
 .detailsImage {
-  width: 52px;
-  height: 52px;
+  display: block;
   flex-shrink: 0;
+  width: 54px;
+  height: 54px;
   border-radius: 8px;
   object-fit: cover;
 }
 
 .detailsTitle {
   margin: 0;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
   color: #0f172a;
 }
 
 .detailsName {
-  margin: 2px 0 0;
-  font-size: 11px;
+  margin: 4px 0 0;
+  font-size: 12px;
   color: #64748b;
 }
 
 .projectCount {
-  margin-left: auto;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .projectCount strong {
-  font-size: 20px;
+  font-size: 22px;
   color: #0f172a;
 }
 
 .projectCount span {
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: 11px;
+  color: #64748b;
 }
-
 .projectList {
   display: flex;
   flex-direction: column;
   margin-top: 16px;
+  border-top: 1px solid #e2e8f0;
 }
 
-.project {
+.projectButton {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  width: 100%;
   min-width: 0;
-  padding: 12px 0;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 13px 4px;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid #e2e8f0;
+  background: transparent;
+  cursor: pointer;
 }
 
-.project:last-child {
-  border-bottom: none;
+.projectButton:last-child {
+  border-bottom: 0;
+}
+
+.projectButton:hover {
+  background: #f8fafc;
+}
+
+.projectButton:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
 }
 
 .projectInfo {
@@ -180,26 +356,32 @@
 
 .projectTitle {
   margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: #0f172a;
-  white-space: nowrap;
   overflow: hidden;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
   text-overflow: ellipsis;
 }
 
+.projectButton:hover .projectTitle {
+  color: #2563eb;
+}
+
 .projectSub {
-  margin: 3px 0 0;
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+  color: #64748b;
   font-size: 11px;
-  color: #94a3b8;
+  line-height: 1.5;
 }
 
 .status {
   flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 4px 8px;
+  padding: 5px 9px;
   border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -219,78 +401,236 @@
 }
 
 .empty {
-  padding: 18px 0 4px;
   margin: 0;
+  padding: 22px 0 8px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.documentBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.documentModal {
+  display: flex;
+  flex-direction: column;
+  width: min(1100px, 100%);
+  height: min(88vh, 850px);
+  overflow: hidden;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+}
+
+.documentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.documentHeader h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.documentHeader p {
+  margin: 0 0 5px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.documentClose {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.documentClose:hover {
+  background: #f1f5f9;
+}
+
+.documentBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #f1f5f9;
+}
+
+.documentFrame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  border: 0;
+  background: #ffffff;
+}
+
+.documentMessage {
+  padding: 24px;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.documentLink {
+  display: inline-block;
+  color: #2563eb;
   font-size: 12px;
-  color: #94a3b8;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-@media (max-width: 900px) {
-  .sdgGrid {
-    grid-template-columns: repeat(
-      9,
-      minmax(32px, 1fr)
-    );
-  }
+.documentMessage .documentLink {
+  margin-top: 10px;
 }
 
-@media (max-width: 600px) {
+.documentLink:hover {
+  text-decoration: underline;
+}
+
+.documentFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 13px 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.documentFooter button {
+  padding: 8px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.documentFooter button:hover {
+  background: #f8fafc;
+}
+@media (max-width: 700px) {
   .card {
-    padding: 16px 18px;
+    padding: 18px;
   }
 
   .sdgGrid {
-    grid-template-columns: repeat(
-      6,
-      minmax(32px, 1fr)
-    );
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .metrics {
+    gap: 8px;
+  }
+
+  .metric {
+    padding: 11px;
+  }
+
+  .metric strong {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 19px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .sdgGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metricResults {
+    padding: 12px;
   }
 
   .detailsHeader {
     align-items: flex-start;
+    gap: 10px;
+  }
+
+  .detailsImage {
+    width: 44px;
+    height: 44px;
+  }
+
+  .detailsTitle {
+    font-size: 13px;
   }
 
   .projectCount {
     display: none;
   }
 
-  .detailsImage {
-    width: 46px;
-    height: 46px;
-  }
-}
-
-@media (max-width: 400px) {
-  .card {
-    padding: 14px;
-  }
-
-  .sdgGrid {
-    grid-template-columns: repeat(
-      4,
-      minmax(32px, 1fr)
-    );
-  }
-
-  .detailsHeader {
-    gap: 10px;
-  }
-
-  .detailsImage {
-    width: 42px;
-    height: 42px;
-  }
-
-  .projectTitle {
-    font-size: 12px;
-  }
-
-  .projectSub {
-    font-size: 10px;
+  .projectButton {
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .status {
+    padding: 4px 7px;
     font-size: 9px;
-    padding: 3px 6px;
+  }
+
+  .pagination {
+    gap: 5px;
+  }
+
+  .paginationButton {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+  }
+
+  .documentBackdrop {
+    padding: 8px;
+  }
+
+  .documentModal {
+    height: 94vh;
+  }
+
+  .documentHeader,
+  .documentFooter {
+    padding: 12px;
   }
 }

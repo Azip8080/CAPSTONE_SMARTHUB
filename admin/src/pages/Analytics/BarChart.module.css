@@ -40,3 +40,21 @@
   color: #cbd5e1;
   margin-top: 4px;
 }
+.chartCard {
+  padding: 16px;
+  min-width: 0;
+}
+
+.chartHead {
+  margin-bottom: 12px;
+}
+
+.chartEyebrow {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.chartTitle {
+  font-size: 16px;
+  line-height: 1.4;
+}

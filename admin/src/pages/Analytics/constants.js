@@ -12,11 +12,9 @@ export const SDG_LABELS = [
 ];
 
 export const RANGE_OPTIONS = [
-  { label: "1 month", value: "1month" },
-  { label: "3 months", value: "3months" },
-  { label: "6 months", value: "6months" },
-  { label: "1 year", value: "1year" },
-  { label: "All time", value: "all" },
+  { value: "7d", label: "Last 7 Days" },
+  { value: "30d", label: "Last 30 Days" },
+  { value: "90d", label: "Last 90 Days" },
 ];
 
 export const TREND_METRICS = [
