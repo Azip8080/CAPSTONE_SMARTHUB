@@ -1,15 +1,21 @@
+
 import styles from "./HeroBanner.module.css";
+import backgroundImage from "../../assets/BG.png";
 
 function HeroBanner({
   eyebrow,
   title,
   description,
   buttonText,
-  image,
   onButtonClick,
 }) {
   return (
-    <section className={styles.hero}>
+    <section
+      className={styles.hero}
+      style={{
+        backgroundImage: `linear-gradient(rgba(5, 20, 45, 0.65), rgba(5, 20, 45, 0.65)), url("${backgroundImage}")`,
+      }}
+    >
       <div className={styles.content}>
         <span className={styles.eyebrow}>
           {eyebrow}
@@ -32,16 +38,6 @@ function HeroBanner({
             {buttonText}
             <span>→</span>
           </button>
-        )}
-      </div>
-
-      <div className={styles.visual}>
-        {image && (
-          <img
-            src={image}
-            alt=""
-            className={styles.image}
-          />
         )}
       </div>
     </section>
