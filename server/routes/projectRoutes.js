@@ -354,12 +354,15 @@ router.patch(
     }
   }
 );
+
 router.put(
   "/:id",
   auth,
   adminOnly,
   handleUploadError,
   async (req, res) => {
+    let oldDocumentPath = null;
+
     try {
       const project = await Project.findById(req.params.id);
 
@@ -399,11 +402,17 @@ router.put(
         ...uploadedPhotos,
       ];
 
-      const previousDocumentPath = project.document?.path;
       const newDocument = getUploadedDocument(req);
+      const shouldRemoveDocument =
+        req.body.removeDocument === true ||
+        req.body.removeDocument === "true";
+
+      oldDocumentPath = project.document?.path || null;
 
       if (newDocument) {
-        fields.document = newDocument;
+        project.document = newDocument;
+      } else if (shouldRemoveDocument) {
+        project.document = undefined;
       }
 
       Object.assign(project, fields);
@@ -412,8 +421,11 @@ router.put(
 
       removedPhotos.forEach(removeProjectFile);
 
-      if (newDocument && previousDocumentPath) {
-        removeProjectFile(previousDocumentPath);
+      if (
+        oldDocumentPath &&
+        (newDocument || shouldRemoveDocument)
+      ) {
+        removeProjectFile(oldDocumentPath);
       }
 
       await logActivity({
@@ -442,6 +454,7 @@ router.put(
     }
   }
 );
+
 
 router.patch(
   "/:id/publish",

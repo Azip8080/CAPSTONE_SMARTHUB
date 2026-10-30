@@ -26,22 +26,26 @@ function saveDocument(buffer, filename, metadata = {}) {
   }
 
   return new Promise((resolve, reject) => {
-    const bucket = getBucket();
+    try {
+      const bucket = getBucket();
 
-    const uploadStream = bucket.openUploadStream(filename, {
-      metadata,
-    });
-
-    uploadStream.once("error", reject);
-
-    uploadStream.once("finish", () => {
-      resolve({
-        id: uploadStream.id,
-        filename,
+      const uploadStream = bucket.openUploadStream(filename, {
+        metadata,
       });
-    });
 
-    uploadStream.end(buffer);
+      uploadStream.once("error", reject);
+
+      uploadStream.once("finish", () => {
+        resolve({
+          id: uploadStream.id,
+          filename,
+        });
+      });
+
+      uploadStream.end(buffer);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 

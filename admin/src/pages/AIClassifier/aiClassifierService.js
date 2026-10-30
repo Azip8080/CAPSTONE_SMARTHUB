@@ -1,7 +1,6 @@
-
 const API_ORIGIN = (
   import.meta.env.VITE_API_URL ||
-  "https://sdg-smarthub-api.onrender.com/api"
+  "https://sdg-smarthub-api.onrender.com"
 )
   .replace(/\/+$/, "")
   .replace(/\/api$/i, "");
@@ -28,6 +27,7 @@ function getAuthHeaders() {
 
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
+
   const timeoutId = setTimeout(
     () => controller.abort(),
     REQUEST_TIMEOUT
@@ -40,9 +40,7 @@ async function fetchWithTimeout(url, options = {}) {
     });
   } catch (error) {
     if (error.name === "AbortError") {
-      throw new Error(
-        "The request timed out. Please try again."
-      );
+      throw new Error("The request timed out. Please try again.");
     }
 
     throw error;
@@ -86,7 +84,24 @@ async function destinationRequest(url, options = {}) {
   return handleResponse(response);
 }
 
-export async function classifyText(text) {
+export async function classifyText(title, description = "") {
+  const cleanTitle = String(title ?? "").trim();
+  const cleanDescription = String(description ?? "").trim();
+
+  const text = [cleanTitle, cleanDescription]
+    .filter(Boolean)
+    .join("\n\n");
+
+  console.log("[AI Service] Title:", cleanTitle);
+  console.log("[AI Service] Description:", cleanDescription);
+  console.log("[AI Service] Sending text:", text);
+
+  if (!text) {
+    throw new Error(
+      "Enter a project title or description before classifying."
+    );
+  }
+
   const response = await fetchWithTimeout(
     `${AI_API}/classify-text`,
     {
@@ -95,7 +110,11 @@ export async function classifyText(text) {
         ...getAuthHeaders(),
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({
+        title: cleanTitle,
+        description: cleanDescription,
+        text,
+      }),
     }
   );
 
@@ -103,6 +122,10 @@ export async function classifyText(text) {
 }
 
 export async function classifyFile(file) {
+  if (!file) {
+    throw new Error("Please select a PDF or TXT file.");
+  }
+
   const formData = new FormData();
   formData.append("file", file);
 
@@ -120,6 +143,7 @@ export async function classifyFile(file) {
   if (!response.ok || data.success === false) {
     throw new Error(
       data.message ||
+        data.error ||
         `File classification failed (${response.status})`
     );
   }
@@ -127,6 +151,7 @@ export async function classifyFile(file) {
   return {
     ...(data.data || {}),
     filename: data.filename || file.name,
+    document: data.document || null,
   };
 }
 
@@ -149,9 +174,18 @@ export async function saveProjectDraft(project, projectId = null) {
     formData.append("featured", String(project.featured));
   }
 
-  if (project.document instanceof File) {
+  if (
+    typeof File !== "undefined" &&
+    project.document instanceof File
+  ) {
     formData.append("document", project.document);
   }
+
+  (project.photos || []).forEach((photo) => {
+    if (typeof File !== "undefined" && photo instanceof File) {
+      formData.append("photos", photo);
+    }
+  });
 
   return destinationRequest(url, {
     method: projectId ? "PUT" : "POST",
@@ -183,7 +217,10 @@ export async function saveEvent(event, eventId = null) {
   formData.append("date", event.date || "");
   formData.append("location", event.location || "");
 
-  if (event.document instanceof File) {
+  if (
+    typeof File !== "undefined" &&
+    event.document instanceof File
+  ) {
     formData.append("document", event.document);
   }
 
@@ -206,8 +243,8 @@ export async function saveKnowledgeResource(
   formData.append("title", resource.title || "");
   formData.append("summary", resource.summary || "");
   formData.append("sdgTag", resource.sdgTag || "");
-  formData.append("category", resource.category || "");
-  formData.append("readTime", String(resource.readTime || ""));
+  formData.append("category", resource.category || "Guide");
+  formData.append("readTime", String(resource.readTime || "5"));
   formData.append("content", resource.content || "");
 
   if (resourceId) {
@@ -218,12 +255,15 @@ export async function saveKnowledgeResource(
   }
 
   (resource.photos || []).forEach((photo) => {
-    if (photo instanceof File) {
+    if (typeof File !== "undefined" && photo instanceof File) {
       formData.append("photos", photo);
     }
   });
 
-  if (resource.document instanceof File) {
+  if (
+    typeof File !== "undefined" &&
+    resource.document instanceof File
+  ) {
     formData.append("document", resource.document);
   }
 
@@ -234,31 +274,42 @@ export async function saveKnowledgeResource(
 }
 
 export function getDocumentUrl(document) {
-  if (!document?.path) {
-    return "";
+  if (!document) return "";
+
+  if (document.id) {
+    return `${AI_API}/documents/${document.id}/download`;
   }
 
-  if (/^https?:\/\//i.test(document.path)) {
-    return document.path;
+  if (document.path) {
+    if (/^https?:\/\//i.test(document.path)) {
+      return document.path;
+    }
+
+    return `${API_ORIGIN}${
+      document.path.startsWith("/") ? "" : "/"
+    }${document.path}`;
   }
 
-  return `${API_ORIGIN}${document.path.startsWith("/") ? "" : "/"}${document.path}`;
+  return "";
 }
 
 export async function downloadDocument(document) {
-  if (!document?.path) {
+  const url = getDocumentUrl(document);
+
+  if (!url) {
     throw new Error("No uploaded document is available.");
   }
 
-  const response = await fetchWithTimeout(
-    getDocumentUrl(document),
-    {
-      headers: getAuthHeaders(),
-    }
-  );
+  const response = await fetchWithTimeout(url, {
+    headers: getAuthHeaders(),
+  });
 
   if (!response.ok) {
-    throw new Error("Unable to download the document.");
+    const data = await response.json().catch(() => ({}));
+
+    throw new Error(
+      data.message || "Unable to download the document."
+    );
   }
 
   const blob = await response.blob();
@@ -267,8 +318,10 @@ export async function downloadDocument(document) {
 
   link.href = objectUrl;
   link.download = document.originalName || "document";
+
   window.document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(objectUrl);
+
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }

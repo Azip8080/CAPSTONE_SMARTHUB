@@ -1,9 +1,25 @@
+
 .chartCard {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  --primary-blue: #4470AD;
+  --deep-blue: #2F5488;
+  --soft-blue: #6F94C5;
+  --pale-blue: #DCE7F5;
+  --text-primary: #24364B;
+  --text-secondary: #64748B;
+  --border-color: #D5DFED;
+
+  width: 100%;
+  min-width: 0;
+  background: #FFFFFF;
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 22px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  padding: 22px 24px;
+  box-shadow: 0 2px 8px rgba(47, 84, 136, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.chartCard:hover {
+  box-shadow: 0 6px 16px rgba(47, 84, 136, 0.09);
 }
 
 .chartHead {
@@ -11,57 +27,194 @@
 }
 
 .chartEyebrow {
+  margin: 0 0 5px;
   font-size: 11px;
   font-weight: 700;
-  color: #a21942;
+  color: var(--primary-blue);
   text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin-bottom: 4px;
+  letter-spacing: 0.08em;
 }
 
 .chartTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #0f172a;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--deep-blue);
+  letter-spacing: -0.2px;
 }
 
 .chartEmpty {
-  font-size: 13px;
-  color: #94a3b8;
-  text-align: center;
-  padding: 44px 20px;
-  border: 1px dashed #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 220px;
+  padding: 30px 20px;
+  border: 1px dashed var(--border-color);
   border-radius: 10px;
-  background: #f8fafc;
+  background: #F8FAFD;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.chartEmpty p {
+  margin: 0;
 }
 
 .chartEmptySub {
+  margin-top: 7px !important;
+  max-width: 280px;
   font-size: 12px;
-  color: #cbd5e1;
-  margin-top: 4px;
+  line-height: 1.5;
+  color: #94A3B8;
 }
 
-.legend {
+.participationLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: center;
+  gap: 18px;
+  min-height: 280px;
+}
+
+.pieChartContainer {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  min-width: 0;
+}
+
+.metricCards {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px 16px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  flex-direction: column;
+  gap: 9px;
+  max-height: 280px;
+  overflow-y: auto;
+  min-width: 0;
+  padding: 2px 5px 2px 0;
 }
 
-.legendItem {
+.metricCards::-webkit-scrollbar {
+  width: 5px;
+}
+
+.metricCards::-webkit-scrollbar-track {
+  background: #F1F5FB;
+  border-radius: 10px;
+}
+
+.metricCards::-webkit-scrollbar-thumb {
+  background: #C5D3E5;
+  border-radius: 10px;
+}
+
+.metricCardsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metricCard {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-  color: #475569;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px;
+  background: #F7F9FC;
+  border: 1px solid #E5EBF3;
+  border-radius: 9px;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.legendDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.metricCard:hover {
+  background: #EEF4FC;
+  border-color: #C8D8ED;
+}
+
+.metricCardColor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.metricCardInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+
+.metricCardName {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricCardLabel {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.metricCardCount {
+  flex-shrink: 0;
+  color: var(--deep-blue);
+  font-size: 19px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 700px) {
+  .chartCard {
+    padding: 18px;
+  }
+
+  .chartTitle {
+    font-size: 14px;
+  }
+
+  .participationLayout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pieChartContainer {
+    height: 240px;
+  }
+
+  .metricCards {
+    max-height: 240px;
+  }
+}
+
+@media (max-width: 420px) {
+  .chartCard {
+    padding: 16px;
+  }
+
+  .chartHead {
+    margin-bottom: 14px;
+  }
+
+  .pieChartContainer {
+    height: 220px;
+  }
 }

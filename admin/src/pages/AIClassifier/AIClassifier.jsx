@@ -37,26 +37,17 @@ const SDG_COLORS = {
 function AIClassifier({ onResult }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("success");
   const [projectId, setProjectId] = useState(null);
   const [barangay, setBarangay] = useState("");
   const [status, setStatus] = useState("Planned");
-
   const [destination, setDestination] = useState("Projects");
-
   const [eventDateTime, setEventDateTime] = useState("");
   const [eventLocation, setEventLocation] = useState("");
-
-  const [knowledgeCategory, setKnowledgeCategory] =
-    useState("Article");
-
-  const [knowledgeReadTime, setKnowledgeReadTime] =
-    useState("5");
-
-  const [knowledgeContent, setKnowledgeContent] =
-    useState("");
-
-  const [knowledgePhotos, setKnowledgePhotos] =
-    useState([]);
+  const [knowledgeCategory, setKnowledgeCategory] = useState("Article");
+  const [knowledgeReadTime, setKnowledgeReadTime] = useState("5");
+  const [knowledgeContent, setKnowledgeContent] = useState("");
+  const [knowledgePhotos, setKnowledgePhotos] = useState([]);
 
   const {
     result,
@@ -68,6 +59,7 @@ function AIClassifier({ onResult }) {
     sdgTag,
     selectedSDGs,
     projectTags,
+    qualityReport,
     setTitle,
     setDescription,
     setSdgTag,
@@ -78,87 +70,61 @@ function AIClassifier({ onResult }) {
     handleAddTag,
     handleRemoveTag,
     resetClassification,
+    runQualityCheck,
   } = useAIClassification();
+
+  const showMessage = (text, type = "success") => {
+    setMessage(text);
+    setMessageType(type);
+  };
 
   const handleUseResult = (tag) => {
     setSdgTag(tag);
-
-    if (onResult) {
-      onResult(tag);
-    }
+    onResult?.(tag);
   };
 
   const handlePrimarySDGChange = (tag) => {
     setSdgTag(tag);
-
-    if (tag && !selectedSDGs.includes(tag)) {
-      handleToggleSDG(tag);
-    }
-
-    if (onResult) {
-      onResult(tag);
-    }
+    onResult?.(tag);
   };
 
   const buildProject = () => ({
     title: title.trim(),
     description: description.trim(),
     sdgTag,
-    sdgTags: selectedSDGs,
+    sdgTags: selectedSDGs.includes(sdgTag)
+      ? selectedSDGs
+      : [...selectedSDGs, sdgTag].filter(Boolean),
     tags: projectTags,
     barangay: barangay.trim(),
     status,
-    document: sourceFile, // NEW: retain the original uploaded file
+    document: sourceFile,
   });
 
   const handleAIChanges = (changes) => {
-    if (!changes) {
-      return;
-    }
+    if (!changes) return;
 
-    if (changes.title) {
-      setTitle(changes.title);
-    }
-
-    if (changes.description) {
-      setDescription(changes.description);
-    }
-
-    if (changes.barangay) {
-      setBarangay(changes.barangay);
-    }
-
-    if (changes.status) {
-      setStatus(changes.status);
-    }
+    if (changes.title) setTitle(changes.title);
+    if (changes.description) setDescription(changes.description);
+    if (changes.barangay) setBarangay(changes.barangay);
+    if (changes.status) setStatus(changes.status);
 
     if (changes.sdgTag) {
       setSdgTag(changes.sdgTag);
-
-      if (!selectedSDGs.includes(changes.sdgTag)) {
-        handleToggleSDG(changes.sdgTag);
-      }
-
-      if (onResult) {
-        onResult(changes.sdgTag);
-      }
+      onResult?.(changes.sdgTag);
     }
 
     if (Array.isArray(changes.sdgTags)) {
       changes.sdgTags.forEach((tag) => {
-        if (!selectedSDGs.includes(tag)) {
+        if (!selectedSDGs.includes(tag) && tag !== sdgTag) {
           handleToggleSDG(tag);
         }
       });
     }
 
     if (Array.isArray(changes.tags)) {
-      const currentTags = Array.isArray(projectTags)
-        ? projectTags
-        : [];
-
       changes.tags.forEach((tag) => {
-        if (!currentTags.includes(tag)) {
+        if (!projectTags.includes(tag)) {
           handleAddTag(tag);
         }
       });
@@ -166,34 +132,42 @@ function AIClassifier({ onResult }) {
   };
 
   const validateProject = () => {
-    if (!title.trim()) {
-      return "Enter a project title.";
-    }
-
-    if (!description.trim()) {
-      return "Enter a project description.";
-    }
-
-    if (!sdgTag.trim()) {
-      return "Select a primary SDG.";
-    }
-
-    if (!selectedSDGs.length) {
-      return "Select at least one SDG.";
-    }
-
-    if (!barangay.trim()) {
-      return "Enter the barangay or community.";
-    }
+    if (!title.trim()) return "Enter a project title.";
+    if (!description.trim()) return "Enter a project description.";
+    if (!sdgTag.trim()) return "Select a primary SDG.";
+    if (!selectedSDGs.length) return "Select at least one SDG.";
+    if (!barangay.trim()) return "Enter the barangay or community.";
 
     return "";
+  };
+
+  const handleRunQualityCheck = () => {
+    const report = runQualityCheck({
+      barangay,
+      status,
+      requireDocument: false,
+    });
+
+    if (report.hasErrors) {
+      showMessage(
+        `Quality check found ${report.errorCount} required issue(s).`,
+        "error"
+      );
+    } else if (report.warningCount > 0) {
+      showMessage(
+        `Required checks passed, with ${report.warningCount} suggestion(s) to review.`,
+        "warning"
+      );
+    } else {
+      showMessage("All configured quality checks passed.");
+    }
   };
 
   const handleSaveDraft = async () => {
     const validationError = validateProject();
 
     if (validationError) {
-      setMessage(validationError);
+      showMessage(validationError, "error");
       return;
     }
 
@@ -201,20 +175,16 @@ function AIClassifier({ onResult }) {
     setMessage("");
 
     try {
-      const saved = await saveProjectDraft(
-        buildProject(),
-        projectId
-      );
+      const saved = await saveProjectDraft(buildProject(), projectId);
 
-      if (saved?._id) {
-        setProjectId(saved._id);
+      if (!saved?._id) {
+        throw new Error("The server did not return the saved project ID.");
       }
 
-      setMessage("Project draft saved successfully.");
+      setProjectId(saved._id);
+      showMessage("Project draft saved successfully.");
     } catch (err) {
-      setMessage(
-        err.message || "Unable to save the project draft."
-      );
+      showMessage(err.message || "Unable to save the project draft.", "error");
     } finally {
       setSaving(false);
     }
@@ -224,7 +194,7 @@ function AIClassifier({ onResult }) {
     const validationError = validateProject();
 
     if (validationError) {
-      setMessage(validationError);
+      showMessage(validationError, "error");
       return;
     }
 
@@ -232,28 +202,18 @@ function AIClassifier({ onResult }) {
     setMessage("");
 
     try {
-      const saved = await saveProjectDraft(
-        buildProject(),
-        projectId
-      );
-
-      if (!saved?._id && !projectId) {
-        throw new Error(
-          "The server did not return the saved project ID."
-        );
-      }
-
+      const saved = await saveProjectDraft(buildProject(), projectId);
       const id = saved?._id || projectId;
 
+      if (!id) {
+        throw new Error("The server did not return the saved project ID.");
+      }
+
       setProjectId(id);
-
       await publishProject(id);
-
-      setMessage("Project published successfully.");
+      showMessage("Project published successfully.");
     } catch (err) {
-      setMessage(
-        err.message || "Unable to publish the project."
-      );
+      showMessage(err.message || "Unable to publish the project.", "error");
     } finally {
       setSaving(false);
     }
@@ -267,7 +227,7 @@ function AIClassifier({ onResult }) {
       !eventDateTime ||
       !eventLocation.trim()
     ) {
-      setMessage("Please complete all event fields.");
+      showMessage("Please complete all event fields.", "error");
       return;
     }
 
@@ -281,18 +241,17 @@ function AIClassifier({ onResult }) {
         sdgTag,
         date: eventDateTime,
         location: eventLocation.trim(),
-        document: sourceFile, // NEW: retain the original uploaded file
+        document: sourceFile,
       });
 
-      setMessage("Event saved successfully.");
+      showMessage("Event saved successfully.");
     } catch (err) {
-      setMessage(err.message || "Unable to save event.");
+      showMessage(err.message || "Unable to save event.", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  // Save a Knowledge Hub resource using multipart/form-data
   const handleSaveKnowledge = async () => {
     const readTime = Number(knowledgeReadTime);
 
@@ -304,9 +263,24 @@ function AIClassifier({ onResult }) {
       !Number.isInteger(readTime) ||
       readTime < 1
     ) {
-      setMessage(
-        "Complete all Knowledge Hub fields and enter a valid read time."
+      showMessage(
+        "Complete all Knowledge Hub fields and enter a valid read time.",
+        "error"
       );
+      return;
+    }
+
+    if (knowledgePhotos.length > 10) {
+      showMessage("You can upload a maximum of 10 photos.", "error");
+      return;
+    }
+
+    const oversizedPhoto = knowledgePhotos.find(
+      (photo) => photo.size > 20 * 1024 * 1024
+    );
+
+    if (oversizedPhoto) {
+      showMessage("Each photo must be 20 MB or smaller.", "error");
       return;
     }
 
@@ -322,18 +296,16 @@ function AIClassifier({ onResult }) {
         readTime,
         content: knowledgeContent.trim(),
         photos: knowledgePhotos,
-        document: sourceFile, // NEW: retain the original uploaded file
+        document: sourceFile,
       });
 
-      setMessage(
-        "Knowledge Hub resource saved successfully."
-      );
-
+      showMessage("Knowledge Hub resource saved successfully.");
       setKnowledgePhotos([]);
       setKnowledgeContent("");
     } catch (err) {
-      setMessage(
-        err.message || "Unable to save Knowledge Hub resource."
+      showMessage(
+        err.message || "Unable to save Knowledge Hub resource.",
+        "error"
       );
     } finally {
       setSaving(false);
@@ -342,17 +314,14 @@ function AIClassifier({ onResult }) {
 
   const handleReset = () => {
     resetClassification();
-
     setMessage("");
+    setMessageType("success");
     setProjectId(null);
     setBarangay("");
     setStatus("Planned");
-
     setDestination("Projects");
-
     setEventDateTime("");
     setEventLocation("");
-
     setKnowledgeCategory("Article");
     setKnowledgeReadTime("5");
     setKnowledgeContent("");
@@ -366,12 +335,10 @@ function AIClassifier({ onResult }) {
           <div className={styles.breadcrumb}>
             Admin Panel <span>/</span> AI Classifier
           </div>
-
           <h1>AI SDG Classifier</h1>
-
           <p>
-            Identify which Sustainable Development Goals relate
-            to a project using NLP classification.
+            Analyze project information, review SDG recommendations, and check
+            project completeness.
           </p>
         </div>
 
@@ -383,13 +350,11 @@ function AIClassifier({ onResult }) {
 
       <section className={styles.introCard}>
         <div className={styles.introIcon}>✦</div>
-
         <div>
-          <h2>Turn project information into SDG suggestions</h2>
-
+          <h2>Project analysis and SDG recommendations</h2>
           <p>
-            Analyze project information, review multiple SDG
-            suggestions, and confirm the details before saving.
+            Review AI-generated SDG suggestions, edit project keywords, and
+            check completeness before saving.
           </p>
         </div>
       </section>
@@ -397,6 +362,7 @@ function AIClassifier({ onResult }) {
       <div className={styles.contentGrid}>
         <ClassifierForm
           loading={loading}
+          destination={destination}
           onClassifyText={handleClassifyText}
           onClassifyFile={handleClassifyFile}
         />
@@ -405,6 +371,7 @@ function AIClassifier({ onResult }) {
           result={result}
           loading={loading}
           error={error}
+          destination={destination}
           onUseResult={handleUseResult}
           onReset={handleReset}
           selectedSDGs={selectedSDGs}
@@ -418,28 +385,19 @@ function AIClassifier({ onResult }) {
 
       {result && !loading && (
         <>
-          {/* Destination selector */}
           <section className={styles.reviewCard}>
             <div className={styles.reviewHeader}>
               <div>
                 <span className={styles.reviewEyebrow}>
                   SAVE CLASSIFICATION TO
                 </span>
-
                 <h2>Choose a destination</h2>
-
-                <p>
-                  Select where you want to use the classified
-                  information.
-                </p>
+                <p>Select where you want to use the classified information.</p>
               </div>
             </div>
 
             <div className={styles.reviewField}>
-              <label htmlFor="classification-destination">
-                Destination
-              </label>
-
+              <label htmlFor="classification-destination">Destination</label>
               <select
                 id="classification-destination"
                 value={destination}
@@ -455,33 +413,20 @@ function AIClassifier({ onResult }) {
             </div>
           </section>
 
-          {/* Events form */}
           {destination === "Events" && (
             <section className={styles.reviewCard}>
               <div className={styles.reviewHeader}>
                 <div>
-                  <span className={styles.reviewEyebrow}>
-                    EVENT DETAILS
-                  </span>
-
+                  <span className={styles.reviewEyebrow}>EVENT DETAILS</span>
                   <h2>Create SDG Event</h2>
-
-                  <p>
-                    Complete the event information before saving.
-                  </p>
+                  <p>Complete the event information before saving.</p>
                 </div>
-
-                <span className={styles.reviewStatus}>
-                  Event
-                </span>
+                <span className={styles.reviewStatus}>Event</span>
               </div>
 
               <div className={styles.reviewGrid}>
                 <div className={styles.reviewField}>
-                  <label htmlFor="event-title">
-                    Event Title
-                  </label>
-
+                  <label htmlFor="event-title">Event Title</label>
                   <input
                     id="event-title"
                     value={title}
@@ -492,17 +437,13 @@ function AIClassifier({ onResult }) {
                 </div>
 
                 <div className={styles.reviewField}>
-                  <label htmlFor="event-sdg">
-                    SDG Tag
-                  </label>
-
+                  <label htmlFor="event-sdg">SDG Tag</label>
                   <select
                     id="event-sdg"
                     value={sdgTag}
                     onChange={(e) => setSdgTag(e.target.value)}
                   >
                     <option value="">Select an SDG</option>
-
                     {Object.keys(SDG_COLORS).map((tag) => (
                       <option key={tag} value={tag}>
                         {tag}
@@ -511,19 +452,12 @@ function AIClassifier({ onResult }) {
                   </select>
                 </div>
 
-                <div
-                  className={`${styles.reviewField} ${styles.fullWidth}`}
-                >
-                  <label htmlFor="event-description">
-                    Description
-                  </label>
-
+                <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                  <label htmlFor="event-description">Description</label>
                   <textarea
                     id="event-description"
                     value={description}
-                    onChange={(e) =>
-                      setDescription(e.target.value)
-                    }
+                    onChange={(e) => setDescription(e.target.value)}
                     rows={4}
                     maxLength={10000}
                     placeholder="Describe the event"
@@ -531,31 +465,21 @@ function AIClassifier({ onResult }) {
                 </div>
 
                 <div className={styles.reviewField}>
-                  <label htmlFor="event-date">
-                    Date and Time
-                  </label>
-
+                  <label htmlFor="event-date">Date and Time</label>
                   <input
                     id="event-date"
                     type="datetime-local"
                     value={eventDateTime}
-                    onChange={(e) =>
-                      setEventDateTime(e.target.value)
-                    }
+                    onChange={(e) => setEventDateTime(e.target.value)}
                   />
                 </div>
 
                 <div className={styles.reviewField}>
-                  <label htmlFor="event-location">
-                    Location
-                  </label>
-
+                  <label htmlFor="event-location">Location</label>
                   <input
                     id="event-location"
                     value={eventLocation}
-                    onChange={(e) =>
-                      setEventLocation(e.target.value)
-                    }
+                    onChange={(e) => setEventLocation(e.target.value)}
                     placeholder="Enter event location"
                   />
                 </div>
@@ -563,7 +487,13 @@ function AIClassifier({ onResult }) {
 
               {message && (
                 <p
-                  className={styles.reviewSuccess}
+                  className={
+                    messageType === "error"
+                      ? styles.reviewError
+                      : messageType === "warning"
+                        ? styles.reviewStatus
+                        : styles.reviewSuccess
+                  }
                   role="status"
                 >
                   {message}
@@ -587,7 +517,6 @@ function AIClassifier({ onResult }) {
             </section>
           )}
 
-          {/* Knowledge Hub form */}
           {destination === "Knowledge Hub" && (
             <section className={styles.reviewCard}>
               <div className={styles.reviewHeader}>
@@ -595,26 +524,15 @@ function AIClassifier({ onResult }) {
                   <span className={styles.reviewEyebrow}>
                     KNOWLEDGE RESOURCE DETAILS
                   </span>
-
                   <h2>Create Knowledge Hub Resource</h2>
-
-                  <p>
-                    Prepare an educational resource connected
-                    to an SDG.
-                  </p>
+                  <p>Prepare an educational resource connected to an SDG.</p>
                 </div>
-
-                <span className={styles.reviewStatus}>
-                  Knowledge Hub
-                </span>
+                <span className={styles.reviewStatus}>Knowledge Hub</span>
               </div>
 
               <div className={styles.reviewGrid}>
                 <div className={styles.reviewField}>
-                  <label htmlFor="knowledge-title">
-                    Title
-                  </label>
-
+                  <label htmlFor="knowledge-title">Title</label>
                   <input
                     id="knowledge-title"
                     value={title}
@@ -625,17 +543,13 @@ function AIClassifier({ onResult }) {
                 </div>
 
                 <div className={styles.reviewField}>
-                  <label htmlFor="knowledge-sdg">
-                    SDG Tag
-                  </label>
-
+                  <label htmlFor="knowledge-sdg">SDG Tag</label>
                   <select
                     id="knowledge-sdg"
                     value={sdgTag}
                     onChange={(e) => setSdgTag(e.target.value)}
                   >
                     <option value="">Select an SDG</option>
-
                     {Object.keys(SDG_COLORS).map((tag) => (
                       <option key={tag} value={tag}>
                         {tag}
@@ -645,16 +559,11 @@ function AIClassifier({ onResult }) {
                 </div>
 
                 <div className={styles.reviewField}>
-                  <label htmlFor="knowledge-category">
-                    Category
-                  </label>
-
+                  <label htmlFor="knowledge-category">Category</label>
                   <select
                     id="knowledge-category"
                     value={knowledgeCategory}
-                    onChange={(e) =>
-                      setKnowledgeCategory(e.target.value)
-                    }
+                    onChange={(e) => setKnowledgeCategory(e.target.value)}
                   >
                     <option value="Guide">Guide</option>
                     <option value="Article">Article</option>
@@ -663,94 +572,70 @@ function AIClassifier({ onResult }) {
                 </div>
 
                 <div className={styles.reviewField}>
-                  <label htmlFor="knowledge-read-time">
-                    Read Time (minutes)
-                  </label>
-
+                  <label htmlFor="knowledge-read-time">Read Time (minutes)</label>
                   <input
                     id="knowledge-read-time"
                     type="number"
                     min="1"
                     step="1"
                     value={knowledgeReadTime}
-                    onChange={(e) =>
-                      setKnowledgeReadTime(e.target.value)
-                    }
+                    onChange={(e) => setKnowledgeReadTime(e.target.value)}
                   />
                 </div>
 
-                <div
-                  className={`${styles.reviewField} ${styles.fullWidth}`}
-                >
-                  <label htmlFor="knowledge-summary">
-                    Summary
-                  </label>
-
+                <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                  <label htmlFor="knowledge-summary">Summary</label>
                   <textarea
                     id="knowledge-summary"
                     value={description}
-                    onChange={(e) =>
-                      setDescription(e.target.value)
-                    }
+                    onChange={(e) => setDescription(e.target.value)}
                     rows={3}
                     maxLength={2000}
                     placeholder="Write a short summary"
                   />
                 </div>
 
-                <div
-                  className={`${styles.reviewField} ${styles.fullWidth}`}
-                >
-                  <label htmlFor="knowledge-content">
-                    Content
-                  </label>
-
+                <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                  <label htmlFor="knowledge-content">Content</label>
                   <textarea
                     id="knowledge-content"
                     value={knowledgeContent}
-                    onChange={(e) =>
-                      setKnowledgeContent(e.target.value)
-                    }
+                    onChange={(e) => setKnowledgeContent(e.target.value)}
                     rows={8}
                     placeholder="Write the full article, guide, or resource"
                   />
                 </div>
 
-                <div
-                  className={`${styles.reviewField} ${styles.fullWidth}`}
-                >
-                  <label htmlFor="knowledge-photos">
-                    Photos
-                  </label>
-
+                <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                  <label htmlFor="knowledge-photos">Photos</label>
                   <input
                     id="knowledge-photos"
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     multiple
                     onChange={(e) => {
-                      setKnowledgePhotos(
-                        Array.from(e.target.files || [])
-                      );
+                      setKnowledgePhotos(Array.from(e.target.files || []));
                     }}
                   />
-
                   <span className={styles.fieldHint}>
-                    Select JPG, PNG, or WebP images. The backend
-                    accepts up to 10 photos, each up to 10 MB.
+                    Select JPG, PNG, or WebP images. Up to 10 photos, each up
+                    to 20 MB.
                   </span>
-
                   {knowledgePhotos.length > 0 && (
-                    <p>
-                      {knowledgePhotos.length} photo(s) selected
-                    </p>
+                    <p>{knowledgePhotos.length} photo(s) selected</p>
                   )}
                 </div>
               </div>
 
               {message && (
                 <p
-                  className={styles.reviewSuccess}
+                  className={
+                    messageType === "error"
+                      ? styles.reviewError
+                      : messageType === "warning"
+                        ? styles.reviewStatus
+                        : styles.reviewSuccess
+                  }
                   role="status"
                 >
                   {message}
@@ -769,212 +654,301 @@ function AIClassifier({ onResult }) {
               </div>
 
               <p className={styles.reviewFootnote}>
-                Only authorized users can add Knowledge Hub
-                resources.
+                Only authorized users can add Knowledge Hub resources.
               </p>
             </section>
           )}
 
-          {/* Original Projects workflow */}
           {destination === "Projects" && (
-            <section className={styles.reviewCard}>
-              <div className={styles.reviewHeader}>
-                <div>
-                  <span className={styles.reviewEyebrow}>
-                    PROJECT REVIEW
+            <>
+              <section className={styles.reviewCard}>
+                <div className={styles.reviewHeader}>
+                  <div>
+                    <span className={styles.reviewEyebrow}>PROJECT REVIEW</span>
+                    <h2>Review Project Details</h2>
+                    <p>
+                      Review the AI recommendations and confirm the project
+                      information before saving.
+                    </p>
+                  </div>
+                  <span className={styles.reviewStatus}>
+                    {projectId ? "Draft saved" : "Not saved"}
                   </span>
-
-                  <h2>Review project details</h2>
-
-                  <p>
-                    Confirm the information below. The
-                    classification is only a suggestion until
-                    you approve the selected SDGs.
-                  </p>
                 </div>
 
-                <span className={styles.reviewStatus}>
-                  {projectId ? "Draft saved" : "Not saved"}
-                </span>
-              </div>
-
-              <div className={styles.reviewGrid}>
-                <div className={styles.reviewField}>
-                  <label htmlFor="review-title">
-                    Project title
-                  </label>
-
-                  <input
-                    id="review-title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    maxLength={200}
-                    required
-                  />
-                </div>
-
-                <div className={styles.reviewField}>
-                  <label htmlFor="review-sdg">
-                    Primary SDG
-                  </label>
-
-                  <select
-                    id="review-sdg"
-                    value={sdgTag}
-                    onChange={(e) =>
-                      handlePrimarySDGChange(e.target.value)
-                    }
-                    required
-                  >
-                    <option value="">Select an SDG</option>
-
-                    {Array.from({ length: 17 }, (_, index) => (
-                      <option
-                        key={index + 1}
-                        value={`SDG ${index + 1}`}
-                      >
-                        SDG {index + 1}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.reviewField}>
-                  <label htmlFor="review-barangay">
-                    Barangay or community
-                  </label>
-
-                  <input
-                    id="review-barangay"
-                    value={barangay}
-                    onChange={(e) => setBarangay(e.target.value)}
-                    placeholder="Enter barangay or community"
-                    required
-                  />
-                </div>
-
-                <div className={styles.reviewField}>
-                  <label htmlFor="review-status">
-                    Project status
-                  </label>
-
-                  <select
-                    id="review-status"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                  >
-                    <option value="Planned">Planned</option>
-                    <option value="Ongoing">Ongoing</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
-
-                <div
-                  className={`${styles.reviewField} ${styles.fullWidth}`}
-                >
-                  <label>Selected SDGs</label>
-
-                  <div className={styles.sdgSelection}>
-                    {Array.from({ length: 17 }, (_, index) => {
-                      const tag = `SDG ${index + 1}`;
-                      const selected = selectedSDGs.includes(tag);
-                      const color = SDG_COLORS[tag] || "#3478f6";
-
-                      return (
-                        <label
-                          key={tag}
-                          className={styles.sdgOption}
-                          style={{ "--sdg-color": color }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selected}
-                            onChange={() => handleToggleSDG(tag)}
-                          />
-
-                          <span>{tag}</span>
-                        </label>
-                      );
-                    })}
+                <div className={styles.reviewGrid}>
+                  <div className={styles.reviewField}>
+                    <label htmlFor="review-title">Project Title</label>
+                    <input
+                      id="review-title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      maxLength={200}
+                      required
+                    />
                   </div>
 
-                  <span className={styles.fieldHint}>
-                    {selectedSDGs.length} SDG
-                    {selectedSDGs.length !== 1 ? "s" : ""} selected
-                  </span>
+                  <div className={styles.reviewField}>
+                    <label htmlFor="review-sdg">Primary SDG</label>
+                    <select
+                      id="review-sdg"
+                      value={sdgTag}
+                      onChange={(e) =>
+                        handlePrimarySDGChange(e.target.value)
+                      }
+                      required
+                    >
+                      <option value="">Select an SDG</option>
+                      {Array.from({ length: 17 }, (_, index) => (
+                        <option key={index + 1} value={`SDG ${index + 1}`}>
+                          SDG {index + 1}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.reviewField}>
+                    <label htmlFor="review-barangay">Barangay or Community</label>
+                    <input
+                      id="review-barangay"
+                      value={barangay}
+                      onChange={(e) => setBarangay(e.target.value)}
+                      placeholder="Enter barangay or community"
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.reviewField}>
+                    <label htmlFor="review-status">Project Status</label>
+                    <select
+                      id="review-status"
+                      value={status}
+                      onChange={(e) => setStatus(e.target.value)}
+                    >
+                      <option value="Planned">Planned</option>
+                      <option value="Ongoing">Ongoing</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+
+                  <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                    <label>Suggested SDG Tags</label>
+                    <p className={styles.fieldHint}>
+                      Select the SDGs that genuinely relate to the project. AI
+                      suggestions must be reviewed.
+                    </p>
+                    <div className={styles.sdgSelection}>
+                      {Array.from({ length: 17 }, (_, index) => {
+                        const tag = `SDG ${index + 1}`;
+                        const selected = selectedSDGs.includes(tag);
+
+                        return (
+                          <label
+                            key={tag}
+                            className={styles.sdgOption}
+                            style={{ "--sdg-color": SDG_COLORS[tag] }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected}
+                              onChange={() => handleToggleSDG(tag)}
+                            />
+                            <span>{tag}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <span className={styles.fieldHint}>
+                      {selectedSDGs.length} SDG(s) selected
+                    </span>
+                  </div>
+
+                  <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                    <label>Suggested Project Keywords</label>
+                    {projectTags.length > 0 ? (
+                      <div className={styles.sdgSelection}>
+                        {projectTags.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            className={styles.sdgOption}
+                            onClick={() => handleRemoveTag(tag)}
+                            title={`Remove ${tag}`}
+                          >
+                            {tag} ×
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className={styles.fieldHint}>
+                        No suggested keywords yet. Run the classifier on the
+                        project text or a supported document.
+                      </p>
+                    )}
+                    <label htmlFor="add-project-tag">Add a keyword</label>
+                    <input
+                      id="add-project-tag"
+                      type="text"
+                      placeholder="Enter a keyword and press Enter"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const value = e.currentTarget.value.trim();
+
+                          if (value) {
+                            handleAddTag(value);
+                            e.currentTarget.value = "";
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                    <label htmlFor="review-description">Project Description</label>
+                    <textarea
+                      id="review-description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={6}
+                      maxLength={10000}
+                      required
+                    />
+                  </div>
+
+                  {sourceFile && (
+                    <div className={`${styles.reviewField} ${styles.fullWidth}`}>
+                      <label>Uploaded Classification Document</label>
+                      <p>{sourceFile.name}</p>
+                      <span className={styles.fieldHint}>
+                        The original file will be uploaded when the project is
+                        saved.
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <div
-                  className={`${styles.reviewField} ${styles.fullWidth}`}
-                >
-                  <label htmlFor="review-description">
-                    Project description
-                  </label>
+                {error && (
+                  <p className={styles.reviewError} role="alert">
+                    {error}
+                  </p>
+                )}
 
-                  <textarea
-                    id="review-description"
-                    value={description}
-                    onChange={(e) =>
-                      setDescription(e.target.value)
+                {message && (
+                  <p
+                    className={
+                      messageType === "error"
+                        ? styles.reviewError
+                        : messageType === "warning"
+                          ? styles.reviewStatus
+                          : styles.reviewSuccess
                     }
-                    rows={6}
-                    maxLength={10000}
-                    required
-                  />
+                    role="status"
+                  >
+                    {message}
+                  </p>
+                )}
+
+                <div className={styles.reviewActions}>
+                  <button
+                    type="button"
+                    className={styles.saveDraftButton}
+                    onClick={handleRunQualityCheck}
+                    disabled={saving}
+                  >
+                    Run Quality Check
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.saveDraftButton}
+                    onClick={handleSaveDraft}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save Draft"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.publishButton}
+                    onClick={handlePublish}
+                    disabled={saving}
+                  >
+                    {saving ? "Processing..." : "Publish Project"}
+                  </button>
                 </div>
-              </div>
 
-              {error && (
-                <p
-                  className={styles.reviewError}
-                  role="alert"
-                >
-                  {error}
+                <p className={styles.reviewFootnote}>
+                  Publishing makes the project eligible for the public
+                  Showcase. Review all details before publishing.
                 </p>
+              </section>
+
+              {qualityReport && (
+                <section className={styles.reviewCard}>
+                  <div className={styles.reviewHeader}>
+                    <div>
+                      <span className={styles.reviewEyebrow}>
+                        PROJECT QUALITY CHECK
+                      </span>
+                      <h2>Completeness Report</h2>
+                      <p>
+                        {qualityReport.passedCount} of {qualityReport.totalChecks}{" "}
+                        checks passed.
+                      </p>
+                    </div>
+                    <span className={styles.reviewStatus}>
+                      {qualityReport.hasErrors
+                        ? "Needs attention"
+                        : qualityReport.warningCount > 0
+                          ? "Review suggestions"
+                          : "Checks passed"}
+                    </span>
+                  </div>
+
+                  <div className={styles.reviewGrid}>
+                    {qualityReport.checks.map((check) => (
+                      <div key={check.id} className={styles.reviewField}>
+                        <strong>
+                          {check.passed
+                            ? "✓ "
+                            : check.severity === "error"
+                              ? "✕ "
+                              : "⚠ "}
+                          {check.label}
+                        </strong>
+                        <p>{check.message}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p
+                    className={
+                      qualityReport.hasErrors
+                        ? styles.reviewError
+                        : styles.reviewSuccess
+                    }
+                    role="status"
+                  >
+                    {qualityReport.hasErrors
+                      ? "Required information needs attention."
+                      : qualityReport.warningCount > 0
+                        ? "Required checks passed. Review the suggestions to improve the project."
+                        : "All configured completeness checks passed."}
+                  </p>
+
+                  <p className={styles.reviewFootnote}>
+                    This report checks completeness and consistency. It does
+                    not prove SDG relevance or independently assess the accuracy
+                    of the uploaded document.
+                  </p>
+                </section>
               )}
-
-              {message && (
-                <p
-                  className={styles.reviewSuccess}
-                  role="status"
-                >
-                  {message}
-                </p>
-              )}
-
-              <div className={styles.reviewActions}>
-                <button
-                  type="button"
-                  className={styles.saveDraftButton}
-                  onClick={handleSaveDraft}
-                  disabled={saving}
-                >
-                  {saving ? "Saving..." : "Save Draft"}
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.publishButton}
-                  onClick={handlePublish}
-                  disabled={saving}
-                >
-                  {saving ? "Processing..." : "Publish Project"}
-                </button>
-              </div>
-
-              <p className={styles.reviewFootnote}>
-                Publishing makes the project eligible for the
-                public Showcase. Verify all details before
-                publishing.
-              </p>
-            </section>
+            </>
           )}
         </>
       )}
 
       <footer className={styles.pageFooter}>
         <span>SDG SMART HUB</span>
-
         <span>
           AI-generated suggestions should be reviewed by an admin.
         </span>

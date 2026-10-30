@@ -22,7 +22,6 @@ async function projectRequest(endpoint = "", params = {}) {
   });
 
   const query = queryParams.toString();
-
   const url = `${BASE}/projects${endpoint}${
     query ? `?${query}` : ""
   }`;
@@ -39,12 +38,17 @@ async function projectRequest(endpoint = "", params = {}) {
 
   if (!res.ok || json.success === false) {
     throw new Error(
-      json.message ||
-        `Failed to fetch projects (HTTP ${res.status}).`
+      json.message || `Failed to fetch projects (HTTP ${res.status}).`
     );
   }
 
-  return json.data ?? json;
+  const data = json.data ?? json;
+
+  if (!Array.isArray(data)) {
+    throw new Error("The projects API did not return a project list.");
+  }
+
+  return data;
 }
 
 export async function fetchProjects(params = {}) {
@@ -63,7 +67,6 @@ export async function fetchProjectsByBarangay(barangay) {
 
 export async function fetchBarangayRanking() {
   const url = `${BASE}/projects/barangay-ranking`;
-
   const res = await fetch(url, {
     headers: {
       Accept: "application/json",

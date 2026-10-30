@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import styles from "./SDGOverview.module.css";
 
@@ -19,23 +20,14 @@ import sdg15 from "../../../assets/15.jpg";
 import sdg16 from "../../../assets/16.jpg";
 import sdg17 from "../../../assets/17.jpg";
 
+import ProjectDetailsModal from "./ProjectDetailsModal";
+import EventDetailsModal from "./EventDetailsModal";
+
 const SDG_COLORS = [
-  "#E5243B",
-  "#DDA63A",
-  "#4C9F38",
-  "#C5192D",
-  "#FF3A21",
-  "#26BDE2",
-  "#FCC30B",
-  "#A21942",
-  "#FD6925",
-  "#DD1367",
-  "#FD9D24",
-  "#BF8B2E",
-  "#3F7E44",
-  "#0A97D9",
-  "#56C02B",
-  "#00689D",
+  "#E5243B", "#DDA63A", "#4C9F38", "#C5192D",
+  "#FF3A21", "#26BDE2", "#FCC30B", "#A21942",
+  "#FD6925", "#DD1367", "#FD9D24", "#BF8B2E",
+  "#3F7E44", "#0A97D9", "#56C02B", "#00689D",
   "#19486A",
 ];
 
@@ -60,23 +52,9 @@ const SDG_NAMES = [
 ];
 
 const SDG_IMAGES = [
-  sdg1,
-  sdg2,
-  sdg3,
-  sdg4,
-  sdg5,
-  sdg6,
-  sdg7,
-  sdg8,
-  sdg9,
-  sdg10,
-  sdg11,
-  sdg12,
-  sdg13,
-  sdg14,
-  sdg15,
-  sdg16,
-  sdg17,
+  sdg1, sdg2, sdg3, sdg4, sdg5, sdg6, sdg7, sdg8,
+  sdg9, sdg10, sdg11, sdg12, sdg13, sdg14, sdg15,
+  sdg16, sdg17,
 ];
 
 const SDG_LIST = SDG_NAMES.map((name, index) => ({
@@ -87,80 +65,118 @@ const SDG_LIST = SDG_NAMES.map((name, index) => ({
   image: SDG_IMAGES[index],
 }));
 
-const API_BASE = (
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api"
-).replace(/\/api\/?$/, "");
+function normalizeSdgTag(value) {
+  if (value === null || value === undefined) return [];
+
+  const values = Array.isArray(value) ? value : [value];
+
+  return values.flatMap((item) => {
+    if (typeof item === "number") {
+      return [`SDG ${item}`];
+    }
+
+    if (typeof item === "object" && item !== null) {
+      return normalizeSdgTag(
+        item.sdgTag ?? item.tag ?? item.name ?? item.number
+      );
+    }
+
+    const text = String(item).trim();
+    if (!text) return [];
+
+    const match = text.match(/(?:SDG\s*)?(\d{1,2})/i);
+
+    if (match && Number(match[1]) >= 1 && Number(match[1]) <= 17) {
+      return [`SDG ${Number(match[1])}`];
+    }
+
+    return [text];
+  });
+}
 
 function getProjectSdgs(project) {
-  const tags = Array.isArray(project?.sdgTags)
-    ? project.sdgTags
-    : [];
-
   return [
     ...new Set(
-      [project?.sdgTag, ...tags].filter(Boolean)
+      [
+        ...normalizeSdgTag(project?.sdgTag),
+        ...normalizeSdgTag(project?.sdgTags),
+        ...normalizeSdgTag(project?.tags),
+      ]
     ),
   ];
 }
 
-function getDocumentUrl(documentPath) {
-  if (!documentPath) return "";
-
-  if (/^https?:\/\//i.test(documentPath)) {
-    return documentPath;
-  }
-
-  return `${API_BASE}${
-    documentPath.startsWith("/") ? "" : "/"
-  }${documentPath}`;
-}
-
-function getFileExtension(name = "") {
-  return name.split(".").pop()?.toLowerCase() || "";
+function getEventSdgs(event) {
+  return [
+    ...new Set(
+      [
+        ...normalizeSdgTag(event?.sdgTag),
+        ...normalizeSdgTag(event?.sdgTags),
+        ...normalizeSdgTag(event?.sdg),
+        ...normalizeSdgTag(event?.sdgNumber),
+        ...normalizeSdgTag(event?.sdgGoal),
+        ...normalizeSdgTag(event?.tags),
+      ]
+    ),
+  ];
 }
 
 function getStatusClass(status) {
-  const normalized = String(
-    status || "Planned"
-  ).toLowerCase();
+  const normalized = String(status || "Planned").toLowerCase();
 
-  if (normalized === "completed") {
-    return styles.completed;
-  }
-
-  if (normalized === "ongoing") {
-    return styles.ongoing;
-  }
+  if (normalized === "completed") return styles.completed;
+  if (normalized === "ongoing") return styles.ongoing;
 
   return styles.planned;
 }
 
-function SDGOverview({ projects = [] }) {
+function getEventDate(event) {
+  const date = event?.date || event?.startDate || event?.eventDate;
+
+  if (!date) return "";
+
+  const parsed = new Date(date);
+
+  return Number.isNaN(parsed.getTime())
+    ? String(date)
+    : parsed.toLocaleDateString();
+}
+
+function SDGOverview({ projects = [], events = [] }) {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedSDG, setSelectedSDG] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [metricFilter, setMetricFilter] = useState(null);
 
   const sdgData = useMemo(
     () =>
       SDG_LIST.map((sdg) => {
-        const matchingProjects = projects.filter(
-          (project) =>
-            getProjectSdgs(project).includes(sdg.tag)
+        const matchingProjects = projects.filter((project) =>
+          getProjectSdgs(project).includes(sdg.tag)
+        );
+
+        const matchingEvents = events.filter((event) =>
+          getEventSdgs(event).includes(sdg.tag)
         );
 
         return {
           ...sdg,
           projects: matchingProjects,
+          events: matchingEvents,
           count: matchingProjects.length,
+          eventCount: matchingEvents.length,
         };
       }),
-    [projects]
+    [projects, events]
   );
 
-  const publishedProjects = projects.filter(
-    (project) =>
-      project.publicationStatus === "Published"
+  const publishedProjects = useMemo(
+    () =>
+      projects.filter(
+        (project) => project.publicationStatus === "Published"
+      ),
+    [projects]
   );
 
   const sdgsWithProjectsCount = sdgData.filter(
@@ -172,97 +188,72 @@ function SDGOverview({ projects = [] }) {
   const filteredSdgs =
     metricFilter === "withProjects"
       ? sdgData.filter((sdg) => sdg.count > 0)
-      : sdgData;
+      : metricFilter === "withEvents"
+        ? sdgData.filter((sdg) => sdg.eventCount > 0)
+        : sdgData;
 
   const pageCount = Math.max(
     1,
     Math.ceil(filteredSdgs.length / pageSize)
   );
 
-  const safePage = Math.min(
-    currentPage,
-    pageCount - 1
-  );
+  const safePage = Math.min(currentPage, pageCount - 1);
 
   const visibleSdgs = filteredSdgs.slice(
     safePage * pageSize,
     safePage * pageSize + pageSize
   );
 
-  const selectedProjects =
-    selectedSDG?.projects || [];
-
-  const projectDocument = selectedProject?.document;
-
-  const documentUrl = getDocumentUrl(
-    projectDocument?.path
-  );
-
-  const extension = getFileExtension(
-    projectDocument?.originalName
-  );
-
-  const canPreview =
-    projectDocument?.mimeType === "application/pdf" ||
-    projectDocument?.mimeType === "text/plain" ||
-    extension === "pdf" ||
-    extension === "txt";
-
   function handleMetricClick(filter) {
-    setMetricFilter((current) =>
-      current === filter ? null : filter
-    );
-
+    setMetricFilter((current) => current === filter ? null : filter);
     setCurrentPage(0);
     setSelectedSDG(null);
     setSelectedProject(null);
+    setSelectedEvent(null);
   }
 
   function selectSDG(sdg) {
     setSelectedSDG((current) =>
       current?.tag === sdg.tag ? null : sdg
     );
-
     setSelectedProject(null);
+    setSelectedEvent(null);
   }
 
   function changePage(page) {
-    setCurrentPage(
-      Math.max(0, Math.min(pageCount - 1, page))
-    );
-
+    setCurrentPage(Math.max(0, Math.min(pageCount - 1, page)));
     setSelectedSDG(null);
     setSelectedProject(null);
-  }
-
-  function closeProject() {
-    setSelectedProject(null);
+    setSelectedEvent(null);
   }
 
   function clearFilters() {
     setSelectedSDG(null);
     setSelectedProject(null);
+    setSelectedEvent(null);
     setMetricFilter(null);
     setCurrentPage(0);
   }
 
+  const showingEvents = metricFilter === "events";
+
   const metricProjectList =
-    metricFilter === "published"
-      ? publishedProjects
-      : projects;
+    metricFilter === "published" ? publishedProjects : projects;
+
+  const metricResultsVisible = [
+    "all",
+    "published",
+    "events",
+  ].includes(metricFilter);
 
   return (
     <section className={styles.card}>
-      {/* Header */}
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>
-            SDG Project Overview
-          </h2>
-
+          <h2 className={styles.title}>SDG Project Overview</h2>
           <p className={styles.subtitle}>
-            Explore the Sustainable Development Goals
-            and their associated community projects.
+            Explore the Sustainable Development Goals and their
+            associated community projects and events.
           </p>
         </div>
 
@@ -276,13 +267,12 @@ function SDGOverview({ projects = [] }) {
           </button>
         )}
       </header>
+
       <div className={styles.metrics}>
         <button
           type="button"
           className={`${styles.metric} ${
-            metricFilter === "all"
-              ? styles.metricActive
-              : ""
+            metricFilter === "all" ? styles.metricActive : ""
           }`}
           onClick={() => handleMetricClick("all")}
           aria-pressed={metricFilter === "all"}
@@ -295,13 +285,9 @@ function SDGOverview({ projects = [] }) {
         <button
           type="button"
           className={`${styles.metric} ${
-            metricFilter === "published"
-              ? styles.metricActive
-              : ""
+            metricFilter === "published" ? styles.metricActive : ""
           }`}
-          onClick={() =>
-            handleMetricClick("published")
-          }
+          onClick={() => handleMetricClick("published")}
           aria-pressed={metricFilter === "published"}
         >
           <span>Published Projects</span>
@@ -312,92 +298,140 @@ function SDGOverview({ projects = [] }) {
         <button
           type="button"
           className={`${styles.metric} ${
-            metricFilter === "withProjects"
-              ? styles.metricActive
-              : ""
+            metricFilter === "events" ? styles.metricActive : ""
           }`}
-          onClick={() =>
-            handleMetricClick("withProjects")
-          }
-          aria-pressed={
-            metricFilter === "withProjects"
-          }
+          onClick={() => handleMetricClick("events")}
+          aria-pressed={metricFilter === "events"}
+        >
+          <span>Total Events</span>
+          <strong>{events.length}</strong>
+          <small>Click to view events</small>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.metric} ${
+            metricFilter === "withProjects" ? styles.metricActive : ""
+          }`}
+          onClick={() => handleMetricClick("withProjects")}
+          aria-pressed={metricFilter === "withProjects"}
         >
           <span>SDGs with Projects</span>
-
           <strong>
             {sdgsWithProjectsCount}
             <small> / 17</small>
           </strong>
-
           <small>Show SDGs with projects</small>
         </button>
+
+        <button
+          type="button"
+          className={`${styles.metric} ${
+            metricFilter === "withEvents" ? styles.metricActive : ""
+          }`}
+          onClick={() => handleMetricClick("withEvents")}
+          aria-pressed={metricFilter === "withEvents"}
+        >
+          <span>SDGs with Events</span>
+          <strong>
+            {sdgData.filter((sdg) => sdg.eventCount > 0).length}
+            <small> / 17</small>
+          </strong>
+          <small>Show SDGs with events</small>
+        </button>
       </div>
-      {(metricFilter === "all" ||
-        metricFilter === "published") && (
+
+      {metricResultsVisible && (
         <section className={styles.metricResults}>
           <div className={styles.metricResultsHeader}>
             <div>
               <h3>
-                {metricFilter === "published"
-                  ? "Published Projects"
-                  : "All Projects"}
+                {showingEvents
+                  ? "All Events"
+                  : metricFilter === "published"
+                    ? "Published Projects"
+                    : "All Projects"}
               </h3>
 
               <p>
-                {metricFilter === "published"
-                  ? "Projects currently published in the system."
-                  : "All community projects recorded in the system."}
+                {showingEvents
+                  ? "Select an event to view its full details."
+                  : metricFilter === "published"
+                    ? "Projects currently published in the system."
+                    : "All community projects recorded in the system."}
               </p>
             </div>
 
             <button
               type="button"
               className={styles.clearButton}
-              onClick={() => setMetricFilter(null)}
+              onClick={() => {
+                setMetricFilter(null);
+                setSelectedEvent(null);
+                setSelectedProject(null);
+              }}
             >
               Close
             </button>
           </div>
 
-          {metricProjectList.length === 0 ? (
-            <p className={styles.empty}>
-              No projects found.
-            </p>
+          {showingEvents ? (
+            events.length === 0 ? (
+              <p className={styles.empty}>No events found.</p>
+            ) : (
+              <div className={styles.projectList}>
+                {events.map((event, index) => (
+                  <button
+                    type="button"
+                    className={styles.projectButton}
+                    key={event._id || event.id || `event-${index}`}
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    <div className={styles.projectInfo}>
+                      <h4 className={styles.projectTitle}>
+                        {event.title || "Untitled event"}
+                      </h4>
+
+                      <p className={styles.projectSub}>
+                        {event.location || event.barangay || "Community event"}
+                        {getEventDate(event) && ` · ${getEventDate(event)}`}
+                        {getEventSdgs(event).length > 0 &&
+                          ` · ${getEventSdgs(event).join(", ")}`}
+                      </p>
+                    </div>
+
+                    <span className={`${styles.status} ${styles.eventStatus}`}>
+                      View details
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )
+          ) : metricProjectList.length === 0 ? (
+            <p className={styles.empty}>No projects found.</p>
           ) : (
             <div className={styles.projectList}>
-              {metricProjectList.map((project) => (
+              {metricProjectList.map((project, index) => (
                 <button
                   type="button"
                   className={styles.projectButton}
-                  key={
-                    project._id ||
-                    project.id ||
-                    project.title
-                  }
-                  onClick={() =>
-                    setSelectedProject(project)
-                  }
+                  key={project._id || project.id || `project-${index}`}
+                  onClick={() => setSelectedProject(project)}
                 >
                   <div className={styles.projectInfo}>
                     <h4 className={styles.projectTitle}>
-                      {project.title ||
-                        "Untitled project"}
+                      {project.title || "Untitled project"}
                     </h4>
 
                     <p className={styles.projectSub}>
-                      {getProjectSdgs(project).join(", ") ||
-                        "No SDG assigned"}
+                      {getProjectSdgs(project).join(", ") || "No SDG assigned"}
                       {" · "}
-                      {project.barangay ||
-                        "Community project"}
+                      {project.barangay || "Community project"}
                     </p>
                   </div>
 
                   <span
-                    className={`${styles.status} ${getStatusClass(
-                      project.status
-                    )}`}
+                    className={`${styles.status} ${getStatusClass(project.status)}`}
                   >
                     {project.status || "Planned"}
                   </span>
@@ -407,39 +441,36 @@ function SDGOverview({ projects = [] }) {
           )}
         </section>
       )}
+
       <div className={styles.sectionHeading}>
         <div>
           <h3>
             {metricFilter === "withProjects"
               ? "SDGs with Associated Projects"
-              : "Explore the SDGs"}
+              : metricFilter === "withEvents"
+                ? "SDGs with Associated Events"
+                : "Explore the SDGs"}
           </h3>
 
           <p>
             Showing{" "}
-            {filteredSdgs.length === 0
-              ? 0
-              : safePage * pageSize + 1}
+            {filteredSdgs.length === 0 ? 0 : safePage * pageSize + 1}
             –
-            {Math.min(
-              (safePage + 1) * pageSize,
-              filteredSdgs.length
-            )}{" "}
-            of {filteredSdgs.length} goals
+            {Math.min((safePage + 1) * pageSize, filteredSdgs.length)} of{" "}
+            {filteredSdgs.length} goals
           </p>
         </div>
       </div>
+
       {visibleSdgs.length === 0 ? (
         <p className={styles.empty}>
-          No SDGs have associated projects yet. Check
-          that your projects have an SDG tag such as
-          "SDG 4".
+          No SDGs match this selection. Check that your projects and events
+          have valid SDG tags such as "SDG 4".
         </p>
       ) : (
         <div className={styles.sdgGrid}>
           {visibleSdgs.map((sdg) => {
-            const isSelected =
-              selectedSDG?.tag === sdg.tag;
+            const isSelected = selectedSDG?.tag === sdg.tag;
 
             return (
               <button
@@ -448,11 +479,9 @@ function SDGOverview({ projects = [] }) {
                 className={`${styles.sdgItem} ${
                   isSelected ? styles.selected : ""
                 }`}
-                style={{
-                  "--sdg-color": sdg.color,
-                }}
+                style={{ "--sdg-color": sdg.color }}
                 onClick={() => selectSDG(sdg)}
-                aria-label={`${sdg.tag}: ${sdg.name}, ${sdg.count} projects`}
+                aria-label={`${sdg.tag}: ${sdg.name}, ${sdg.count} projects and ${sdg.eventCount} events`}
                 aria-pressed={isSelected}
               >
                 <img
@@ -461,8 +490,8 @@ function SDGOverview({ projects = [] }) {
                   className={styles.sdgImage}
                 />
 
-                <span className={styles.count}>
-                  {sdg.count}
+              <span className={styles.count}>
+                {sdg.count + sdg.eventCount}
                 </span>
               </button>
             );
@@ -470,40 +499,34 @@ function SDGOverview({ projects = [] }) {
         </div>
       )}
 
-<nav
-  className={styles.pagination}
-  aria-label="SDG pages"
->
-  <button
-    type="button"
-    className={styles.paginationButton}
-    onClick={() => changePage(safePage - 1)}
-    disabled={safePage === 0}
-    aria-label="Previous page"
-    title="Previous page"
-  >
-    &#8592;
-  </button>
+      <nav className={styles.pagination} aria-label="SDG pages">
+        <button
+          type="button"
+          className={styles.paginationButton}
+          onClick={() => changePage(safePage - 1)}
+          disabled={safePage === 0}
+          aria-label="Previous page"
+          title="Previous page"
+        >
+          &#8592;
+        </button>
 
-  <button
-    type="button"
-    className={styles.paginationButton}
-    onClick={() => changePage(safePage + 1)}
-    disabled={safePage >= pageCount - 1}
-    aria-label="Next page"
-    title="Next page"
-  >
-    &#8594;
-  </button>
-</nav>
+        <button
+          type="button"
+          className={styles.paginationButton}
+          onClick={() => changePage(safePage + 1)}
+          disabled={safePage >= pageCount - 1}
+          aria-label="Next page"
+          title="Next page"
+        >
+          &#8594;
+        </button>
+      </nav>
 
-      {/* Selected SDG projects */}
       {selectedSDG && (
         <section
           className={styles.details}
-          style={{
-            borderTopColor: selectedSDG.color,
-          }}
+          style={{ borderTopColor: selectedSDG.color }}
         >
           <div className={styles.detailsHeader}>
             <img
@@ -518,176 +541,119 @@ function SDGOverview({ projects = [] }) {
               </h3>
 
               <p className={styles.detailsName}>
-                Associated community projects
+                Associated projects and events
               </p>
             </div>
 
-            <div className={styles.projectCount}>
-              <strong>{selectedProjects.length}</strong>
+            <div className={styles.detailCounts}>
+              <div className={styles.projectCount}>
+                <strong>{selectedSDG.projects.length}</strong>
+                <span>
+                  {selectedSDG.projects.length === 1 ? "Project" : "Projects"}
+                </span>
+              </div>
 
-              <span>
-                {selectedProjects.length === 1
-                  ? "Project"
-                  : "Projects"}
-              </span>
+              <div className={styles.projectCount}>
+                <strong>{selectedSDG.events.length}</strong>
+                <span>
+                  {selectedSDG.events.length === 1 ? "Event" : "Events"}
+                </span>
+              </div>
             </div>
           </div>
 
-          {selectedProjects.length === 0 ? (
-            <p className={styles.empty}>
-              No projects are currently associated with
-              this SDG.
-            </p>
-          ) : (
-            <div className={styles.projectList}>
-              {selectedProjects.map((project) => (
-                <button
-                  type="button"
-                  className={styles.projectButton}
-                  key={
-                    project._id ||
-                    project.id ||
-                    project.title
-                  }
-                  onClick={() =>
-                    setSelectedProject(project)
-                  }
-                >
-                  <div className={styles.projectInfo}>
-                    <h4 className={styles.projectTitle}>
-                      {project.title ||
-                        "Untitled project"}
-                    </h4>
+          <section className={styles.relatedSection}>
+            <h4 className={styles.relatedTitle}>
+              Projects ({selectedSDG.projects.length})
+            </h4>
 
-                    <p className={styles.projectSub}>
-                      {project.barangay ||
-                        "Community project"}
-                      {" · "}
-                      {project.document?.originalName ||
-                        "No document uploaded"}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`${styles.status} ${getStatusClass(
-                      project.status
-                    )}`}
+            {selectedSDG.projects.length === 0 ? (
+              <p className={styles.empty}>
+                No projects are currently associated with this SDG.
+              </p>
+            ) : (
+              <div className={styles.projectList}>
+                {selectedSDG.projects.map((project, index) => (
+                  <button
+                    type="button"
+                    className={styles.projectButton}
+                    key={project._id || project.id || `sdg-project-${index}`}
+                    onClick={() => setSelectedProject(project)}
                   >
-                    {project.status || "Planned"}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
+                    <div className={styles.projectInfo}>
+                      <h4 className={styles.projectTitle}>
+                        {project.title || "Untitled project"}
+                      </h4>
+
+                      <p className={styles.projectSub}>
+                        {project.barangay || "Community project"}
+                        {" · "}
+                        {project.document?.originalName || "No document uploaded"}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`${styles.status} ${getStatusClass(project.status)}`}
+                    >
+                      {project.status || "Planned"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className={styles.relatedSection}>
+            <h4 className={styles.relatedTitle}>
+              Events ({selectedSDG.events.length})
+            </h4>
+
+            {selectedSDG.events.length === 0 ? (
+              <p className={styles.empty}>
+                No events are currently associated with this SDG.
+              </p>
+            ) : (
+              <div className={styles.projectList}>
+                {selectedSDG.events.map((event, index) => (
+                  <button
+                    type="button"
+                    className={styles.projectButton}
+                    key={event._id || event.id || `sdg-event-${index}`}
+                    onClick={() => setSelectedEvent(event)}
+                  >
+                    <div className={styles.projectInfo}>
+                      <h4 className={styles.projectTitle}>
+                        {event.title || "Untitled event"}
+                      </h4>
+
+                      <p className={styles.projectSub}>
+                        {event.location || event.barangay || "Community event"}
+                        {getEventDate(event) && ` · ${getEventDate(event)}`}
+                        {getEventSdgs(event).length > 0 &&
+                          ` · ${getEventSdgs(event).join(", ")}`}
+                      </p>
+                    </div>
+
+                    <span className={`${styles.status} ${styles.eventStatus}`}>
+                      View details
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
         </section>
       )}
-      {selectedProject && (
-        <div
-          className={styles.documentBackdrop}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              closeProject();
-            }
-          }}
-        >
-          <section
-            className={styles.documentModal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="sdg-document-title"
-          >
-            <header className={styles.documentHeader}>
-              <div>
-                <p>Project document</p>
 
-                <h3 id="sdg-document-title">
-                  {selectedProject.title ||
-                    "Project details"}
-                </h3>
-              </div>
+      <ProjectDetailsModal
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+      />
 
-              <button
-                type="button"
-                className={styles.documentClose}
-                onClick={closeProject}
-                aria-label="Close document"
-              >
-                ×
-              </button>
-            </header>
-
-            <div className={styles.documentBody}>
-              {documentUrl && canPreview ? (
-                <iframe
-                  title={`Document for ${
-                    selectedProject.title || "project"
-                  }`}
-                  src={documentUrl}
-                  className={styles.documentFrame}
-                />
-              ) : documentUrl ? (
-                <div className={styles.documentMessage}>
-                  <p>
-                    This file type cannot be previewed
-                    directly here. Download the original
-                    file to view it.
-                  </p>
-
-                  <a
-                    className={styles.documentLink}
-                    href={documentUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    download={
-                      projectDocument?.originalName || true
-                    }
-                  >
-                    Download{" "}
-                    {projectDocument?.originalName ||
-                      "project document"}
-                  </a>
-                </div>
-              ) : (
-                <div className={styles.documentMessage}>
-                  <p>
-                    No document has been uploaded for
-                    this project yet.
-                  </p>
-
-                  <p>
-                    {selectedProject.description ||
-                      "Contact the project administrator for more information."}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <footer className={styles.documentFooter}>
-              {documentUrl && (
-                <a
-                  className={styles.documentLink}
-                  href={documentUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  download={
-                    projectDocument?.originalName || true
-                  }
-                >
-                  Open or download original
-                </a>
-              )}
-
-              <button
-                type="button"
-                onClick={closeProject}
-              >
-                Close
-              </button>
-            </footer>
-          </section>
-        </div>
-      )}
+      <EventDetailsModal
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+      />
     </section>
   );
 }

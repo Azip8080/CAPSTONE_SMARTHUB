@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 
 import BarangayContributionRanking from "./components/BarangayContributionRanking";
@@ -7,7 +6,10 @@ import ProjectStatus from "./components/ProjectStatus";
 import ProjectDetailsModal from "./components/ProjectDetailsModal";
 import EventDetailsModal from "./components/EventDetailsModal";
 import ActivityLog from "./components/ActivityLog";
-
+import CompletionReports from "../CompletionReports";
+import BarChart from "../Analytics/Barchart";
+import DoughnutChart from "../Analytics/DoughNutChart";
+import LineChart from "../Analytics/LineChart";
 import styles from "./Dashboard.module.css";
 import { useDashboard } from "./useDashboard";
 
@@ -21,60 +23,47 @@ function Dashboard() {
     error,
   } = useDashboard();
 
-  const [selectedProject, setSelectedProject] =
-    useState(null);
-
-  const [selectedEvent, setSelectedEvent] =
-    useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [analyticsRange, setAnalyticsRange] = useState("all");
 
   const recentProjects = projects.slice(0, 5);
 
-const statCards = [
-  {
-    label: "Total Projects",
-    value: stats?.totalProjects,
-    color: "#4470AD",
-  },
-  {
-    label: "Active Users",
-    value: stats?.totalUsers,
-    color: "#6F94C5",
-  },
-  {
-    label: "Total Events",
-    value: stats?.totalEvents,
-    color: "#2F5488",
-  },
-  {
-    label: "Barangays Covered",
-    value: stats?.totalBarangays,
-    color: "#4DADBC",
-  },
-];
+  const statCards = [
+    {
+      label: "Total Projects",
+      value: stats?.totalProjects,
+      color: "#4470AD",
+    },
+    {
+      label: "Active Users",
+      value: stats?.totalUsers,
+      color: "#6F94C5",
+    },
+    {
+      label: "Total Events",
+      value: stats?.totalEvents,
+      color: "#2F5488",
+    },
+    {
+      label: "Barangays Covered",
+      value: stats?.totalBarangays,
+      color: "#4DADBC",
+    },
+  ];
 
   return (
     <div className={styles.page}>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>
-          Dashboard
-        </h1>
+        <h1 className={styles.pageTitle}>Dashboard</h1>
       </div>
-      {error && (
-        <p className={styles.error}>
-          {error}
-        </p>
-      )}
 
-      {/* Dashboard Statistics */}
+      {error && <p className={styles.error}>{error}</p>}
+
       <div className={styles.statsGrid}>
         {statCards.map((card) => (
-          <div
-            key={card.label}
-            className={styles.statCard}
-          >
-            <p className={styles.statLabel}>
-              {card.label}
-            </p>
+          <div key={card.label} className={styles.statCard}>
+            <p className={styles.statLabel}>{card.label}</p>
 
             <div className={styles.statBottom}>
               <p className={styles.statValue}>
@@ -83,41 +72,70 @@ const statCards = [
 
               <div
                 className={styles.statDot}
-                style={{
-                  background: card.color,
-                }}
+                style={{ background: card.color }}
               />
             </div>
           </div>
         ))}
       </div>
 
-      {/* SDG Overview */}
-      <SDGOverview projects={projects} />
+      <SDGOverview projects={projects} events={events} />
 
-      {/* Project Status */}
+      <section className={styles.analyticsSection}>
+        <div className={styles.analyticsHeader}>
+          <div>
+            <p className={styles.analyticsEyebrow}>Admin Analytics</p>
+            <h2 className={styles.analyticsTitle}>SDG Analytics</h2>
+            <p className={styles.analyticsDescription}>
+              Monitor project distribution, SDG participation, and activity trends.
+            </p>
+          </div>
+
+          <div className={styles.analyticsRange}>
+            {[
+              { label: "7 Days", value: "7d" },
+              { label: "30 Days", value: "30d" },
+              { label: "90 Days", value: "90d" },
+              { label: "All", value: "all" },
+            ].map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                className={
+                  analyticsRange === item.value
+                    ? styles.analyticsRangeActive
+                    : styles.analyticsRangeButton
+                }
+                onClick={() => setAnalyticsRange(item.value)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.analyticsGrid}>
+          <DoughnutChart range={analyticsRange} />
+          <BarChart range={analyticsRange} />
+        </div>
+
+        <div className={styles.analyticsFullWidth}>
+          <LineChart range={analyticsRange} />
+        </div>
+      </section>
+
       <ProjectStatus projects={projects} />
 
-      {/* Barangay Contribution Ranking */}
       <BarangayContributionRanking />
 
-      {/* Recent Projects, Upcoming Events, Activity Log */}
       <div className={styles.mainGrid}>
         <div className={styles.card}>
-          <p className={styles.cardTitle}>
-            Recent Projects
-          </p>
+          <p className={styles.cardTitle}>Recent Projects</p>
 
-          {loading && (
-            <p className={styles.empty}>
-              Loading…
-            </p>
-          )}
+          {loading && <p className={styles.empty}>Loading…</p>}
 
           {!loading && recentProjects.length === 0 && (
-            <p className={styles.empty}>
-              No projects yet.
-            </p>
+            <p className={styles.empty}>No projects yet.</p>
           )}
 
           <div className={styles.list}>
@@ -126,15 +144,10 @@ const statCards = [
                 key={project._id}
                 type="button"
                 className={styles.projectButton}
-                onClick={() =>
-                  setSelectedProject(project)
-                }
+                onClick={() => setSelectedProject(project)}
               >
                 <div className={styles.listItemLeft}>
-                  <p className={styles.listItemTitle}>
-                    {project.title}
-                  </p>
-
+                  <p className={styles.listItemTitle}>{project.title}</p>
                   <p className={styles.listItemSub}>
                     {project.barangay} · {project.sdgTag}
                   </p>
@@ -153,20 +166,12 @@ const statCards = [
         </div>
 
         <div className={styles.card}>
-          <p className={styles.cardTitle}>
-            Upcoming Events
-          </p>
+          <p className={styles.cardTitle}>Upcoming Events</p>
 
-          {loading && (
-            <p className={styles.empty}>
-              Loading…
-            </p>
-          )}
+          {loading && <p className={styles.empty}>Loading…</p>}
 
           {!loading && events.length === 0 && (
-            <p className={styles.empty}>
-              No events yet.
-            </p>
+            <p className={styles.empty}>No events yet.</p>
           )}
 
           <div className={styles.list}>
@@ -178,9 +183,7 @@ const statCards = [
                   key={event._id}
                   type="button"
                   className={styles.eventButton}
-                  onClick={() =>
-                    setSelectedEvent(event)
-                  }
+                  onClick={() => setSelectedEvent(event)}
                 >
                   <div className={styles.dateBlock}>
                     <span className={styles.dateDay}>
@@ -195,13 +198,8 @@ const statCards = [
                   </div>
 
                   <div className={styles.listItemLeft}>
-                    <p className={styles.listItemTitle}>
-                      {event.title}
-                    </p>
-
-                    <p className={styles.listItemSub}>
-                      {event.location}
-                    </p>
+                    <p className={styles.listItemTitle}>{event.title}</p>
+                    <p className={styles.listItemSub}>{event.location}</p>
                   </div>
                 </button>
               );
@@ -210,24 +208,20 @@ const statCards = [
         </div>
 
         <div className={styles.card}>
-          <p className={styles.cardTitle}>
-            Activity Log
-          </p>
-
-          <ActivityLog
-            activities={activities}
-            loading={loading}
-          />
+          <p className={styles.cardTitle}>Activity Log</p>
+          <ActivityLog activities={activities} loading={loading} />
         </div>
       </div>
 
-      {/* Project Details Modal */}
+      <section className={styles.completionReportsSection}>
+        <CompletionReports />
+      </section>
+
       <ProjectDetailsModal
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
       />
 
-      {/* Event Details Modal */}
       <EventDetailsModal
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}

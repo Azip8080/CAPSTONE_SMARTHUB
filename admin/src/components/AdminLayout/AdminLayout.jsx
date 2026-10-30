@@ -7,14 +7,11 @@ import {
 
 import {
   LayoutDashboard,
-  Target,
-  ChartNoAxesCombined,
   Database,
   CalendarDays,
   FolderKanban,
   BookOpen,
   Users,
-  Sparkles,
   LogOut,
   FolderPlus,
   CalendarPlus,
@@ -28,31 +25,52 @@ const NAV_SECTIONS = [
   {
     title: "Overview",
     items: [
-      { to: "/ai-classifier", label: "AI Classifier", icon: Sparkles },
-      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { to: "/sdg-tracker", label: "SDG Tracker", icon: Target },
-      { to: "/analytics", label: "Analytics", icon: ChartNoAxesCombined },
+      {
+        to: "/dashboard",
+        label: "Dashboard",
+        icon: LayoutDashboard,
+      },
     ],
   },
   {
     title: "Management",
     items: [
-      { to: "/data-management", label: "Data Management", icon: Database },
-      { to: "/events-projects", label: "Events & Projects", icon: CalendarDays },
-      { to: "/project-showcase", label: "Project Showcase", icon: FolderKanban },
+      {
+        to: "/data-management",
+        label: "Data Management",
+        icon: Database,
+      },
+      {
+        to: "/events-projects",
+        label: "Events & Projects",
+        icon: CalendarDays,
+      },
+      {
+        to: "/project-showcase",
+        label: "Project Showcase",
+        icon: FolderKanban,
+      },
     ],
   },
   {
     title: "Resources",
     items: [
-      { to: "/knowledge-hub", label: "Knowledge Hub", icon: BookOpen },
+      {
+        to: "/knowledge-hub",
+        label: "Knowledge Hub",
+        icon: BookOpen,
+      },
     ],
   },
   {
     title: "Administration",
     items: [
-      { to: "/user-management", label: "User Management", icon: Users },
-      { to: "/completion-reports", label: "Completion Reports", icon: FileCheck2 },
+      {
+        to: "/user-management",
+        label: "User Management",
+        icon: Users,
+      },
+
     ],
   },
 ];
@@ -62,10 +80,14 @@ function AdminLayout() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
     navigate("/login");
   };
 
-  const user = JSON.parse(localStorage.getItem("adminUser") || "{}");
+  const user = JSON.parse(
+    localStorage.getItem("adminUser") || "{}"
+  );
+
   const adminName = user.fullName || "Admin";
   const adminInitial = adminName.charAt(0).toUpperCase();
 
@@ -89,7 +111,10 @@ function AdminLayout() {
 
           <nav className={styles.nav}>
             {NAV_SECTIONS.map((section) => (
-              <div key={section.title} className={styles.navSection}>
+              <div
+                key={section.title}
+                className={styles.navSection}
+              >
                 <p className={styles.navSectionTitle}>
                   {section.title}
                 </p>
@@ -113,6 +138,7 @@ function AdminLayout() {
                           size={16}
                           strokeWidth={1.8}
                         />
+
                         <span>{item.label}</span>
                       </NavLink>
                     );
@@ -133,6 +159,7 @@ function AdminLayout() {
               <span className={styles.sidebarAdminName}>
                 {adminName}
               </span>
+
               <span className={styles.sidebarAdminRole}>
                 Administrator
               </span>
@@ -149,6 +176,7 @@ function AdminLayout() {
               size={15}
               strokeWidth={1.8}
             />
+
             <span>Sign out</span>
           </button>
         </div>
@@ -162,7 +190,11 @@ function AdminLayout() {
                 to="/data-management"
                 className={`${styles.quickAction} ${styles.addProjectAction}`}
               >
-                <FolderPlus size={16} strokeWidth={1.9} />
+                <FolderPlus
+                  size={16}
+                  strokeWidth={1.9}
+                />
+
                 <span>Add Project</span>
               </Link>
 
@@ -170,7 +202,11 @@ function AdminLayout() {
                 to="/events-projects"
                 className={`${styles.quickAction} ${styles.addEventAction}`}
               >
-                <CalendarPlus size={16} strokeWidth={1.9} />
+                <CalendarPlus
+                  size={16}
+                  strokeWidth={1.9}
+                />
+
                 <span>Add Event</span>
               </Link>
             </div>
@@ -186,6 +222,7 @@ function AdminLayout() {
                 <span className={styles.adminName}>
                   {adminName}
                 </span>
+
                 <span className={styles.adminRole}>
                   Administrator
                 </span>

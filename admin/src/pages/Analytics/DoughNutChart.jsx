@@ -4,6 +4,47 @@ import styles from "./DoughnutChart.module.css";
 import { api } from "../../services/api";
 import { useChart } from "./useChart.js";
 
+const sliceLabels = {
+  id: "sliceLabels",
+
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    const dataset = chart.data.datasets[0];
+    const meta = chart.getDatasetMeta(0);
+
+    if (!dataset || !meta) return;
+
+    const total = dataset.data.reduce(
+      (sum, value) => sum + Number(value || 0),
+      0
+    );
+
+    meta.data.forEach((arc, index) => {
+      const count = Number(dataset.data[index] || 0);
+
+      if (!count || !total) return;
+
+      const percentage = ((count / total) * 100).toFixed(1);
+      const center = arc.getCenterPoint();
+
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#FFFFFF";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+      ctx.shadowBlur = 3;
+
+      ctx.font = "bold 13px Arial";
+      ctx.fillText(String(count), center.x, center.y - 7);
+
+      ctx.font = "bold 10px Arial";
+      ctx.fillText(`${percentage}%`, center.x, center.y + 8);
+
+      ctx.restore();
+    });
+  },
+};
+
 function DoughnutChart({ range }) {
   const canvasRef = useRef(null);
   const [data, setData] = useState([]);
@@ -17,7 +58,11 @@ function DoughnutChart({ range }) {
     setError("");
 
     api
-      .get(`/analytics/participation?range=${encodeURIComponent(range ?? "all")}`)
+      .get(
+        `/analytics/participation?range=${encodeURIComponent(
+          range ?? "all"
+        )}`
+      )
       .then((response) => {
         if (!active) return;
 
@@ -40,7 +85,13 @@ function DoughnutChart({ range }) {
       })
       .catch((err) => {
         if (!active) return;
-        setError(err.message || "Failed to load SDG participation.");
+
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to load SDG participation."
+        );
+
         setData([]);
       })
       .finally(() => {
@@ -52,14 +103,19 @@ function DoughnutChart({ range }) {
     };
   }, [range]);
 
-  const total = data.reduce((sum, item) => sum + item.count, 0);
+  const total = data.reduce(
+    (sum, item) => sum + item.count,
+    0
+  );
 
   const config =
     data.length > 0 && total > 0
       ? {
           type: "pie",
           data: {
-            labels: data.map((item) => item.label || item.tag),
+            labels: data.map(
+              (item) => item.label || item.tag
+            ),
             datasets: [
               {
                 data: data.map((item) => item.count),
@@ -67,26 +123,45 @@ function DoughnutChart({ range }) {
                   (item) => item.color || "#64748b"
                 ),
                 borderWidth: 2,
-                borderColor: "#ffffff",
-                hoverOffset: 6,
+                borderColor: "#FFFFFF",
+                hoverOffset: 8,
               },
             ],
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+              padding: 8,
+            },
             plugins: {
               legend: {
                 display: false,
               },
               tooltip: {
-                backgroundColor: "#0f172a",
+                backgroundColor: "#0F172A",
+                padding: 12,
+                titleFont: {
+                  size: 13,
+                  weight: "bold",
+                },
+                bodyFont: {
+                  size: 12,
+                },
                 callbacks: {
+                  title: (items) => {
+                    const item = data[items[0].dataIndex];
+
+                    return `${item.tag || ""} ${
+                      item.label || ""
+                    }`.trim();
+                  },
                   label: (context) => {
                     const count = Number(context.raw || 0);
-                    const percentage = total
-                      ? ((count / total) * 100).toFixed(1)
-                      : "0.0";
+                    const percentage = (
+                      (count / total) *
+                      100
+                    ).toFixed(1);
 
                     return ` ${count} projects (${percentage}%)`;
                   },
@@ -94,18 +169,22 @@ function DoughnutChart({ range }) {
               },
             },
           },
+          plugins: [sliceLabels],
         }
       : null;
 
   useChart(canvasRef, config);
 
   const isEmpty = !loading && !error && data.length === 0;
+  const metricCards = data.slice(0, 5);
 
   return (
     <div className={styles.chartCard}>
       <div className={styles.chartHead}>
         <p className={styles.chartEyebrow}>Participation</p>
-        <p className={styles.chartTitle}>Top 10 SDG Participation</p>
+        <p className={styles.chartTitle}>
+          Top 10 SDG Participation
+        </p>
       </div>
 
       {loading && (
@@ -129,31 +208,47 @@ function DoughnutChart({ range }) {
       )}
 
       {!loading && !error && !isEmpty && (
-        <>
-          <div style={{ height: 250, position: "relative" }}>
+        <div className={styles.participationLayout}>
+          <div className={styles.pieChartContainer}>
             <canvas ref={canvasRef} />
           </div>
 
-          <div className={styles.legend}>
-            {data.map((item) => (
-              <span
-                key={item.tag || item.label}
-                className={styles.legendItem}
+          <div className={styles.metricCards}>
+            <div className={styles.metricCardsHeader}>
+              <span>SDG Breakdown</span>
+              <span>{data.length} SDGs</span>
+            </div>
+
+            {metricCards.map((item, index) => (
+              <div
+                key={item.tag || item.label || index}
+                className={styles.metricCard}
               >
-                <span
-                  className={styles.legendDot}
+                <div
+                  className={styles.metricCardColor}
                   style={{
-                    background: item.color || "#64748b",
+                    backgroundColor: item.color || "#64748b",
                   }}
-                />
-                {item.label || item.tag} —{" "}
-                {total > 0
-                  ? `${((item.count / total) * 100).toFixed(1)}%`
-                  : "—"}
-              </span>
+                >
+                  {String(item.tag || "").replace("SDG ", "")}
+                </div>
+
+                <div className={styles.metricCardInfo}>
+                  <span className={styles.metricCardName}>
+                    {item.label || item.tag}
+                  </span>
+                  <span className={styles.metricCardLabel}>
+                    Projects
+                  </span>
+                </div>
+
+                <span className={styles.metricCardCount}>
+                  {item.count}
+                </span>
+              </div>
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

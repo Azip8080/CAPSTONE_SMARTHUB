@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
-  ChartNoAxesCombined,
   FileCheck2,
   FileDown,
   RefreshCw,
@@ -9,8 +8,10 @@ import {
   BookOpen,
   BrainCircuit,
   AlertCircle,
+  CheckCircle2,
+  Clock,
+  CalendarClock,
 } from "lucide-react";
-
 import { api } from "../services/api";
 import styles from "./CompletionReports.module.css";
 import jsPDF from "jspdf";
@@ -31,19 +32,18 @@ const EMPTY_SUMMARY = {
   completedProjects: 0,
   ongoingProjects: 0,
   plannedProjects: 0,
-  completionRate: 0,
   events: 0,
+  completedEvents: 0,
+  ongoingEvents: 0,
+  plannedEvents: 0,
   knowledgeResources: 0,
   aiClassifications: 0,
 };
 
 function formatDate(value) {
   if (!value) return "—";
-
   const date = new Date(value);
-
   if (Number.isNaN(date.getTime())) return "—";
-
   return date.toLocaleDateString();
 }
 
@@ -52,6 +52,8 @@ function getRecordTitle(record) {
     record.title ||
     record.originalName ||
     record.filename ||
+    record.document?.originalName ||
+    record.document?.filename ||
     "Untitled record"
   );
 }
@@ -69,6 +71,41 @@ function getRecordSDG(record) {
 function getNumber(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
+}
+
+function normalizeStatus(value) {
+  const status = String(value || "").trim().toLowerCase();
+
+  if (status === "completed" || status === "complete") return "Completed";
+  if (status === "ongoing" || status === "in progress") return "Ongoing";
+  if (status === "planned" || status === "pending") return "Planned";
+
+  return value || "Recorded";
+}
+
+function getDocumentName(record) {
+  return (
+    record.document?.originalName ||
+    record.document?.filename ||
+    record.originalName ||
+    record.filename ||
+    record.documentName ||
+    record.fileName ||
+    (Array.isArray(record.documents)
+      ? record.documents
+          .map((document) =>
+            typeof document === "string"
+              ? document.split("/").pop()
+              : document?.originalName ||
+                document?.filename ||
+                document?.name ||
+                ""
+          )
+          .filter(Boolean)
+          .join(", ")
+      : "") ||
+    "No uploaded document"
+  );
 }
 
 function CompletionReports() {
@@ -90,16 +127,15 @@ function CompletionReports() {
   const [recommendationMessage, setRecommendationMessage] = useState("");
   const [recommendationError, setRecommendationError] = useState(false);
 
+  const [showAllRecords, setShowAllRecords] = useState(false);
+
   const buildFilterParams = useCallback(() => {
     const params = new URLSearchParams();
 
     if (from) params.set("from", from);
     if (to) params.set("to", to);
     if (sdg) params.set("sdg", sdg);
-
-    if (barangay.trim()) {
-      params.set("barangay", barangay.trim());
-    }
+    if (barangay.trim()) params.set("barangay", barangay.trim());
 
     params.set("modules", modules.join(","));
 
@@ -123,6 +159,7 @@ function CompletionReports() {
       }
 
       setReport(response);
+      setShowAllRecords(false);
     } catch (err) {
       setError(
         err.message ||
@@ -140,7 +177,6 @@ function CompletionReports() {
 
     try {
       const params = buildFilterParams();
-
       const response = await api.get(
         `/completion-reports/recommendations?${params.toString()}`
       );
@@ -177,7 +213,6 @@ function CompletionReports() {
 
     try {
       const params = buildFilterParams();
-
       const response = await api.put(
         `/completion-reports/recommendations?${params.toString()}`,
         { text: adminRecommendations }
@@ -202,10 +237,12 @@ function CompletionReports() {
   };
 
   const summary = report?.summary || EMPTY_SUMMARY;
-  const distribution = report?.sdgDistribution || [];
   const records = report?.records || [];
-
   const activeModuleCount = modules.length;
+
+  const visibleRecords = showAllRecords
+    ? records
+    : records.slice(0, 5);
 
   const moduleCounts = useMemo(
     () => [
@@ -247,11 +284,12 @@ function CompletionReports() {
     setSdg("");
     setBarangay("");
     setModules(MODULE_OPTIONS.map((item) => item.id));
+    setShowAllRecords(false);
   };
 
   const generatedAt = report?.generatedAt
     ? new Date(report.generatedAt).toLocaleString()
-    : "Not generated";
+    : new Date().toLocaleString();
 
   const exportPDF = () => {
     if (!report) return;
@@ -263,82 +301,38 @@ function CompletionReports() {
     });
 
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 14;
     const contentWidth = pageWidth - margin * 2;
     const green = [27, 77, 62];
     const lightGreen = [231, 241, 235];
     const muted = [95, 108, 101];
-    let y = 18;
 
-    const checkPageSpace = (requiredHeight = 15) => {
-      if (y + requiredHeight > pageHeight - 16) {
-        doc.addPage();
-        y = 18;
-      }
-    };
-
-    const addSectionTitle = (title) => {
-      checkPageSpace(13);
-
+    const addSectionTitle = (title, y) => {
       doc.setFillColor(...lightGreen);
-      doc.roundedRect(margin, y - 5, contentWidth, 9, 1.5, 1.5, "F");
-
-      doc.setTextColor(...green);
+      doc.roundedRect(margin, y, contentWidth, 9, 1.5, 1.5, "F");
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
-      doc.text(title, margin + 3, y + 1);
-
-      doc.setTextColor(40, 48, 43);
-      y += 11;
-    };
-
-    const addMetricCard = (x, cardY, width, label, value, detail) => {
-      doc.setFillColor(248, 250, 248);
-      doc.setDrawColor(220, 229, 222);
-      doc.roundedRect(x, cardY, width, 23, 2, 2, "FD");
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(...muted);
-      doc.text(label, x + 4, cardY + 6);
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
       doc.setTextColor(...green);
-      doc.text(String(value), x + 4, cardY + 14);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7);
-      doc.setTextColor(...muted);
-      doc.text(detail, x + 4, cardY + 19);
+      doc.text(title, margin + 3, y + 6);
+      return y + 13;
     };
 
     const addFooter = () => {
       const pageCount = doc.internal.getNumberOfPages();
+      const pageHeight = doc.internal.pageSize.getHeight();
 
       for (let page = 1; page <= pageCount; page++) {
         doc.setPage(page);
-
         doc.setDrawColor(220, 229, 222);
-        doc.setLineWidth(0.3);
-        doc.line(
-          margin,
-          pageHeight - 12,
-          pageWidth - margin,
-          pageHeight - 12
-        );
-
+        doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
         doc.setFont("helvetica", "normal");
         doc.setFontSize(7.5);
         doc.setTextColor(...muted);
-
         doc.text(
-          "SDG SMART HUB | CONSOLIDATED COMPLETION REPORT",
+          "SDG SMART HUB | PROJECT AND EVENT REPORT",
           margin,
           pageHeight - 7
         );
-
         doc.text(
           `Page ${page} of ${pageCount}`,
           pageWidth - margin,
@@ -348,11 +342,39 @@ function CompletionReports() {
       }
     };
 
+    const projectRecords = records.filter((record) =>
+      String(record.reportModule || "").toLowerCase().includes("project")
+    );
+
+    const getStatusCount = (items, status) =>
+      items.filter((item) => normalizeStatus(item.status) === status).length;
+
+    const projectTotal =
+      projectRecords.length || getNumber(summary.projects);
+
+    const projectCompleted =
+      projectRecords.length > 0
+        ? getStatusCount(projectRecords, "Completed")
+        : getNumber(summary.completedProjects);
+
+    const projectOngoing =
+      projectRecords.length > 0
+        ? getStatusCount(projectRecords, "Ongoing")
+        : getNumber(summary.ongoingProjects);
+
+    const projectPlanned =
+      projectRecords.length > 0
+        ? getStatusCount(projectRecords, "Planned")
+        : getNumber(summary.plannedProjects);
+
     const selectedModules = MODULE_OPTIONS.filter((item) =>
       modules.includes(item.id)
     )
       .map((item) => item.label)
       .join(", ");
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = 18;
 
     doc.setFillColor(...green);
     doc.rect(0, 0, pageWidth, 4, "F");
@@ -362,125 +384,58 @@ function CompletionReports() {
     doc.setTextColor(...green);
     doc.text("SDG SMART HUB", margin, y);
 
-    doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(45, 55, 48);
-    doc.text("Consolidated Completion Report", margin, y + 8);
+    doc.text("Project and Event Completion Report", margin, y + 8);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(...muted);
     doc.text(`Generated: ${generatedAt}`, margin, y + 14);
 
-    const metadataX = pageWidth - margin;
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
-    doc.setTextColor(...green);
-    doc.text("REPORT DETAILS", metadataX, y, { align: "right" });
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(60, 68, 62);
-
     doc.text(
       `Period: ${from || "All dates"} to ${to || "Present"}`,
-      metadataX,
+      pageWidth - margin,
+      y,
+      { align: "right" }
+    );
+
+    doc.text(
+      `SDG: ${sdg || "All SDGs"} | Community: ${barangay.trim() || "All barangays"}`,
+      pageWidth - margin,
       y + 6,
       { align: "right" }
     );
 
     doc.text(
-      `SDG: ${sdg || "All SDGs"}`,
-      metadataX,
-      y + 11,
+      `Modules: ${selectedModules || "None"}`,
+      pageWidth - margin,
+      y + 12,
       { align: "right" }
     );
 
-    doc.text(
-      `Community: ${barangay.trim() || "All barangays"}`,
-      metadataX,
-      y + 16,
-      { align: "right" }
-    );
-
-    y += 25;
-
+    y += 23;
     doc.setDrawColor(220, 229, 222);
     doc.line(margin, y, pageWidth - margin, y);
-    y += 9;
+    y += 8;
 
-    addSectionTitle("Executive Summary");
-
-    const cardGap = 4;
-    const cardWidth = (contentWidth - cardGap * 3) / 4;
-
-    addMetricCard(
-      margin,
-      y,
-      cardWidth,
-      "TOTAL RECORDS",
-      getNumber(summary.totalRecords),
-      "Across selected modules"
-    );
-
-    addMetricCard(
-      margin + cardWidth + cardGap,
-      y,
-      cardWidth,
-      "COMPLETED PROJECTS",
-      getNumber(summary.completedProjects),
-      `${getNumber(summary.projects)} total projects`
-    );
-
-    addMetricCard(
-      margin + (cardWidth + cardGap) * 2,
-      y,
-      cardWidth,
-      "COMPLETION RATE",
-      `${getNumber(summary.completionRate)}%`,
-      "Reported project completion"
-    );
-
-    addMetricCard(
-      margin + (cardWidth + cardGap) * 3,
-      y,
-      cardWidth,
-      "EVENTS RECORDED",
-      getNumber(summary.events),
-      "Matching event records"
-    );
-
-    y += 30;
+    y = addSectionTitle("Project Summary", y);
 
     autoTable(doc, {
       startY: y,
       margin: { left: margin, right: margin },
-      head: [["Additional Metric", "Value", "Additional Metric", "Value"]],
-      body: [
-        [
-          "Ongoing Projects",
-          String(getNumber(summary.ongoingProjects)),
-          "Planned Projects",
-          String(getNumber(summary.plannedProjects)),
-        ],
-        [
-          "Knowledge Resources",
-          String(getNumber(summary.knowledgeResources)),
-          "AI Classifications",
-          String(getNumber(summary.aiClassifications)),
-        ],
-        [
-          "Records in Detail",
-          String(records.length),
-          "Included Modules",
-          selectedModules || "None",
-        ],
-      ],
+      head: [["Total Projects", "Completed", "Ongoing", "Planned"]],
+      body: [[
+        String(projectTotal),
+        String(projectCompleted),
+        String(projectOngoing),
+        String(projectPlanned),
+      ]],
       theme: "grid",
       styles: {
-        fontSize: 8,
-        cellPadding: 2.5,
+        fontSize: 10,
+        cellPadding: 5,
+        halign: "center",
         textColor: [50, 58, 52],
       },
       headStyles: {
@@ -488,285 +443,71 @@ function CompletionReports() {
         textColor: [255, 255, 255],
         fontStyle: "bold",
       },
-      alternateRowStyles: {
-        fillColor: [248, 250, 248],
-      },
     });
 
     y = doc.lastAutoTable.finalY + 9;
 
-    addSectionTitle("SDG Coverage Overview");
-
-    const chartData = distribution
-      .map((item) => ({
-        label: item.sdg || "Not assigned",
-        total: getNumber(item.total),
-        projects: getNumber(item.projects),
-        events: getNumber(item.events),
-        knowledgeResources: getNumber(item.knowledgeResources),
-      }))
-      .filter((item) => item.total >= 0);
-
-    const labelWidth = 31;
-    const valueWidth = 13;
-    const barX = margin + labelWidth;
-    const barWidth = contentWidth - labelWidth - valueWidth - 3;
-    const rowHeight = 5.1;
-    const chartHeight = Math.max(chartData.length, 1) * rowHeight + 13;
-
-    checkPageSpace(chartHeight + 13);
-
-    const actualChartTop = y;
-    const maxValue = Math.max(
-      1,
-      ...chartData.map((item) => item.total)
-    );
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7.5);
-    doc.setTextColor(...muted);
-
-    doc.text("SDG", margin, y + 2);
-    doc.text("Total records", barX, y + 2);
-    doc.text("Count", pageWidth - margin, y + 2, {
-      align: "right",
-    });
-
-    y += 6;
-
-    if (chartData.length === 0) {
-      doc.setFontSize(9);
-      doc.setTextColor(...muted);
-      doc.text(
-        "No SDG coverage data is available for these filters.",
-        margin,
-        y + 5
-      );
-      y += 13;
-    } else {
-      chartData.forEach((item) => {
-        checkPageSpace(rowHeight + 2);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(7.5);
-        doc.setTextColor(45, 55, 48);
-        doc.text(item.label, margin, y + 3.3);
-
-        doc.setFillColor(239, 243, 239);
-        doc.roundedRect(barX, y, barWidth, 3.6, 1, 1, "F");
-
-        const currentBarWidth = (item.total / maxValue) * barWidth;
-
-        if (currentBarWidth > 0) {
-          doc.setFillColor(...green);
-          doc.roundedRect(
-            barX,
-            y,
-            Math.max(0.8, currentBarWidth),
-            3.6,
-            1,
-            1,
-            "F"
-          );
-        }
-
-        doc.setTextColor(45, 55, 48);
-        doc.setFont("helvetica", "bold");
-        doc.text(
-          String(item.total),
-          pageWidth - margin,
-          y + 3.2,
-          { align: "right" }
-        );
-
-        y += rowHeight;
-      });
-
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(7);
-      doc.setTextColor(...muted);
-      doc.text(
-        "Bar lengths represent the relative number of records per SDG.",
-        margin,
-        y + 1
-      );
-
-      y += 7;
+    if (y + 25 > pageHeight - 16) {
+      doc.addPage();
+      y = 18;
     }
 
-    y = Math.max(y, actualChartTop + chartHeight);
-    y += 3;
-
-    addSectionTitle("SDG Coverage Details");
+    y = addSectionTitle(
+      "Project Showcase: Uploaded Documents and Status",
+      y
+    );
 
     autoTable(doc, {
       startY: y,
-      margin: { left: margin, right: margin },
+      margin: { left: margin, right: margin, bottom: 18 },
       head: [[
+        "Project Title",
+        "Uploaded Document",
+        "Status",
         "SDG",
-        "Projects",
-        "Events",
-        "Knowledge Resources",
-        "Total Records",
+        "Barangay",
+        "Date",
       ]],
-      body: distribution.length
-        ? distribution.map((item) => [
-            item.sdg || "Not assigned",
-            String(getNumber(item.projects)),
-            String(getNumber(item.events)),
-            String(getNumber(item.knowledgeResources)),
-            String(getNumber(item.total)),
+      body: projectRecords.length
+        ? projectRecords.map((record) => [
+            getRecordTitle(record),
+            getDocumentName(record),
+            normalizeStatus(record.status),
+            getRecordSDG(record),
+            record.barangay || "—",
+            formatDate(record.createdAt || record.date),
           ])
-        : [["No data available", "0", "0", "0", "0"]],
+        : [["No project records found", "—", "—", "—", "—", "—"]],
       theme: "striped",
-      styles: {
-        fontSize: 8,
-        cellPadding: 2.5,
-        textColor: [50, 58, 52],
-      },
-      headStyles: {
-        fillColor: green,
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 248],
-      },
-    });
-
-    y = doc.lastAutoTable.finalY + 9;
-
-    addSectionTitle("Project Status Summary");
-
-    autoTable(doc, {
-      startY: y,
-      margin: { left: margin, right: margin },
-      head: [["Project Status", "Number of Projects"]],
-      body: [
-        ["Completed", String(getNumber(summary.completedProjects))],
-        ["Ongoing", String(getNumber(summary.ongoingProjects))],
-        ["Planned", String(getNumber(summary.plannedProjects))],
-        ["Total Projects", String(getNumber(summary.projects))],
-      ],
-      theme: "grid",
       styles: {
         fontSize: 8,
         cellPadding: 3,
-      },
-      headStyles: {
-        fillColor: green,
-        textColor: [255, 255, 255],
-      },
-      columnStyles: {
-        0: { cellWidth: 85 },
-        1: { cellWidth: 45, halign: "center" },
-      },
-    });
-
-    y = doc.lastAutoTable.finalY + 9;
-
-    addSectionTitle("Admin Recommendations");
-
-    const recommendationText =
-      adminRecommendations.trim() ||
-      "No admin recommendations have been entered.";
-
-    const recommendationParagraphs = recommendationText.split(/\r?\n/);
-
-    recommendationParagraphs.forEach((paragraph) => {
-      const lines = doc.splitTextToSize(
-        paragraph || " ",
-        contentWidth - 6
-      );
-
-      lines.forEach((line) => {
-        checkPageSpace(6);
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.setTextColor(50, 58, 52);
-        doc.text(line, margin + 3, y);
-
-        y += 4.5;
-      });
-
-      y += 1.5;
-    });
-
-    y += 5;
-
-    addSectionTitle("Included Records");
-
-    autoTable(doc, {
-      startY: y,
-      margin: { left: margin, right: margin },
-      head: [[
-        "Module",
-        "Record",
-        "SDG",
-        "Barangay",
-        "Status",
-        "Date",
-      ]],
-      body: records.length
-        ? records.map((record) => [
-            record.reportModule || "—",
-            getRecordTitle(record),
-            getRecordSDG(record),
-            record.barangay || "—",
-            record.status || "Recorded",
-            formatDate(record.createdAt || record.date),
-          ])
-        : [["—", "No matching records", "—", "—", "—", "—"]],
-      theme: "striped",
-      styles: {
-        fontSize: 7.5,
-        cellPadding: 2.5,
         overflow: "linebreak",
         valign: "top",
+        textColor: [50, 58, 52],
       },
       headStyles: {
         fillColor: green,
         textColor: [255, 255, 255],
+        fontStyle: "bold",
       },
       alternateRowStyles: {
         fillColor: [248, 250, 248],
       },
       columnStyles: {
-        0: { cellWidth: 27 },
+        0: { cellWidth: 52 },
         1: { cellWidth: 65 },
-        2: { cellWidth: 40 },
-        3: { cellWidth: 38 },
-        4: { cellWidth: 35 },
-        5: { cellWidth: 30 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 37 },
+        4: { cellWidth: 40 },
+        5: { cellWidth: 28 },
       },
     });
-
-    if (report.limitations?.length) {
-      y = doc.lastAutoTable.finalY + 9;
-      checkPageSpace(20);
-
-      addSectionTitle("Data Limitations and Interpretation");
-
-      autoTable(doc, {
-        startY: y,
-        margin: { left: margin, right: margin },
-        body: report.limitations.map((item) => [String(item)]),
-        theme: "plain",
-        styles: {
-          fontSize: 8,
-          cellPadding: 2.5,
-          overflow: "linebreak",
-          textColor: [60, 68, 62],
-        },
-      });
-    }
 
     addFooter();
 
     const dateStamp = new Date().toISOString().slice(0, 10);
-
-    doc.save(`SDG-Smart-Hub-Completion-Report-${dateStamp}.pdf`);
+    doc.save(`SDG-Smart-Hub-Project-Event-Report-${dateStamp}.pdf`);
   };
 
   return (
@@ -774,10 +515,9 @@ function CompletionReports() {
       <header className={styles.header}>
         <div>
           <div className={styles.eyebrow}>ADMIN PANEL / REPORTING</div>
-          <h1>Completion Reports</h1>
+          <h1>Project Progress & Reports</h1>
           <p>
-            Compile saved records across SDG Smart Hub into one
-            reporting view.
+            Review project progress, total events, and project showcase documents.
           </p>
         </div>
 
@@ -897,8 +637,7 @@ function CompletionReports() {
             <strong>Unable to load completion report</strong>
             <p>{error}</p>
             <p>
-              Confirm that the backend route is registered and the server
-              is running.
+              Confirm that the backend route is registered and the server is running.
             </p>
           </div>
         </div>
@@ -920,35 +659,64 @@ function CompletionReports() {
 
             <div>
               <span className={styles.eyebrow}>SDG SMART HUB</span>
-              <h2>Consolidated Completion Report</h2>
+              <h2>Project and Event Completion Report</h2>
               <p>Generated {generatedAt}</p>
             </div>
           </section>
 
           <section className={styles.summaryGrid}>
             <article className={styles.summaryCard}>
-              <span>Total records</span>
-              <strong>{summary.totalRecords ?? 0}</strong>
-              <small>Across selected modules</small>
+              <span>Total Projects</span>
+              <strong>{summary.projects ?? 0}</strong>
+              <small>All matching project records</small>
             </article>
 
             <article className={styles.summaryCard}>
-              <span>Projects completed</span>
-              <strong>{summary.completedProjects ?? 0}</strong>
-              <small>{summary.projects ?? 0} project records</small>
-            </article>
-
-            <article className={styles.summaryCard}>
-              <span>Project completion rate</span>
-              <strong>{summary.completionRate ?? 0}%</strong>
-              <small>Completed / total projects</small>
-            </article>
-
-            <article className={styles.summaryCard}>
-              <span>Events recorded</span>
+              <span>Total Events</span>
               <strong>{summary.events ?? 0}</strong>
-              <small>Matching event records</small>
+              <small>All matching event records</small>
             </article>
+
+            <article className={styles.summaryCard}>
+              <span>Completed Projects</span>
+              <strong>{summary.completedProjects ?? 0}</strong>
+              <small>Finished projects</small>
+            </article>
+
+            <article className={styles.summaryCard}>
+              <span>Completed Events</span>
+              <strong>{summary.completedEvents ?? 0}</strong>
+              <small>Finished events</small>
+            </article>
+          </section>
+
+          <section className={styles.reportSection}>
+            <div className={styles.sectionHeading}>
+              <div>
+                <h2>Project Status Summary</h2>
+                <p>Completed, ongoing, and planned projects.</p>
+              </div>
+            </div>
+
+            <div className={styles.summaryGrid}>
+              <article className={styles.summaryCard}>
+                <CheckCircle2 size={22} color="#16A34A" />
+                <span>Completed Projects</span>
+                <strong>{summary.completedProjects ?? 0}</strong>
+              </article>
+
+              <article className={styles.summaryCard}>
+                <Clock size={22} color="#D97706" />
+                <span>Ongoing Projects</span>
+                <strong>{summary.ongoingProjects ?? 0}</strong>
+              </article>
+
+              <article className={styles.summaryCard}>
+                <CalendarClock size={22} color="#2563EB" />
+                <span>Planned Projects</span>
+                <strong>{summary.plannedProjects ?? 0}</strong>
+              </article>
+            </div>
           </section>
 
           <section className={styles.moduleSection}>
@@ -977,14 +745,8 @@ function CompletionReports() {
           <section className={styles.reportSection}>
             <div className={styles.sectionHeading}>
               <div>
-                <h2>
-                  <ChartNoAxesCombined size={19} />
-                  SDG coverage
-                </h2>
-                <p>
-                  Counts of matching projects, events, and knowledge
-                  resources by SDG.
-                </p>
+                <h2>Project Showcase Documents</h2>
+                <p>Uploaded project documents and their current status.</p>
               </div>
             </div>
 
@@ -992,30 +754,43 @@ function CompletionReports() {
               <table>
                 <thead>
                   <tr>
+                    <th>Project</th>
+                    <th>Uploaded Document</th>
+                    <th>Status</th>
                     <th>SDG</th>
-                    <th>Projects</th>
-                    <th>Events</th>
-                    <th>Knowledge resources</th>
-                    <th>Total</th>
+                    <th>Barangay</th>
+                    <th>Date</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {distribution.map((item) => (
-                    <tr key={item.sdg}>
-                      <td>{item.sdg}</td>
-                      <td>{item.projects}</td>
-                      <td>{item.events}</td>
-                      <td>{item.knowledgeResources}</td>
-                      <td>
-                        <strong>{item.total}</strong>
-                      </td>
-                    </tr>
-                  ))}
 
-                  {distribution.length === 0 && (
+                <tbody>
+                  {records
+                    .filter((record) =>
+                      String(record.reportModule || "")
+                        .toLowerCase()
+                        .includes("project")
+                    )
+                    .map((record, index) => (
+                      <tr key={record._id || index}>
+                        <td className={styles.recordTitle}>
+                          {getRecordTitle(record)}
+                        </td>
+                        <td>{getDocumentName(record)}</td>
+                        <td>{normalizeStatus(record.status)}</td>
+                        <td>{getRecordSDG(record)}</td>
+                        <td>{record.barangay || "—"}</td>
+                        <td>{formatDate(record.createdAt || record.date)}</td>
+                      </tr>
+                    ))}
+
+                  {records.filter((record) =>
+                    String(record.reportModule || "")
+                      .toLowerCase()
+                      .includes("project")
+                  ).length === 0 && (
                     <tr>
-                      <td colSpan="5" className={styles.emptyCell}>
-                        No SDG distribution data available.
+                      <td colSpan="6" className={styles.emptyCell}>
+                        No project showcase records match the selected filters.
                       </td>
                     </tr>
                   )}
@@ -1030,17 +805,14 @@ function CompletionReports() {
                 <h2>Admin Recommendations</h2>
                 <p>
                   Write recommendations for this report. They are saved
-                  separately for the current filters and included in the
-                  exported PDF.
+                  separately for the current filters.
                 </p>
               </div>
             </div>
 
             <textarea
               value={adminRecommendations}
-              onChange={(event) =>
-                setAdminRecommendations(event.target.value)
-              }
+              onChange={(event) => setAdminRecommendations(event.target.value)}
               placeholder="Type the administrator's recommendations and follow-up actions..."
               rows={7}
               maxLength={20000}
@@ -1076,9 +848,7 @@ function CompletionReports() {
                 onClick={saveRecommendations}
                 disabled={savingRecommendations || recommendationsLoading}
               >
-                {savingRecommendations
-                  ? "Saving..."
-                  : "Save Recommendations"}
+                {savingRecommendations ? "Saving..." : "Save Recommendations"}
               </button>
 
               {recommendationMessage && (
@@ -1098,9 +868,10 @@ function CompletionReports() {
           <section className={styles.reportSection}>
             <div className={styles.sectionHeading}>
               <div>
-                <h2>Included records</h2>
+                <h2>Included Records</h2>
                 <p>
-                  {records.length} records match the current filters.
+                  Showing {visibleRecords.length} of {records.length} records
+                  matching the current filters.
                 </p>
               </div>
             </div>
@@ -1117,24 +888,23 @@ function CompletionReports() {
                     <th>Date</th>
                   </tr>
                 </thead>
+
                 <tbody>
-                  {records.map((record, index) => (
+                  {visibleRecords.map((record, index) => (
                     <tr
                       key={
                         record._id ||
                         `${record.reportModule}-${index}`
                       }
                     >
-                      <td>{record.reportModule}</td>
+                      <td>{record.reportModule || "—"}</td>
                       <td className={styles.recordTitle}>
                         {getRecordTitle(record)}
                       </td>
                       <td>{getRecordSDG(record)}</td>
                       <td>{record.barangay || "—"}</td>
-                      <td>{record.status || "Recorded"}</td>
-                      <td>
-                        {formatDate(record.createdAt || record.date)}
-                      </td>
+                      <td>{normalizeStatus(record.status)}</td>
+                      <td>{formatDate(record.createdAt || record.date)}</td>
                     </tr>
                   ))}
 
@@ -1148,6 +918,20 @@ function CompletionReports() {
                 </tbody>
               </table>
             </div>
+
+            {records.length > 5 && (
+              <div className={styles.viewMoreContainer}>
+                <button
+                  type="button"
+                  className={styles.viewMoreButton}
+                  onClick={() =>
+                    setShowAllRecords((current) => !current)
+                  }
+                >
+                  {showAllRecords ? "Show Less" : "View More Records"}
+                </button>
+              </div>
+            )}
           </section>
 
           {report.limitations?.length > 0 && (
@@ -1162,7 +946,7 @@ function CompletionReports() {
           )}
 
           <footer className={styles.reportFooter}>
-            <span>SDG SMART HUB · COMPLETION REPORT</span>
+            <span>SDG SMART HUB · PROJECT AND EVENT REPORT</span>
             <span>Generated from records available in the system.</span>
           </footer>
         </div>

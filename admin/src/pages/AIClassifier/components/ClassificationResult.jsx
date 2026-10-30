@@ -1,16 +1,14 @@
+
 import { useMemo, useState } from "react";
 
 import SDGRelevance from "./SDGRelevance";
 import DetectedSDGs from "./DetectedSDGs";
 import ProjectSummary from "./ProjectSummary";
-
 import {
   SDG_COLORS,
   SDG_NAMES,
 } from "../sdgConstants";
-
 import styles from "./ClassificationResult.module.css";
-
 import ClassificationSummary from "./ClassificationSummary";
 import EvidenceSection from "./EvidenceSection";
 import OtherSDGs from "./OtherSDGs";
@@ -19,24 +17,18 @@ import ExtractedText from "./ExtractedText";
 import MissingInformation from "./MissingInformation";
 
 function getSDGName(tag) {
-  return (
-    SDG_NAMES?.[tag] ||
-    tag ||
-    "Unknown SDG"
-  );
+  return SDG_NAMES?.[tag] || tag || "Unknown SDG";
 }
 
 function getSDGColor(tag) {
-  return (
-    SDG_COLORS?.[tag] ||
-    "#64748b"
-  );
+  return SDG_COLORS?.[tag] || "#64748b";
 }
 
 function ClassificationResult({
   result,
   loading,
   error,
+  destination = "Projects",
   onUseResult,
   onReset,
   selectedSDGs = [],
@@ -46,156 +38,105 @@ function ClassificationResult({
   onAddTag,
   onRemoveTag,
 }) {
-  const [activeTab, setActiveTab] =
-    useState("evidence");
+  const [activeTab, setActiveTab] = useState("evidence");
 
-  const classificationData =
-    useMemo(() => {
-      if (!result) return null;
+  const classificationData = useMemo(() => {
+    if (!result) return null;
 
-      const primaryTag =
-        result.tag ||
-        result.sdgTag ||
-        "Unknown SDG";
+    const primaryTag =
+      result.tag || result.sdgTag || "Unknown SDG";
 
-      const detectedSDGs =
-        Array.isArray(result.sdgTags)
-          ? result.sdgTags
-          : primaryTag !== "Unknown SDG"
-            ? [primaryTag]
-            : [];
+    const detectedSDGs = Array.isArray(result.sdgTags)
+      ? result.sdgTags
+      : primaryTag !== "Unknown SDG"
+        ? [primaryTag]
+        : [];
 
-      const alternatives =
-        Array.isArray(result.topMatches)
-          ? result.topMatches.filter(
-              (item) =>
-                item &&
-                (
-                  item.tag ||
-                  item.label ||
-                  item.name
-                )
-            )
-          : [];
+    const alternatives = Array.isArray(result.topMatches)
+      ? result.topMatches.filter(
+          (item) => item && (item.tag || item.label || item.name)
+        )
+      : [];
 
-      const relatedSDGs =
-        Array.isArray(result.relatedSDGs)
-          ? result.relatedSDGs.filter(
-              (item) =>
-                item &&
-                (
-                  item.tag ||
-                  item.label ||
-                  item.name
-                )
-            )
-          : [];
+    const relatedSDGs = Array.isArray(result.relatedSDGs)
+      ? result.relatedSDGs.filter(
+          (item) => item && (item.tag || item.label || item.name)
+        )
+      : [];
 
-      const automaticTags =
-        Array.isArray(result.automaticTags)
-          ? result.automaticTags.filter(
-              (item) =>
-                item &&
-                (
-                  item.tag ||
-                  item.name
-                )
-            )
-          : [];
+    const automaticTags = Array.isArray(result.automaticTags)
+      ? result.automaticTags.filter(
+          (item) => item && (item.tag || item.name)
+        )
+      : [];
 
-      const missingInformation =
-        result.missingInformation ||
-        null;
+    const missingInformation = result.missingInformation || null;
 
-      const sdgRelevance =
-        Array.isArray(result.sdgRelevance)
-          ? result.sdgRelevance
-          : [];
+    const sdgRelevance = Array.isArray(result.sdgRelevance)
+      ? result.sdgRelevance
+      : [];
 
-      const projectSummary =
-        typeof result.projectSummary ===
-        "string"
-          ? result.projectSummary
-          : "";
+    const projectSummary =
+      typeof result.projectSummary === "string"
+        ? result.projectSummary
+        : "";
 
-      const keywordData =
-        result.keywordMatches ||
-        {};
+    const keywordData = result.keywordMatches || {};
+    const groupedKeywords = keywordData.grouped || {};
+    const evidenceBySDG = keywordData.evidenceBySDG || {};
 
-      const groupedKeywords =
-        keywordData.grouped ||
-        {};
+    const keywordGroups = Object.entries(groupedKeywords)
+      .filter(
+        ([, matches]) =>
+          Array.isArray(matches) && matches.length > 0
+      )
+      .sort(([, a], [, b]) => b.length - a.length);
 
-      const evidenceBySDG =
-        keywordData.evidenceBySDG ||
-        {};
+    const allMatches = Array.isArray(keywordData.matches)
+      ? keywordData.matches
+      : [];
 
-      const keywordGroups =
-        Object.entries(groupedKeywords)
-          .filter(
-            ([, matches]) =>
-              Array.isArray(matches) &&
-              matches.length > 0
-          )
-          .sort(
-            ([, a], [, b]) =>
-              b.length - a.length
-          );
+    const extractedText =
+      typeof result.extractedText === "string"
+        ? result.extractedText
+        : "";
 
-      const allMatches =
-        Array.isArray(keywordData.matches)
-          ? keywordData.matches
-          : [];
+    const totalMatches =
+      typeof keywordData.totalMatches === "number"
+        ? keywordData.totalMatches
+        : allMatches.length;
 
-      const extractedText =
-        typeof result.extractedText ===
-        "string"
-          ? result.extractedText
-          : "";
+    const methodLabel =
+      result.method === "huggingface"
+        ? "AI model"
+        : result.method === "keyword"
+          ? "Keyword matching"
+          : result.method || "Classification";
 
-      const totalMatches =
-        typeof keywordData.totalMatches ===
-        "number"
-          ? keywordData.totalMatches
-          : allMatches.length;
-
-      const methodLabel =
-        result.method === "huggingface"
-          ? "AI model"
-          : result.method === "keyword"
-            ? "Keyword matching"
-            : result.method ||
-              "Classification";
-
-      return {
-        primaryTag,
-        primaryName:
-          getSDGName(primaryTag),
-        primaryColor:
-          getSDGColor(primaryTag),
-        detectedSDGs,
-        alternatives,
-        relatedSDGs,
-        automaticTags,
-        missingInformation,
-        sdgRelevance,
-        projectSummary,
-        groupedKeywords,
-        evidenceBySDG,
-        keywordGroups,
-        allMatches,
-        extractedText,
-        totalMatches,
-        methodLabel,
-      };
-    }, [result]);
+    return {
+      primaryTag,
+      primaryName: getSDGName(primaryTag),
+      primaryColor: getSDGColor(primaryTag),
+      detectedSDGs,
+      alternatives,
+      relatedSDGs,
+      automaticTags,
+      missingInformation,
+      sdgRelevance,
+      projectSummary,
+      groupedKeywords,
+      evidenceBySDG,
+      keywordGroups,
+      allMatches,
+      extractedText,
+      totalMatches,
+      methodLabel,
+    };
+  }, [result]);
 
   if (loading) {
     return (
-      <section
-        className={styles.resultCard}
-        aria-live="polite"
-      >
+      <section className={styles.resultCard} aria-live="polite">
         <div className={styles.loadingState}>
           <div className={styles.spinner} />
 
@@ -203,13 +144,11 @@ function ClassificationResult({
             AI ANALYSIS
           </span>
 
-          <h3>
-            Analyzing project information
-          </h3>
+          <h3>Analyzing content</h3>
 
           <p>
-            Extracting content and checking
-            possible SDG connections.
+            Extracting content and checking possible SDG
+            connections.
           </p>
         </div>
       </section>
@@ -218,22 +157,15 @@ function ClassificationResult({
 
   if (error) {
     return (
-      <section
-        className={styles.resultCard}
-        role="alert"
-      >
+      <section className={styles.resultCard} role="alert">
         <div className={styles.errorState}>
-          <span className={styles.errorIcon}>
-            !
-          </span>
+          <span className={styles.errorIcon}>!</span>
 
           <span className={styles.loadingEyebrow}>
             ANALYSIS ERROR
           </span>
 
-          <h3>
-            Classification failed
-          </h3>
+          <h3>Classification failed</h3>
 
           <p>{error}</p>
 
@@ -251,31 +183,22 @@ function ClassificationResult({
     );
   }
 
-  if (
-    !result ||
-    !classificationData
-  ) {
+  if (!result || !classificationData) {
     return (
       <section className={styles.resultCard}>
         <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>
-            ✦
-          </div>
+          <div className={styles.emptyIcon}>✦</div>
 
           <span className={styles.loadingEyebrow}>
             AI ANALYSIS
           </span>
 
-          <h3>
-            Results will appear here
-          </h3>
+          <h3>Results will appear here</h3>
 
           <p>
-            Submit project information or
-            upload a PDF/TXT document to
-            see the suggested SDGs,
-            supporting evidence, tags,
-            and project quality checks.
+            Enter project or event information, or upload a
+            PDF/TXT document to review suggested SDGs, supporting
+            evidence, keywords, and relevance.
           </p>
         </div>
       </section>
@@ -301,9 +224,7 @@ function ClassificationResult({
     methodLabel,
   } = classificationData;
 
-  const missingCount =
-    missingInformation?.missingCount ||
-    0;
+  const missingCount = missingInformation?.missingCount || 0;
 
   const tabs = [
     {
@@ -314,9 +235,7 @@ function ClassificationResult({
     {
       id: "alternatives",
       label: "Other SDGs",
-      count:
-        relatedSDGs.length ||
-        alternatives.length,
+      count: relatedSDGs.length || alternatives.length,
     },
     {
       id: "tags",
@@ -336,17 +255,12 @@ function ClassificationResult({
     {
       id: "text",
       label: "Extracted Text",
-      count: extractedText
-        ? null
-        : 0,
+      count: extractedText ? null : 0,
     },
   ];
 
   return (
-    <section
-      className={styles.resultCard}
-      aria-live="polite"
-    >
+    <section className={styles.resultCard} aria-live="polite">
       <header className={styles.resultHeader}>
         <div className={styles.headingContent}>
           <p className={styles.eyebrow}>
@@ -357,10 +271,14 @@ function ClassificationResult({
           <h2>AI analysis</h2>
 
           <p className={styles.resultDescription}>
-            Review the AI findings before
-            selecting SDGs and preparing
-            the project for publication.
-          </p>
+  Review the AI findings and supporting evidence before using
+  the classification for{" "}
+  {destination === "Events"
+    ? "an event."
+    : destination === "Knowledge Hub"
+      ? "a knowledge resource."
+      : "a project."}
+</p>
         </div>
 
         {result.filename && (
@@ -368,13 +286,8 @@ function ClassificationResult({
             className={styles.fileBadge}
             title={result.filename}
           >
-            <span aria-hidden="true">
-              ▤
-            </span>
-
-            <span>
-              {result.filename}
-            </span>
+            <span aria-hidden="true">▤</span>
+            <span>{result.filename}</span>
           </span>
         )}
       </header>
@@ -386,15 +299,9 @@ function ClassificationResult({
         methodLabel={methodLabel}
         result={result}
         totalMatches={totalMatches}
-        keywordGroupsLength={
-          keywordGroups.length
-        }
-        relatedSDGsLength={
-          relatedSDGs.length
-        }
-        selectedTagsLength={
-          selectedTags.length
-        }
+        keywordGroupsLength={keywordGroups.length}
+        relatedSDGsLength={relatedSDGs.length}
+        selectedTagsLength={selectedTags.length}
         extractedText={extractedText}
         onUseResult={onUseResult}
       />
@@ -405,9 +312,7 @@ function ClassificationResult({
         onToggleSDG={onToggleSDG}
       />
 
-      <div className={styles.reviewLabel}>
-        AI findings
-      </div>
+      <div className={styles.reviewLabel}>AI findings</div>
 
       <div className={styles.tabSection}>
         <div
@@ -421,26 +326,18 @@ function ClassificationResult({
               type="button"
               role="tab"
               id={`tab-${tab.id}`}
-              aria-selected={
-                activeTab === tab.id
-              }
+              aria-selected={activeTab === tab.id}
               aria-controls={`panel-${tab.id}`}
               className={[
                 styles.tabButton,
-                activeTab === tab.id
-                  ? styles.activeTab
-                  : "",
+                activeTab === tab.id ? styles.activeTab : "",
               ].join(" ")}
-              onClick={() =>
-                setActiveTab(tab.id)
-              }
+              onClick={() => setActiveTab(tab.id)}
             >
               {tab.label}
 
               {tab.count !== null && (
-                <span
-                  className={styles.tabCount}
-                >
+                <span className={styles.tabCount}>
                   {tab.count}
                 </span>
               )}
@@ -450,15 +347,9 @@ function ClassificationResult({
 
         {activeTab === "evidence" && (
           <EvidenceSection
-            keywordGroups={
-              keywordGroups
-            }
-            evidenceBySDG={
-              evidenceBySDG
-            }
-            totalMatches={
-              totalMatches
-            }
+            keywordGroups={keywordGroups}
+            evidenceBySDG={evidenceBySDG}
+            totalMatches={totalMatches}
           />
         )}
 
@@ -473,74 +364,53 @@ function ClassificationResult({
 
         {activeTab === "tags" && (
           <SuggestedTags
-            automaticTags={
-              automaticTags
-            }
-            selectedTags={
-              selectedTags
-            }
-            primaryColor={
-              primaryColor
-            }
-            onToggleTag={
-              onToggleTag
-            }
+            automaticTags={automaticTags}
+            selectedTags={selectedTags}
+            primaryColor={primaryColor}
+            onToggleTag={onToggleTag}
             onAddTag={onAddTag}
-            onRemoveTag={
-              onRemoveTag
-            }
+            onRemoveTag={onRemoveTag}
           />
         )}
 
         {activeTab === "missing" && (
           <MissingInformation
-            missingInformation={
-              missingInformation
-            }
+            missingInformation={missingInformation}
           />
         )}
 
         {activeTab === "relevance" && (
-          <SDGRelevance
-            sdgRelevance={
-              sdgRelevance
-            }
-          />
+          <SDGRelevance sdgRelevance={sdgRelevance} />
         )}
 
         {activeTab === "text" && (
           <ExtractedText
-            extractedText={
-              extractedText
-            }
-            allMatches={
-              allMatches
-            }
+            extractedText={extractedText}
+            allMatches={allMatches}
           />
         )}
       </div>
 
-      <ProjectSummary
-        summary={projectSummary}
-      />
+      {destination === "Projects" && (
+        <ProjectSummary summary={projectSummary} />
+      )}
 
-      <div className={styles.reviewNotice}>
-        <span className={styles.reviewIcon}>
-          !
-        </span>
+<div className={styles.reviewNotice}>
+  <span className={styles.reviewIcon}>!</span>
 
-        <div>
-          <strong>
-            Administrator review required
-          </strong>
+  <div>
+    <strong>Administrator review required</strong>
 
-          <p>
-            Confirm the project's actual
-            objectives and selected SDGs
-            before saving or publishing.
-          </p>
-        </div>
-      </div>
+    <p>
+      Verify the content and selected SDGs before saving
+      {destination === "Events"
+        ? " the event."
+        : destination === "Knowledge Hub"
+          ? " the knowledge resource."
+          : " or publishing the project."}
+    </p>
+  </div>
+</div>
 
       {onReset && (
         <div className={styles.resultActions}>
@@ -549,7 +419,7 @@ function ClassificationResult({
             className={styles.secondaryButton}
             onClick={onReset}
           >
-            Classify another project
+            Classify new content
           </button>
         </div>
       )}

@@ -4,6 +4,7 @@ import styles from "./ClassifierForm.module.css";
 
 function ClassifierForm({
   loading = false,
+  destination = "Projects",
   onClassifyText,
   onClassifyFile,
 }) {
@@ -14,6 +15,27 @@ function ClassifierForm({
   const [formError, setFormError] = useState("");
 
   const fileRef = useRef(null);
+
+  const contentLabel =
+    destination === "Events"
+      ? "event"
+      : destination === "Knowledge Hub"
+        ? "knowledge resource"
+        : "project";
+
+  const titleLabel =
+    destination === "Events"
+      ? "Event title"
+      : destination === "Knowledge Hub"
+        ? "Resource title"
+        : "Project title";
+
+  const descriptionLabel =
+    destination === "Events"
+      ? "Event description"
+      : destination === "Knowledge Hub"
+        ? "Resource summary or description"
+        : "Project description";
 
   const validateFile = (selected) => {
     if (!selected) {
@@ -52,14 +74,15 @@ function ClassifierForm({
       setFormError(
         "Text classification is not connected. Check AIClassifier.jsx."
       );
-      console.error("onClassifyText is not a function.");
       return;
     }
 
     try {
       await onClassifyText(title, description);
     } catch (err) {
-      setFormError(err.message || "Unable to analyze the text.");
+      setFormError(
+        err?.message || "Unable to analyze the text."
+      );
     }
   };
 
@@ -67,8 +90,7 @@ function ClassifierForm({
     event.preventDefault();
     setFormError("");
 
-    if (!file) {
-      setFormError("Please select a PDF or TXT file first.");
+    if (!file || !validateFile(file)) {
       return;
     }
 
@@ -76,14 +98,15 @@ function ClassifierForm({
       setFormError(
         "File classification is not connected. Check AIClassifier.jsx."
       );
-      console.error("onClassifyFile is not a function.");
       return;
     }
 
     try {
       await onClassifyFile(file);
     } catch (err) {
-      setFormError(err.message || "Unable to analyze the document.");
+      setFormError(
+        err?.message || "Unable to analyze the document."
+      );
     }
   };
 
@@ -140,8 +163,9 @@ function ClassifierForm({
           <h2>Start an AI analysis</h2>
 
           <p>
-            Enter project information or upload an existing document
-            to identify relevant Sustainable Development Goals.
+            Enter a {contentLabel} title and description, or upload
+            an existing document to identify relevant Sustainable
+            Development Goals.
           </p>
         </div>
 
@@ -187,14 +211,16 @@ function ClassifierForm({
         >
           <div className={styles.field}>
             <label htmlFor="classifier-title">
-              Project title
+              {titleLabel}
             </label>
 
             <input
               id="classifier-title"
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="e.g. Community Tree Planting"
+              onChange={(event) =>
+                setTitle(event.target.value)
+              }
+              placeholder={`Enter the ${contentLabel} title`}
               maxLength={200}
               disabled={loading}
             />
@@ -203,7 +229,7 @@ function ClassifierForm({
           <div className={styles.field}>
             <div className={styles.labelRow}>
               <label htmlFor="classifier-description">
-                Project description
+                {descriptionLabel}
               </label>
 
               <span className={styles.counter}>
@@ -217,7 +243,7 @@ function ClassifierForm({
               onChange={(event) =>
                 setDescription(event.target.value)
               }
-              placeholder="Describe the objectives, activities, beneficiaries, location, and expected impact..."
+              placeholder={`Describe the ${contentLabel}'s objectives, activities, beneficiaries, location, and expected impact...`}
               rows={7}
               maxLength={10000}
               disabled={loading}
@@ -340,11 +366,11 @@ function ClassifierForm({
 
           {file && (
             <div className={styles.fileSelected}>
-              <div className={styles.fileIcon} aria-hidden="true">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                >
+              <div
+                className={styles.fileIcon}
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" fill="none">
                   <path
                     d="M6 3.75h8l4 4V20a.75.75 0 0 1-.75.75h-10.5A.75.75 0 0 1 6 20V3.75Z"
                     stroke="currentColor"
@@ -414,7 +440,9 @@ function ClassifierForm({
             disabled={loading || !file}
           >
             <span>
-              {loading ? "Analyzing document..." : "Analyze document"}
+              {loading
+                ? "Analyzing document..."
+                : "Analyze document"}
             </span>
 
             {!loading && <span aria-hidden="true">→</span>}
