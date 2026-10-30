@@ -1,4 +1,3 @@
-
 import styles from "./HeroBanner.module.css";
 import backgroundImage from "../../assets/clocktower.png";
 
@@ -11,11 +10,14 @@ function HeroBanner({
 }) {
   return (
     <section className={styles.hero}>
-     <img
-  className={styles.backgroundImage}
-  src={backgroundImage}
-  alt="Clock tower"
-/>
+      <img
+        className={styles.backgroundImage}
+        src={backgroundImage}
+        alt="Clock tower"
+        onError={(e) => {
+          console.error("Failed to load Hero Banner image:", e.currentTarget.src);
+        }}
+      />
 
       <div className={styles.overlay}></div>
 

@@ -1,7 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
-
+import clocktower from "../assets/clocktower.png";
 import SDGCharts from "../components/SDGCharts/SDGCharts";
 import SummaryCards from "../components/SummaryCards";
 import BarangayContributionRanking from "../components/BarangayContributionRanking";
@@ -13,7 +13,10 @@ function Home() {
   return (
     <main className="Home">
       <section className="hero">
-        <div className="hero-bg" />
+        <div
+  className="hero-bg"
+  style={{ backgroundImage: `url(${clocktower})` }}
+/>
         <div className="hero-overlay" />
 
         <div className="hero-content">

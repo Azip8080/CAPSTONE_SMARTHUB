@@ -10,11 +10,11 @@
 
 .blurredContent {
   min-height: 520px;
-  filter: blur(7px);
-  opacity: 0.55;
+  filter: none;
+  opacity: 1;
   user-select: none;
   pointer-events: none;
-  transform: scale(1.01);
+  transform: none;
 }
 
 .overlay {
