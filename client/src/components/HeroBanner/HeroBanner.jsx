@@ -1,3 +1,4 @@
+
 import styles from "./HeroBanner.module.css";
 import backgroundImage from "../../assets/clocktower.png";
 
@@ -9,24 +10,21 @@ function HeroBanner({
   onButtonClick,
 }) {
   return (
-    <section
-      className={styles.hero}
-      style={{
-        backgroundImage: `linear-gradient(rgba(5, 20, 45, 0.58), rgba(5, 20, 45, 0.58)), url(${backgroundImage})`,
-      }}
-    >
+    <section className={styles.hero}>
+     <img
+  className={styles.backgroundImage}
+  src={backgroundImage}
+  alt="Clock tower"
+/>
+
+      <div className={styles.overlay}></div>
+
       <div className={styles.content}>
-        <span className={styles.eyebrow}>
-          {eyebrow}
-        </span>
+        <span className={styles.eyebrow}>{eyebrow}</span>
 
-        <h1 className={styles.title}>
-          {title}
-        </h1>
+        <h1 className={styles.title}>{title}</h1>
 
-        <p className={styles.description}>
-          {description}
-        </p>
+        <p className={styles.description}>{description}</p>
 
         {buttonText && (
           <button
