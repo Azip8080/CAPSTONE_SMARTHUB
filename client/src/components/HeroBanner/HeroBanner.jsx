@@ -1,4 +1,3 @@
-
 import styles from "./HeroBanner.module.css";
 import backgroundImage from "../../assets/BG.png";
 
@@ -13,7 +12,7 @@ function HeroBanner({
     <section
       className={styles.hero}
       style={{
-        backgroundImage: `linear-gradient(rgba(5, 20, 45, 0.65), rgba(5, 20, 45, 0.65)), url("${backgroundImage}")`,
+        backgroundImage: `linear-gradient(rgba(5, 20, 45, 0.58), rgba(5, 20, 45, 0.58)), url(${backgroundImage})`,
       }}
     >
       <div className={styles.content}>
@@ -39,6 +38,11 @@ function HeroBanner({
             <span>→</span>
           </button>
         )}
+
+        <a href="#analytics" className={styles.explore}>
+          EXPLORE ANALYTICS
+          <span>↓</span>
+        </a>
       </div>
     </section>
   );
