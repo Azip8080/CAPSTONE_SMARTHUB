@@ -34,9 +34,6 @@ fs.mkdirSync(path.join(uploadsRoot, "projects"), {
   recursive: true,
 });
 
-// Serve images and documents from:
-// /uploads/knowledge/filename.png
-// /uploads/projects/filename.png
 app.use("/uploads", express.static(uploadsRoot));
 
 app.use((req, res, next) => {
@@ -44,7 +41,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// API routes
 app.use("/api/knowledge", knowledgeRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/users", userRoutes);
@@ -58,7 +54,6 @@ app.get("/", (req, res) => {
   res.send("SDG Smart Hub Backend Running");
 });
 
-// Helpful upload diagnostic endpoint.
 app.get("/api/health/uploads", (req, res) => {
   const knowledgeDir = path.join(uploadsRoot, "knowledge");
   const projectsDir = path.join(uploadsRoot, "projects");

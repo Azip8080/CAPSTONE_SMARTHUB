@@ -93,7 +93,7 @@ function KnowledgeHub() {
           className={styles.addBtn}
           onClick={openAdd}
         >
-          + Add article
+          + Add Resource
         </button>
       </div>
 

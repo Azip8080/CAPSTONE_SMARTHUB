@@ -6,22 +6,45 @@ const KnowledgeArticleSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
     },
     summary: {
       type: String,
-      required: true,
+      default: "",
     },
     content: {
       type: String,
-      required: true,
+      default: "",
     },
     sdgTag: {
-      type: String,
-      required: true,
+  type: String,
+  default: "",
+},
+    sdgTags: {
+      type: [String],
+      default: [],
     },
     category: {
       type: String,
       default: "Guide",
+    },
+    resourceType: {
+      type: String,
+      enum: ["uploaded", "youtube", "shorts", "article"],
+      default: "uploaded",
+    },
+    sourceUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    embedUrl: {
+      type: String,
+      default: "",
+    },
+    thumbnailUrl: {
+      type: String,
+      default: "",
     },
     photos: {
       type: [String],
@@ -46,4 +69,7 @@ const KnowledgeArticleSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("KnowledgeArticle", KnowledgeArticleSchema);
+module.exports = mongoose.model(
+  "KnowledgeArticle",
+  KnowledgeArticleSchema
+);

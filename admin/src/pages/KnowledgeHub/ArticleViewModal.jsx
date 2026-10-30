@@ -13,16 +13,18 @@ function ArticleViewModal({ article, onEdit, onDelete }) {
     : [];
 
   const document = article.document || null;
-
-  const documentPath =
-    document?.path || document?.url || "";
-
+  const documentPath = document?.path || document?.url || "";
   const documentUrl = getFileUrl(documentPath);
 
   const documentName =
     document?.originalName ||
     document?.filename ||
     "Uploaded resource document";
+
+  const resourceType = article.resourceType || "uploaded";
+
+  const isVideo =
+    resourceType === "youtube" || resourceType === "shorts";
 
   return (
     <div className={styles.viewBody}>
@@ -51,15 +53,88 @@ function ArticleViewModal({ article, onEdit, onDelete }) {
         </div>
       </div>
 
-      <section className={styles.gallerySection}>
-        <div className={styles.sectionHeading}>
-          <h3>Resource Photos</h3>
-          <span>
-            {photos.length} photo{photos.length !== 1 ? "s" : ""}
-          </span>
-        </div>
+      {isVideo && article.embedUrl && (
+        <section className={styles.contentSection}>
+          <div className={styles.sectionHeading}>
+            <h3>
+              {resourceType === "shorts"
+                ? "YouTube Shorts"
+                : "YouTube Video"}
+            </h3>
+          </div>
 
-        {photos.length > 0 ? (
+          <div
+            style={{
+              width: "100%",
+              maxWidth: resourceType === "shorts" ? "360px" : "720px",
+              aspectRatio: resourceType === "shorts" ? "9 / 16" : "16 / 9",
+              margin: "0 auto",
+            }}
+          >
+            <iframe
+              src={article.embedUrl}
+              title={article.title}
+              style={{
+                width: "100%",
+                height: "100%",
+                border: 0,
+                borderRadius: "12px",
+              }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        </section>
+      )}
+
+      {resourceType === "article" && article.sourceUrl && (
+        <section className={styles.contentSection}>
+          <div className={styles.sectionHeading}>
+            <h3>External Article</h3>
+          </div>
+
+          {article.thumbnailUrl && (
+            <img
+              src={article.thumbnailUrl}
+              alt={article.title}
+              style={{
+                width: "100%",
+                maxHeight: "300px",
+                objectFit: "cover",
+                borderRadius: "12px",
+                marginBottom: "15px",
+              }}
+            />
+          )}
+
+          <a
+            href={article.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-block",
+              padding: "11px 18px",
+              background: "#2563eb",
+              color: "#fff",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            Read Full Article
+          </a>
+        </section>
+      )}
+
+      {photos.length > 0 && (
+        <section className={styles.gallerySection}>
+          <div className={styles.sectionHeading}>
+            <h3>Resource Photos</h3>
+            <span>
+              {photos.length} photo{photos.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+
           <div className={styles.photoGrid}>
             {photos.map((photo, index) => {
               const photoUrl = getFileUrl(photo);
@@ -77,27 +152,13 @@ function ArticleViewModal({ article, onEdit, onDelete }) {
                     src={photoUrl}
                     alt={`${article.title} - photo ${index + 1}`}
                     loading="lazy"
-                    onLoad={() => {
-                      console.log("Knowledge Hub image loaded:", photoUrl);
-                    }}
-                    onError={(event) => {
-                      console.error("Knowledge Hub image failed:", {
-                        storedPath: photo,
-                        resolvedUrl: photoUrl,
-                        actualUrl: event.currentTarget.currentSrc,
-                      });
-                    }}
                   />
                 </div>
               );
             })}
           </div>
-        ) : (
-          <div className={styles.photoEmpty}>
-            No resource photos available.
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className={styles.contentSection}>
         <div className={styles.sectionHeading}>
@@ -108,17 +169,23 @@ function ArticleViewModal({ article, onEdit, onDelete }) {
           <p className={styles.viewContent}>{article.summary}</p>
         )}
 
-        <p className={styles.viewContent}>
-          {article.content || "No resource content available."}
-        </p>
+        {article.content && (
+          <p className={styles.viewContent}>{article.content}</p>
+        )}
+
+        {!article.summary && !article.content && (
+          <p className={styles.viewContent}>
+            No additional content available.
+          </p>
+        )}
       </section>
 
-      <section className={styles.documentSection}>
-        <div className={styles.sectionHeading}>
-          <h3>Resource Document</h3>
-        </div>
+      {documentUrl && (
+        <section className={styles.documentSection}>
+          <div className={styles.sectionHeading}>
+            <h3>Resource Document</h3>
+          </div>
 
-        {documentUrl ? (
           <div className={styles.documentCard}>
             <div className={styles.documentIcon}>
               <svg
@@ -150,12 +217,8 @@ function ArticleViewModal({ article, onEdit, onDelete }) {
               View Document
             </a>
           </div>
-        ) : (
-          <div className={styles.documentEmpty}>
-            No resource document uploaded.
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className={styles.infoSection}>
         <div>
@@ -169,10 +232,8 @@ function ArticleViewModal({ article, onEdit, onDelete }) {
         </div>
 
         <div>
-          <span className={styles.infoLabel}>SDG GOAL</span>
-          <span className={styles.infoValue}>
-            {sdg?.label || article.sdgTag}
-          </span>
+          <span className={styles.infoLabel}>RESOURCE TYPE</span>
+          <span className={styles.infoValue}>{resourceType}</span>
         </div>
       </section>
 

@@ -20,23 +20,8 @@ import sdg16 from "../../../assets/16.jpg";
 import sdg17 from "../../../assets/17.jpg";
 
 const images = [
-  sdg1,
-  sdg2,
-  sdg3,
-  sdg4,
-  sdg5,
-  sdg6,
-  sdg7,
-  sdg8,
-  sdg9,
-  sdg10,
-  sdg11,
-  sdg12,
-  sdg13,
-  sdg14,
-  sdg15,
-  sdg16,
-  sdg17,
+  sdg1, sdg2, sdg3, sdg4, sdg5, sdg6, sdg7, sdg8, sdg9,
+  sdg10, sdg11, sdg12, sdg13, sdg14, sdg15, sdg16, sdg17,
 ];
 
 const SDG_LIST = [
@@ -44,159 +29,126 @@ const SDG_LIST = [
     number: 1,
     label: "No Poverty",
     color: "#E5243B",
-    description:
-      "No Poverty focuses on reducing poverty and improving access to basic needs, opportunities, and social protection.",
-    community:
-      "Community programs may include livelihood assistance, financial support, housing initiatives, and services for vulnerable families.",
+    description: "No Poverty focuses on reducing poverty and improving access to basic needs, opportunities, and social protection.",
+    community: "Community programs may include livelihood assistance, financial support, housing initiatives, and services for vulnerable families.",
   },
   {
     number: 2,
     label: "Zero Hunger",
     color: "#DDA63A",
-    description:
-      "Zero Hunger focuses on ending hunger, improving nutrition, ensuring food security, and supporting sustainable agriculture.",
-    community:
-      "Community efforts may include feeding programs, food assistance, community gardens, nutrition programs, and support for local farmers.",
+    description: "Zero Hunger focuses on ending hunger, improving nutrition, ensuring food security, and supporting sustainable agriculture.",
+    community: "Community efforts may include feeding programs, food assistance, community gardens, nutrition programs, and support for local farmers.",
   },
   {
     number: 3,
     label: "Good Health",
     color: "#4C9F38",
-    description:
-      "Good Health promotes healthy lives and well-being for people of all ages through accessible and effective health services.",
-    community:
-      "Examples include medical missions, vaccination programs, health education, mental health support, and community wellness activities.",
+    description: "Good Health promotes healthy lives and well-being for people of all ages through accessible and effective health services.",
+    community: "Examples include medical missions, vaccination programs, health education, mental health support, and community wellness activities.",
   },
   {
     number: 4,
     label: "Quality Education",
     color: "#C5192D",
-    description:
-      "Quality Education promotes inclusive and equitable learning opportunities and encourages lifelong learning for everyone.",
-    community:
-      "Community initiatives may include scholarships, literacy programs, skills training, digital learning, and educational assistance.",
+    description: "Quality Education promotes inclusive and equitable learning opportunities and encourages lifelong learning for everyone.",
+    community: "Community initiatives may include scholarships, literacy programs, skills training, digital learning, and educational assistance.",
   },
   {
     number: 5,
     label: "Gender Equality",
     color: "#FF3A21",
-    description:
-      "Gender Equality promotes equal rights, opportunities, and participation for women and girls while addressing discrimination and inequality.",
-    community:
-      "Programs may include women's empowerment, gender awareness, livelihood opportunities, and protection against discrimination and violence.",
+    description: "Gender Equality promotes equal rights, opportunities, and participation for women and girls while addressing discrimination and inequality.",
+    community: "Programs may include women's empowerment, gender awareness, livelihood opportunities, and protection against discrimination and violence.",
   },
   {
     number: 6,
     label: "Clean Water",
     color: "#26BDE2",
-    description:
-      "Clean Water focuses on ensuring access to safe water, sanitation, and proper hygiene while protecting water resources.",
-    community:
-      "Examples include clean water projects, sanitation facilities, drainage improvements, and community hygiene programs.",
+    description: "Clean Water focuses on ensuring access to safe water, sanitation, and proper hygiene while protecting water resources.",
+    community: "Examples include clean water projects, sanitation facilities, drainage improvements, and community hygiene programs.",
   },
   {
     number: 7,
     label: "Clean Energy",
     color: "#FCC30B",
-    description:
-      "Clean Energy promotes affordable, reliable, sustainable, and modern energy for communities.",
-    community:
-      "Community projects may include solar energy systems, energy-saving programs, renewable energy projects, and improved access to electricity.",
+    description: "Clean Energy promotes affordable, reliable, sustainable, and modern energy for communities.",
+    community: "Community projects may include solar energy systems, energy-saving programs, renewable energy projects, and improved access to electricity.",
   },
   {
     number: 8,
     label: "Decent Work",
     color: "#A21942",
-    description:
-      "Decent Work promotes inclusive economic growth, productive employment, fair working conditions, and opportunities for sustainable livelihoods.",
-    community:
-      "Examples include job training, employment programs, livelihood projects, entrepreneurship support, and small business development.",
+    description: "Decent Work promotes inclusive economic growth, productive employment, fair working conditions, and opportunities for sustainable livelihoods.",
+    community: "Examples include job training, employment programs, livelihood projects, entrepreneurship support, and small business development.",
   },
   {
     number: 9,
     label: "Industry & Innovation",
     color: "#FD6925",
-    description:
-      "Industry and Innovation focuses on resilient infrastructure, sustainable industries, technological development, and innovation.",
-    community:
-      "Community initiatives may include digital infrastructure, technology programs, improved facilities, and innovation-based projects.",
+    description: "Industry and Innovation focuses on resilient infrastructure, sustainable industries, technological development, and innovation.",
+    community: "Community initiatives may include digital infrastructure, technology programs, improved facilities, and innovation-based projects.",
   },
   {
     number: 10,
     label: "Reduced Inequalities",
     color: "#DD1367",
-    description:
-      "Reduced Inequalities promotes social and economic inclusion and works toward reducing inequalities within communities.",
-    community:
-      "Examples include programs supporting persons with disabilities, vulnerable groups, equal access to services, and social inclusion.",
+    description: "Reduced Inequalities promotes social and economic inclusion and works toward reducing inequalities within communities.",
+    community: "Examples include programs supporting persons with disabilities, vulnerable groups, equal access to services, and social inclusion.",
   },
   {
     number: 11,
     label: "Sustainable Cities",
     color: "#FD9D24",
-    description:
-      "Sustainable Cities promotes inclusive, safe, resilient, and sustainable communities and human settlements.",
-    community:
-      "Projects may include public transportation, housing, disaster preparedness, community infrastructure, and safer public spaces.",
+    description: "Sustainable Cities promotes inclusive, safe, resilient, and sustainable communities and human settlements.",
+    community: "Projects may include public transportation, housing, disaster preparedness, community infrastructure, and safer public spaces.",
   },
   {
     number: 12,
     label: "Responsible Consumption",
     color: "#BF8B2E",
-    description:
-      "Responsible Consumption encourages communities to use resources efficiently and reduce waste throughout production and consumption.",
-    community:
-      "Examples include recycling programs, waste reduction, responsible purchasing, plastic reduction, and sustainable production.",
+    description: "Responsible Consumption encourages communities to use resources efficiently and reduce waste throughout production and consumption.",
+    community: "Examples include recycling programs, waste reduction, responsible purchasing, plastic reduction, and sustainable production.",
   },
   {
     number: 13,
     label: "Climate Action",
     color: "#3F7E44",
-    description:
-      "Climate Action focuses on reducing the effects of climate change and strengthening communities' ability to respond to climate-related risks.",
-    community:
-      "Community activities may include disaster preparedness, tree planting, climate education, and environmental protection programs.",
+    description: "Climate Action focuses on reducing the effects of climate change and strengthening communities' ability to respond to climate-related risks.",
+    community: "Community activities may include disaster preparedness, tree planting, climate education, and environmental protection programs.",
   },
   {
     number: 14,
     label: "Life Below Water",
     color: "#0A97D9",
-    description:
-      "Life Below Water focuses on protecting oceans, seas, rivers, and other aquatic ecosystems and using marine resources responsibly.",
-    community:
-      "Examples include coastal cleanups, marine conservation, sustainable fishing, and programs that reduce pollution entering waterways.",
+    description: "Life Below Water focuses on protecting oceans, seas, rivers, and other aquatic ecosystems and using marine resources responsibly.",
+    community: "Examples include coastal cleanups, marine conservation, sustainable fishing, and programs that reduce pollution entering waterways.",
   },
   {
     number: 15,
     label: "Life on Land",
     color: "#56C02B",
-    description:
-      "Life on Land promotes the protection, restoration, and sustainable use of forests, ecosystems, and biodiversity.",
-    community:
-      "Community projects may include tree planting, forest conservation, wildlife protection, habitat restoration, and environmental education.",
+    description: "Life on Land promotes the protection, restoration, and sustainable use of forests, ecosystems, and biodiversity.",
+    community: "Community projects may include tree planting, forest conservation, wildlife protection, habitat restoration, and environmental education.",
   },
   {
     number: 16,
     label: "Peace & Justice",
     color: "#00689D",
-    description:
-      "Peace and Justice promotes peaceful and inclusive communities, access to justice, accountability, and effective institutions.",
-    community:
-      "Examples include community safety programs, legal assistance, conflict resolution, transparent governance, and peace-building activities.",
+    description: "Peace and Justice promotes peaceful and inclusive communities, access to justice, accountability, and effective institutions.",
+    community: "Examples include community safety programs, legal assistance, conflict resolution, transparent governance, and peace-building activities.",
   },
   {
     number: 17,
     label: "Partnerships",
     color: "#19486A",
-    description:
-      "Partnerships for the Goals emphasizes collaboration between communities, governments, organizations, institutions, and other partners.",
-    community:
-      "Community partnerships may bring together barangays, schools, government agencies, organizations, businesses, and residents to achieve shared goals.",
+    description: "Partnerships for the Goals emphasizes collaboration between communities, governments, organizations, institutions, and other partners.",
+    community: "Community partnerships may bring together barangays, schools, government agencies, organizations, businesses, and residents to achieve shared goals.",
   },
 ];
 
 SDG_LIST.forEach((sdg, index) => {
   sdg.image = images[index];
+  sdg.unLink = `https://sdgs.un.org/goals/goal${sdg.number}`;
 });
 
 function SDGModal({ sdg, onClose }) {
@@ -209,15 +161,11 @@ function SDGModal({ sdg, onClose }) {
     >
       <div
         className={styles.modal}
-        onClick={(e) =>
-          e.stopPropagation()
-        }
+        onClick={(e) => e.stopPropagation()}
       >
         <div
           className={styles.modalHeader}
-          style={{
-            background: sdg.color,
-          }}
+          style={{ background: sdg.color }}
         >
           <span className={styles.modalNumber}>
             SDG {sdg.number}
@@ -246,19 +194,22 @@ function SDGModal({ sdg, onClose }) {
 
           <div className={styles.modalSection}>
             <h3>What is this goal?</h3>
-
-            <p>
-              {sdg.description}
-            </p>
+            <p>{sdg.description}</p>
           </div>
 
           <div className={styles.modalSection}>
             <h3>Community application</h3>
-
-            <p>
-              {sdg.community}
-            </p>
+            <p>{sdg.community}</p>
           </div>
+
+          <a
+            href={sdg.unLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.unLink}
+          >
+            Learn more on the UN website ↗
+          </a>
         </div>
       </div>
     </div>
@@ -266,8 +217,7 @@ function SDGModal({ sdg, onClose }) {
 }
 
 export default function SDGGoals() {
-  const [selected, setSelected] =
-    useState(null);
+  const [selected, setSelected] = useState(null);
 
   return (
     <section>
@@ -276,8 +226,7 @@ export default function SDGGoals() {
       </h2>
 
       <p className={styles.sectionSubtitle}>
-        Explore each goal to understand its
-        purpose and how it can support
+        Explore each goal to understand its purpose and how it can support
         sustainable community development.
       </p>
 
@@ -287,9 +236,8 @@ export default function SDGGoals() {
             key={sdg.number}
             type="button"
             className={styles.sdgCard}
-            onClick={() =>
-              setSelected(sdg)
-            }
+            onClick={() => setSelected(sdg)}
+            aria-label={`Learn about SDG ${sdg.number}: ${sdg.label}`}
           >
             <img
               src={sdg.image}
@@ -302,9 +250,7 @@ export default function SDGGoals() {
 
       <SDGModal
         sdg={selected}
-        onClose={() =>
-          setSelected(null)
-        }
+        onClose={() => setSelected(null)}
       />
     </section>
   );

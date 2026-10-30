@@ -6,9 +6,7 @@ import { getFileUrl } from "../../utils/fileUrl";
 function formatUploadDate(article) {
   const uploadedAt = article.createdAt || article.uploadedAt;
 
-  if (!uploadedAt) {
-    return "Upload date unavailable";
-  }
+  if (!uploadedAt) return "Upload date unavailable";
 
   const date = new Date(uploadedAt);
 
@@ -23,6 +21,17 @@ function formatUploadDate(article) {
   });
 }
 
+function getResourceLabel(type) {
+  const labels = {
+    uploaded: "File Resource",
+    youtube: "YouTube Video",
+    shorts: "YouTube Shorts",
+    article: "Article Link",
+  };
+
+  return labels[type] || "Knowledge Resource";
+}
+
 function ArticleCard({ article, onView, onEdit, onDelete }) {
   const sdg = getSdgInfo(article.sdgTag);
 
@@ -31,12 +40,22 @@ function ArticleCard({ article, onView, onEdit, onDelete }) {
     : [];
 
   const firstPhoto = photos[0];
-  const photoUrl = firstPhoto ? getFileUrl(firstPhoto) : "";
+  const photoUrl = firstPhoto
+    ? getFileUrl(firstPhoto)
+    : article.thumbnailUrl || "";
 
   return (
     <div
       className={styles.card}
       onClick={() => onView(article)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onView(article);
+        }
+      }}
     >
       <div
         className={styles.cardTop}
@@ -58,6 +77,27 @@ function ArticleCard({ article, onView, onEdit, onDelete }) {
         </div>
       </div>
 
+      <div
+        style={{
+          padding: "0 16px",
+          marginTop: "10px",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-block",
+            fontSize: "11px",
+            fontWeight: 700,
+            padding: "5px 9px",
+            borderRadius: "20px",
+            background: "#eef2ff",
+            color: "#3730a3",
+          }}
+        >
+          {getResourceLabel(article.resourceType)}
+        </span>
+      </div>
+
       {photoUrl ? (
         <img
           className={styles.cardImage}
@@ -65,11 +105,7 @@ function ArticleCard({ article, onView, onEdit, onDelete }) {
           alt={article.title || "Knowledge resource"}
           loading="lazy"
           onError={(event) => {
-            console.error("Article card image failed to load:", {
-              storedPath: firstPhoto,
-              resolvedUrl: photoUrl,
-              actualUrl: event.currentTarget.currentSrc,
-            });
+            event.currentTarget.style.display = "none";
           }}
         />
       ) : (
@@ -86,7 +122,7 @@ function ArticleCard({ article, onView, onEdit, onDelete }) {
         </p>
 
         <p className={styles.cardContent}>
-          {article.content}
+          {article.summary || article.content || "No description available."}
         </p>
 
         <div className={styles.cardFooter}>

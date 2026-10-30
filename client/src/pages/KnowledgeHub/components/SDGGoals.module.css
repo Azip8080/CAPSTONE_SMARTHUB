@@ -183,3 +183,21 @@
     grid-template-columns: repeat(2, 140px);
   }
 }
+.unLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: #0b5f9e;
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.unLink:hover {
+  background: #084b7d;
+  transform: translateY(-2px);
+}
