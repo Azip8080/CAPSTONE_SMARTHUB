@@ -1,5 +1,5 @@
 import styles from "./HeroBanner.module.css";
-import backgroundImage from "../../assets/BG.png";
+import backgroundImage from "../../assets/clocktower.png";
 
 function HeroBanner({
   eyebrow,
