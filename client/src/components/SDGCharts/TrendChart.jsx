@@ -9,107 +9,108 @@ const TREND_METRICS = [
   { label: "Events", value: "events" },
 ];
 
-function TrendChart({ range }) {
+function TrendChart({ range, barangay = "" }) {
   const canvasRef = useRef(null);
-  const [metric, setMetric] =
-    useState("projects");
+  const [metric, setMetric] = useState("projects");
   const [data, setData] = useState([]);
-  const [loading, setLoading] =
-    useState(true);
-  const [error, setError] =
-    useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let cancelled = false;
 
-    fetchTrend({ metric, range })
-      .then(setData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [metric, range]);
+    async function loadData() {
+      setLoading(true);
+      setError("");
 
-  const config =
-    data.length > 0
-      ? {
-          type: "line",
-          data: {
-            labels: data.map(
-              (d) => d.label
-            ),
-            datasets: [
-              {
-                label:
-                  TREND_METRICS.find(
-                    (m) =>
-                      m.value === metric
-                  )?.label || metric,
-                data: data.map(
-                  (d) => d.total
-                ),
-                borderColor: "#0a4a38",
-                backgroundColor:
-                  "rgba(10, 74, 56, 0.06)",
-                fill: true,
-                tension: 0.4,
-                pointRadius: 4,
-                pointBackgroundColor:
-                  "#0a4a38",
-                pointBorderColor: "#fff",
-                pointBorderWidth: 2,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: false,
-              },
-              tooltip: {
-                backgroundColor: "#111",
-                titleColor: "#fff",
-                bodyColor:
-                  "rgba(255,255,255,0.7)",
-                padding: 10,
-                cornerRadius: 8,
-              },
-            },
-            scales: {
-              x: {
-                grid: {
-                  display: false,
-                },
-                ticks: {
-                  font: {
-                    size: 11,
-                  },
-                  color: "#bbb",
-                  maxRotation: 0,
-                },
-              },
-              y: {
-                beginAtZero: true,
-                grid: {
-                  color:
-                    "rgba(0,0,0,0.04)",
-                },
-                ticks: {
-                  font: {
-                    size: 11,
-                  },
-                  color: "#bbb",
-                  precision: 0,
-                },
-                border: {
-                  display: false,
-                },
-              },
-            },
-          },
+      try {
+        const result = await fetchTrend({
+          metric,
+          range,
+          barangay,
+        });
+
+        if (!cancelled) {
+          setData(Array.isArray(result) ? result : []);
         }
-      : null;
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || "Unable to load SDG trends.");
+          setData([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [metric, range, barangay]);
+
+  const selectedMetric =
+    TREND_METRICS.find((item) => item.value === metric)?.label || metric;
+
+  const config = data.length
+    ? {
+        type: "line",
+        data: {
+          labels: data.map((item) => item.label),
+          datasets: [
+            {
+              label: selectedMetric,
+              data: data.map((item) => Number(item.total || 0)),
+              borderColor: "#0a4a38",
+              backgroundColor: "rgba(10, 74, 56, 0.06)",
+              fill: true,
+              tension: 0.4,
+              pointRadius: 4,
+              pointBackgroundColor: "#0a4a38",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "#111",
+              titleColor: "#fff",
+              bodyColor: "rgba(255,255,255,0.7)",
+              padding: 10,
+              cornerRadius: 8,
+            },
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { size: 11 },
+                color: "#bbb",
+                maxRotation: 0,
+              },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: "rgba(0,0,0,0.04)" },
+              ticks: {
+                font: { size: 11 },
+                color: "#bbb",
+                precision: 0,
+              },
+              border: { display: false },
+            },
+          },
+        },
+      }
+    : null;
 
   useChart(canvasRef, config);
 
@@ -117,60 +118,47 @@ function TrendChart({ range }) {
     <div className={styles.chartCard}>
       <div className={styles.chartCardHeader}>
         <p className={styles.chartCardTitle}>
-          SDG trend over time
+          SDG Trend Over Time
         </p>
 
         <div className={styles.metricToggle}>
-          {TREND_METRICS.map((m) => (
+          {TREND_METRICS.map((item) => (
             <button
               type="button"
-              key={m.value}
+              key={item.value}
               className={`${styles.metricBtn} ${
-                metric === m.value
-                  ? styles.active
-                  : ""
+                metric === item.value ? styles.active : ""
               }`}
-              onClick={() =>
-                setMetric(m.value)
-              }
+              onClick={() => setMetric(item.value)}
+              aria-pressed={metric === item.value}
             >
-              {m.label}
+              {item.label}
             </button>
           ))}
         </div>
       </div>
 
       {loading && (
-        <p className={styles.chartStatus}>
-          Loading…
-        </p>
+        <p className={styles.chartStatus}>Loading...</p>
       )}
 
       {error && (
-        <p
-          className={
-            styles.chartStatusError
-          }
-        >
+        <p className={styles.chartStatusError} role="alert">
           {error}
         </p>
       )}
 
-      {!loading &&
-        !error &&
-        data.length === 0 && (
-          <p className={styles.chartStatus}>
-            No data available yet.
-          </p>
-        )}
+      {!loading && !error && data.length === 0 && (
+        <p className={styles.chartStatus}>
+          No data available yet.
+        </p>
+      )}
 
-      <div
-        className={
-          styles.trendCanvasWrapper
-        }
-      >
-        <canvas ref={canvasRef} />
-      </div>
+      {!loading && !error && data.length > 0 && (
+        <div className={styles.trendCanvasWrapper}>
+          <canvas ref={canvasRef} />
+        </div>
+      )}
     </div>
   );
 }

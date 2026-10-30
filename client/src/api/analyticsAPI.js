@@ -1,4 +1,3 @@
-
 const BASE = (
   import.meta.env.VITE_API_URL ||
   "https://sdg-smarthub-api.onrender.com/api"
@@ -8,13 +7,6 @@ const TOKEN_KEY = "token";
 
 async function analyticsRequest(endpoint, params = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
-
-  console.log("[Analytics Debug]", {
-    tokenFound: Boolean(token),
-    tokenLength: token?.length ?? 0,
-    origin: window.location.origin,
-    endpoint,
-  });
 
   if (!token) {
     throw new Error("Please log in to view analytics.");
@@ -29,9 +21,7 @@ async function analyticsRequest(endpoint, params = {}) {
   });
 
   const query = queryParams.toString();
-  const url = `${BASE}/analytics/${endpoint}${
-    query ? `?${query}` : ""
-  }`;
+  const url = `${BASE}/analytics/${endpoint}${query ? `?${query}` : ""}`;
 
   const res = await fetch(url, {
     method: "GET",

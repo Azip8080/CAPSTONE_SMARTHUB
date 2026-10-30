@@ -17,16 +17,21 @@ export default function SDGCharts({ barangay = "" }) {
   return (
     <section className={styles.sdgCharts}>
       <div className={styles.sdgChartsInner}>
-        <div className={styles.chartsHeading}>
-          <h2>SDG Analytics</h2>
-          <p>
-            Track SDG progress and project activity
-            {barangay ? ` in ${barangay}` : " in your community"}.
-          </p>
-        </div>
 
-        <div className={styles.chartsToolbar}>
-          <p className={styles.chartsToolbarLabel}>Period</p>
+        <div className={styles.analyticsHeader}>
+          <div className={styles.chartsHeading}>
+            <span className={styles.sectionLabel}>
+              CLIENT ANALYTICS
+            </span>
+
+            <h2>SDG Analytics</h2>
+
+            <p>
+              Monitor project distribution, SDG participation,
+              and activity trends
+              {barangay ? ` in ${barangay}` : " in your community"}.
+            </p>
+          </div>
 
           <div
             className={styles.rangePills}
@@ -38,7 +43,9 @@ export default function SDGCharts({ barangay = "" }) {
                 type="button"
                 key={option.value}
                 className={`${styles.rangePill} ${
-                  range === option.value ? styles.active : ""
+                  range === option.value
+                    ? styles.rangePillActive
+                    : ""
                 }`}
                 onClick={() => setRange(option.value)}
                 aria-pressed={range === option.value}
@@ -49,12 +56,25 @@ export default function SDGCharts({ barangay = "" }) {
           </div>
         </div>
 
-        <DistributionChart range={range} />
+        {/* FIRST: FULL-WIDTH DISTRIBUTION */}
+        <DistributionChart
+          range={range}
+          barangay={barangay}
+        />
 
-        <div className={styles.chartsRow}>
-          <ParticipationChart range={range} />
-          <TrendChart range={range} />
+        {/* SECOND: PARTICIPATION AND TREND SIDE BY SIDE */}
+        <div className={styles.analyticsGrid}>
+          <ParticipationChart
+            range={range}
+            barangay={barangay}
+          />
+
+          <TrendChart
+            range={range}
+            barangay={barangay}
+          />
         </div>
+
       </div>
     </section>
   );
