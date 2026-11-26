@@ -4,13 +4,45 @@ const BASE = (
   "https://sdg-smarthub-api.onrender.com/api"
 ).replace(/\/+$/, "");
 
-export async function fetchEvents(params = {}) {
+function getHeaders(useJson = false) {
   const token = localStorage.getItem("token");
 
-  if (!token) {
-    throw new Error("Please log in to view events.");
+  const headers = {
+    Accept: "application/json",
+  };
+
+  if (useJson) {
+    headers["Content-Type"] = "application/json";
   }
 
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+async function request(endpoint, options = {}) {
+  const isFormData = options.body instanceof FormData;
+
+  const res = await fetch(`${BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      ...getHeaders(!isFormData && options.body !== undefined),
+      ...options.headers,
+    },
+  });
+
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || "Something went wrong.");
+  }
+
+  return json.data ?? json;
+}
+
+export async function fetchEvents(params = {}) {
   const query = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
@@ -20,21 +52,70 @@ export async function fetchEvents(params = {}) {
   });
 
   const queryString = query.toString();
-  const url = `${BASE}/events${queryString ? `?${queryString}` : ""}`;
 
-  const res = await fetch(url, {
+  return request(
+    `/events${queryString ? `?${queryString}` : ""}`,
+    { method: "GET" }
+  );
+}
+
+export async function fetchMyEventSubmissions() {
+  return request("/events/my-submissions", {
     method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
   });
+}
 
-  const json = await res.json().catch(() => ({}));
+export async function fetchAdminEvents() {
+  return request("/events/admin/all", {
+    method: "GET",
+  });
+}
 
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || "Failed to fetch events.");
-  }
+export async function fetchPendingEvents() {
+  return request("/events/admin/pending", {
+    method: "GET",
+  });
+}
 
-  return json.data ?? json;
+export async function createEvent(eventData) {
+  const body =
+    eventData instanceof FormData
+      ? eventData
+      : JSON.stringify(eventData);
+
+  return request("/events", {
+    method: "POST",
+    body,
+  });
+}
+
+export async function updateEvent(eventId, eventData) {
+  const body =
+    eventData instanceof FormData
+      ? eventData
+      : JSON.stringify(eventData);
+
+  return request(`/events/${eventId}`, {
+    method: "PUT",
+    body,
+  });
+}
+
+export async function approveEvent(eventId) {
+  return request(`/events/${eventId}/approve`, {
+    method: "PATCH",
+  });
+}
+
+export async function rejectEvent(eventId, remarks) {
+  return request(`/events/${eventId}/reject`, {
+    method: "PATCH",
+    body: JSON.stringify({ remarks }),
+  });
+}
+
+export async function deleteEvent(eventId) {
+  return request(`/events/${eventId}`, {
+    method: "DELETE",
+  });
 }

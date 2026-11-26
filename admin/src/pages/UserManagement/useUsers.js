@@ -1,4 +1,3 @@
-// useUsers.js
 
 import {
   useState,
@@ -103,8 +102,14 @@ export function useUsers() {
     });
   }, [users, search, roleFilter]);
 
-  const counts = useMemo(
-    () => ({
+  const counts = useMemo(() => {
+    const managedUsers = users.filter(
+      (u) =>
+        u.role === "community_member" ||
+        u.role === "barangay_personnel"
+    );
+
+    return {
       all: users.length,
 
       admin: users.filter(
@@ -119,26 +124,19 @@ export function useUsers() {
         (u) => u.role === "community_member"
       ).length,
 
-      pending: users.filter(
-        (u) =>
-          u.role === "community_member" &&
-          (u.accountStatus || "Pending") === "Pending"
+      pending: managedUsers.filter(
+        (u) => (u.accountStatus || "Pending") === "Pending"
       ).length,
 
-      active: users.filter(
-        (u) =>
-          u.role === "community_member" &&
-          u.accountStatus === "Active"
+      active: managedUsers.filter(
+        (u) => u.accountStatus === "Active"
       ).length,
 
-      rejected: users.filter(
-        (u) =>
-          u.role === "community_member" &&
-          u.accountStatus === "Rejected"
+      rejected: managedUsers.filter(
+        (u) => u.accountStatus === "Rejected"
       ).length,
-    }),
-    [users]
-  );
+    };
+  }, [users]);
 
   return {
     users,

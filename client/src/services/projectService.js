@@ -6,13 +6,39 @@ const BASE = (
 
 const TOKEN_KEY = "token";
 
-async function projectRequest(endpoint = "", params = {}) {
+async function projectRequest(endpoint = "", options = {}) {
   const token = localStorage.getItem(TOKEN_KEY);
 
-  if (!token) {
-    throw new Error("Please log in to view projects.");
+  const headers = {
+    Accept: "application/json",
+    ...(options.headers || {}),
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
+  if (options.body && !(options.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const res = await fetch(`${BASE}/projects${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok || json.success === false) {
+    throw new Error(
+      json.message || `Project request failed (HTTP ${res.status}).`
+    );
+  }
+
+  return json.data ?? json;
+}
+
+export async function fetchProjects(params = {}) {
   const queryParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
@@ -22,27 +48,10 @@ async function projectRequest(endpoint = "", params = {}) {
   });
 
   const query = queryParams.toString();
-  const url = `${BASE}/projects${endpoint}${
+
+  const data = await projectRequest(
     query ? `?${query}` : ""
-  }`;
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/json",
-    },
-  });
-
-  const json = await res.json().catch(() => ({}));
-
-  if (!res.ok || json.success === false) {
-    throw new Error(
-      json.message || `Failed to fetch projects (HTTP ${res.status}).`
-    );
-  }
-
-  const data = json.data ?? json;
+  );
 
   if (!Array.isArray(data)) {
     throw new Error("The projects API did not return a project list.");
@@ -51,35 +60,161 @@ async function projectRequest(endpoint = "", params = {}) {
   return data;
 }
 
-export async function fetchProjects(params = {}) {
-  return projectRequest("", params);
-}
-
 export async function fetchProjectsByBarangay(barangay) {
   if (!barangay) {
     throw new Error("Barangay name is required.");
   }
 
-  return projectRequest(
+  const data = await projectRequest(
     `/barangay/${encodeURIComponent(barangay)}/published`
   );
-}
 
-export async function fetchBarangayRanking() {
-  const url = `${BASE}/projects/barangay-ranking`;
-  const res = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-    },
-  });
-
-  const json = await res.json().catch(() => ({}));
-
-  if (!res.ok || json.success === false) {
-    throw new Error(
-      json.message || "Failed to fetch barangay ranking."
-    );
+  if (!Array.isArray(data)) {
+    throw new Error("The projects API did not return a project list.");
   }
 
-  return json.data ?? json;
+  return data;
+}
+
+
+export async function fetchBarangayRanking() {
+  const data = await projectRequest("/barangay-ranking");
+
+  if (!Array.isArray(data)) {
+    throw new Error("The barangay ranking API did not return a list.");
+  }
+
+  return data;
+}
+
+
+export async function fetchAllProjectsAdmin() {
+  const data = await projectRequest("/admin/all");
+
+  if (!Array.isArray(data)) {
+    throw new Error("The admin projects API did not return a project list.");
+  }
+
+  return data;
+}
+
+
+export async function fetchPendingProjects() {
+  const data = await projectRequest("/admin/pending");
+
+  if (!Array.isArray(data)) {
+    throw new Error("The pending projects API did not return a project list.");
+  }
+
+  return data;
+}
+
+
+export async function createProject(projectData) {
+  return projectRequest("", {
+    method: "POST",
+    body: projectData,
+  });
+}
+
+
+export async function fetchMyProjects() {
+  const data = await projectRequest("/my-submissions");
+
+  if (!Array.isArray(data)) {
+    throw new Error("The submissions API did not return a project list.");
+  }
+
+  return data;
+}
+
+export async function fetchProjectById(projectId) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  return projectRequest(`/${projectId}`);
+}
+
+export async function updateProject(projectId, projectData) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  return projectRequest(`/${projectId}`, {
+    method: "PUT",
+    body: projectData,
+  });
+}
+
+export async function approveProject(projectId) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  return projectRequest(`/${projectId}/approve`, {
+    method: "PATCH",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function rejectProject(projectId, remarks) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  if (!remarks?.trim()) {
+    throw new Error("Rejection remarks are required.");
+  }
+
+  return projectRequest(`/${projectId}/reject`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      remarks: remarks.trim(),
+    }),
+  });
+}
+
+export async function publishProject(projectId) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  return projectRequest(`/${projectId}/publish`, {
+    method: "PATCH",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function unpublishProject(projectId) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  return projectRequest(`/${projectId}/unpublish`, {
+    method: "PATCH",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function updateProjectFeatured(projectId, featured) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  return projectRequest(`/${projectId}/featured`, {
+    method: "PATCH",
+    body: JSON.stringify({ featured }),
+  });
+}
+
+// ADMIN / authorized owner: Delete a project.
+export async function deleteProject(projectId) {
+  if (!projectId) {
+    throw new Error("Project ID is required.");
+  }
+
+  return projectRequest(`/${projectId}`, {
+    method: "DELETE",
+  });
 }

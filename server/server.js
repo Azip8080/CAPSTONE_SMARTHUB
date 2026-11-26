@@ -17,13 +17,13 @@ const analyticsRoutes = require("./routes/analyticsRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const activityRoutes = require("./routes/activityRoutes");
 const completionReportRoutes = require("./routes/completionReportRoutes");
+const auditLogRoutes = require("./routes/auditLogRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-// Ensure upload directories exist.
 const uploadsRoot = path.join(__dirname, "uploads");
 
 fs.mkdirSync(path.join(uploadsRoot, "knowledge"), {
@@ -49,6 +49,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/completion-reports", completionReportRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
 
 app.get("/", (req, res) => {
   res.send("SDG Smart Hub Backend Running");

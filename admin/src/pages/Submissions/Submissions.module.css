@@ -1,0 +1,118 @@
+
+.page {
+  width: 100%;
+  min-height: 100%;
+  color: #142b4a;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.pageTitle {
+  margin: 0;
+  color: #101b2d;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.pageSubtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 24px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.tabBtn {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tabBtn:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.activeTab {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.18);
+}
+
+.activeTab:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.tabContent {
+  width: 100%;
+}
+
+.emptyState {
+  padding: 48px 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.emptyState h2 {
+  margin: 0 0 10px;
+  color: #142b4a;
+  font-size: 20px;
+}
+
+.emptyState p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .pageTitle {
+    font-size: 23px;
+  }
+
+  .pageSubtitle {
+    font-size: 14px;
+  }
+
+  .tabs {
+    display: flex;
+    width: 100%;
+  }
+
+  .tabBtn {
+    flex: 1;
+    padding: 11px 8px;
+    font-size: 12px;
+  }
+
+  .emptyState {
+    padding: 36px 18px;
+  }
+}

@@ -7,7 +7,7 @@ function CreateUserForm({ onClose, onSubmit }) {
     fullName: "",
     email: "",
     password: "",
-    role: "admin",
+    role: "barangay_personnel",
     barangay: "",
   });
 
@@ -17,6 +17,7 @@ function CreateUserForm({ onClose, onSubmit }) {
     setForm((prev) => ({
       ...prev,
       [field]: value,
+      ...(field === "role" && value === "admin" ? { barangay: "" } : {}),
     }));
   };
 
@@ -24,10 +25,26 @@ function CreateUserForm({ onClose, onSubmit }) {
     e.preventDefault();
     if (saving) return;
 
+    if (
+      form.role === "barangay_personnel" &&
+      !form.barangay.trim()
+    ) {
+      alert("Please enter the assigned barangay.");
+      return;
+    }
+
     setSaving(true);
 
     try {
-      await onSubmit(form);
+      await onSubmit({
+        ...form,
+        fullName: form.fullName.trim(),
+        email: form.email.trim().toLowerCase(),
+        barangay:
+          form.role === "barangay_personnel"
+            ? form.barangay.trim()
+            : "",
+      });
     } finally {
       setSaving(false);
     }
@@ -79,36 +96,43 @@ function CreateUserForm({ onClose, onSubmit }) {
           placeholder="Enter temporary password"
           onChange={(e) => handleChange("password", e.target.value)}
           autoComplete="new-password"
+          minLength={8}
           required
         />
       </div>
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="role">
-          Role
+          Account Role
         </label>
-        <input
+        <select
           id="role"
           className={styles.input}
-          value="Administrator"
-          disabled
-          readOnly
-        />
+          value={form.role}
+          onChange={(e) => handleChange("role", e.target.value)}
+          required
+        >
+          <option value="admin">Admin</option>
+          <option value="barangay_personnel">Barangay Personnel</option>
+        </select>
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="barangay">
-          Barangay
-        </label>
-        <input
-          id="barangay"
-          className={styles.input}
-          type="text"
-          value={form.barangay}
-          placeholder="e.g. Barangay 1"
-          onChange={(e) => handleChange("barangay", e.target.value)}
-        />
-      </div>
+      {form.role === "barangay_personnel" && (
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="barangay">
+            Assigned Barangay
+          </label>
+          <input
+            id="barangay"
+            className={styles.input}
+            type="text"
+            value={form.barangay}
+            placeholder="Enter barangay name"
+            onChange={(e) => handleChange("barangay", e.target.value)}
+            required
+          />
+        </div>
+      )}
 
       <div className={styles.modalFooter}>
         <button
@@ -125,7 +149,11 @@ function CreateUserForm({ onClose, onSubmit }) {
           className={styles.saveBtn}
           disabled={saving}
         >
-          {saving ? "Creating…" : "Create account"}
+          {saving
+            ? "Creating..."
+            : form.role === "admin"
+              ? "Create Admin Account"
+              : "Create Personnel Account"}
         </button>
       </div>
     </form>

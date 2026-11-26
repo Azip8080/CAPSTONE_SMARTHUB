@@ -26,7 +26,6 @@ async function request(path, options = {}) {
     ? path
     : `/${path}`;
 
-  // BASE already ends in /api, so paths must not include /api.
   const url = `${BASE}${normalizedPath}`;
 
   const res = await fetch(url, {

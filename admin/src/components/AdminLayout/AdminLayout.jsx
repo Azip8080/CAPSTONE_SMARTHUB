@@ -1,3 +1,4 @@
+
 import {
   Outlet,
   NavLink,
@@ -15,7 +16,8 @@ import {
   LogOut,
   FolderPlus,
   CalendarPlus,
-  FileCheck2,
+  ClipboardList,
+  FileText,
 } from "lucide-react";
 
 import styles from "./AdminLayout.module.css";
@@ -29,6 +31,16 @@ const NAV_SECTIONS = [
         to: "/dashboard",
         label: "Dashboard",
         icon: LayoutDashboard,
+      },
+    ],
+  },
+  {
+    title: "Submissions",
+    items: [
+      {
+        to: "/submissions",
+        label: "Submissions",
+        icon: ClipboardList,
       },
     ],
   },
@@ -70,7 +82,11 @@ const NAV_SECTIONS = [
         label: "User Management",
         icon: Users,
       },
-
+      {
+        to: "/audit-logs",
+        label: "Audit Logs",
+        icon: FileText,
+      },
     ],
   },
 ];
@@ -84,9 +100,15 @@ function AdminLayout() {
     navigate("/login");
   };
 
-  const user = JSON.parse(
-    localStorage.getItem("adminUser") || "{}"
-  );
+  let user = {};
+
+  try {
+    user = JSON.parse(
+      localStorage.getItem("adminUser") || "{}"
+    );
+  } catch {
+    user = {};
+  }
 
   const adminName = user.fullName || "Admin";
   const adminInitial = adminName.charAt(0).toUpperCase();
@@ -127,6 +149,7 @@ function AdminLayout() {
                       <NavLink
                         key={item.to}
                         to={item.to}
+                        end
                         className={({ isActive }) =>
                           `${styles.navItem} ${
                             isActive ? styles.active : ""

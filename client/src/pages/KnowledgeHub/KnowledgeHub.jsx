@@ -1,7 +1,6 @@
+
 import { useState } from "react";
 import styles from "./KnowledgeHub.module.css";
-
-import AuthGate from "../../components/AuthGate";
 
 import SDGGoals from "./components/SDGGoals";
 import FeaturedGuides from "./components/FeaturedGuides";
@@ -23,21 +22,19 @@ function KnowledgeHub() {
         </p>
       </div>
 
-      <AuthGate title="Sign in to access the Knowledge Hub">
-        <div className={styles.contentWrapper}>
-          <div className={styles.content}>
-            <SDGGoals
-              selectedSDG={sdgFilter}
-              onSelectSDG={setSdgFilter}
-            />
+      <div className={styles.contentWrapper}>
+        <div className={styles.content}>
+          <SDGGoals
+            selectedSDG={sdgFilter}
+            onSelectSDG={setSdgFilter}
+          />
 
-            <FeaturedGuides
-              sdgFilter={sdgFilter}
-              onSdgFilter={setSdgFilter}
-            />
-          </div>
+          <FeaturedGuides
+            sdgFilter={sdgFilter}
+            onSdgFilter={setSdgFilter}
+          />
         </div>
-      </AuthGate>
+      </div>
     </main>
   );
 }

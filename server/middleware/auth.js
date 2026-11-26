@@ -40,13 +40,8 @@ module.exports = async function auth(req, res, next) {
       });
     }
 
-    if (
-      user.role === "community_member" &&
-      user.accountStatus !== "Active"
-    ) {
-      const status = user.accountStatus || "Pending";
-
-      if (status === "Rejected") {
+    if (user.role !== "admin" && user.accountStatus !== "Active") {
+      if (user.accountStatus === "Rejected") {
         return res.status(403).json({
           message:
             "Your account has been rejected. Please contact the administrator.",
@@ -61,10 +56,21 @@ module.exports = async function auth(req, res, next) {
       });
     }
 
+    if (
+      user.role === "barangay_personnel" &&
+      !user.barangay?.trim()
+    ) {
+      return res.status(403).json({
+        message:
+          "Your account does not have an assigned barangay. Please contact the administrator.",
+      });
+    }
+
     req.user = {
       id: user._id.toString(),
       role: user.role,
       barangay: user.barangay || "",
+      accountStatus: user.accountStatus,
     };
 
     return next();

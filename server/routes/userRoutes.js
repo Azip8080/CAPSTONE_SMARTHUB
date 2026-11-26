@@ -1,6 +1,6 @@
+
 const express = require("express");
 const router = express.Router();
-
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -8,6 +8,7 @@ const emailjs = require("@emailjs/nodejs");
 
 const User = require("../models/User");
 const RegistrationOTP = require("../models/RegistrationOTP");
+const AuditLog = require("../models/AuditLog");
 const auth = require("../middleware/auth");
 const adminOnly = require("../middleware/adminOnly");
 const { logActivity } = require("../utils/activityLogger");
@@ -29,15 +30,46 @@ async function sendEmailJSTemplate(templateId, templateParams) {
 
 function removeSensitiveFields(user) {
   const userObj = user.toObject();
-
   delete userObj.password;
   delete userObj.resetPasswordToken;
   delete userObj.resetPasswordExpires;
-
   return userObj;
 }
 
-// REQUEST EMAIL OTP
+async function writeUserAuditLog({
+  actorId,
+  targetUser,
+  action,
+  description,
+  remarks = "",
+  req,
+}) {
+  try {
+    const actor = await User.findById(actorId).select(
+      "_id fullName email role barangay"
+    );
+
+    if (!actor) return;
+
+    await AuditLog.create({
+      user: actor._id,
+      userName: actor.fullName,
+      userEmail: actor.email,
+      userRole: actor.role,
+      barangay: actor.barangay || "",
+      action,
+      description,
+      targetId: targetUser?._id || null,
+      targetType: "User",
+      remarks,
+      ipAddress: req?.ip || "",
+      userAgent: req?.get("user-agent") || "",
+    });
+  } catch (error) {
+    console.error("[USER AUDIT LOG ERROR]", error);
+  }
+}
+
 router.post("/send-otp", async (req, res) => {
   let normalizedEmail;
   let otpHash;
@@ -49,12 +81,14 @@ router.post("/send-otp", async (req, res) => {
       typeof fullName !== "string" ||
       typeof email !== "string" ||
       typeof password !== "string" ||
+      typeof barangay !== "string" ||
       !fullName.trim() ||
       !email.trim() ||
-      !password
+      !password ||
+      !barangay.trim()
     ) {
       return res.status(400).json({
-        message: "Full name, email, and password are required.",
+        message: "Full name, email, password, and assigned barangay are required.",
       });
     }
 
@@ -76,10 +110,6 @@ router.post("/send-otp", async (req, res) => {
     }
 
     normalizedEmail = email.toLowerCase().trim();
-
-    const normalizedName = fullName.trim();
-    const normalizedBarangay =
-      typeof barangay === "string" ? barangay.trim() : "";
 
     const existingUser = await User.findOne({ email: normalizedEmail });
 
@@ -110,10 +140,10 @@ router.post("/send-otp", async (req, res) => {
     await RegistrationOTP.findOneAndUpdate(
       { email: normalizedEmail },
       {
-        fullName: normalizedName,
+        fullName: fullName.trim(),
         email: normalizedEmail,
         password: hashedPassword,
-        barangay: normalizedBarangay,
+        barangay: barangay.trim(),
         otpHash,
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
         attempts: 0,
@@ -169,7 +199,6 @@ router.post("/send-otp", async (req, res) => {
   }
 });
 
-// VERIFY EMAIL OTP AND CREATE PENDING COMMUNITY ACCOUNT
 router.post("/verify-otp", async (req, res) => {
   try {
     const email =
@@ -178,7 +207,9 @@ router.post("/verify-otp", async (req, res) => {
         : "";
 
     const otp =
-      typeof req.body.otp === "string" ? req.body.otp.trim() : "";
+      typeof req.body.otp === "string"
+        ? req.body.otp.trim()
+        : "";
 
     if (!email || !/^\d{6}$/.test(otp)) {
       return res.status(400).json({
@@ -235,12 +266,18 @@ router.post("/verify-otp", async (req, res) => {
       });
     }
 
+    if (!registration.barangay?.trim()) {
+      return res.status(400).json({
+        message: "An assigned barangay is required. Please register again.",
+      });
+    }
+
     const newUser = await User.create({
       fullName: registration.fullName,
       email: registration.email,
       password: registration.password,
-      barangay: registration.barangay || "",
-      role: "community_member",
+      barangay: registration.barangay.trim(),
+      role: "barangay_personnel",
       accountStatus: "Pending",
       verification: {
         verifiedBy: null,
@@ -251,9 +288,17 @@ router.post("/verify-otp", async (req, res) => {
 
     await RegistrationOTP.deleteOne({ _id: registration._id });
 
+    await writeUserAuditLog({
+      actorId: newUser._id,
+      targetUser: newUser,
+      action: "USER_CREATED",
+      description: `${newUser.fullName} registered a Barangay Personnel account. The account is pending approval.`,
+      req,
+    });
+
     return res.status(201).json({
       message:
-        "Email verified. Your account is pending administrator approval. You can log in after your account is approved.",
+        "Email verified. Your Barangay Personnel account is pending administrator approval. You can log in after your account is approved.",
       user: removeSensitiveFields(newUser),
     });
   } catch (err) {
@@ -265,7 +310,6 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
-// DISABLE DIRECT REGISTRATION
 router.post("/register", async (req, res) => {
   return res.status(410).json({
     message:
@@ -273,7 +317,6 @@ router.post("/register", async (req, res) => {
   });
 });
 
-// LOGIN
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -306,10 +349,8 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Apply approval checks only to community members.
-    // Existing admin and barangay personnel accounts remain separate.
     if (
-      user.role === "community_member" &&
+      user.role !== "admin" &&
       user.accountStatus !== "Active"
     ) {
       if (user.accountStatus === "Rejected") {
@@ -327,6 +368,16 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    if (
+      user.role === "barangay_personnel" &&
+      !user.barangay?.trim()
+    ) {
+      return res.status(403).json({
+        message:
+          "Your account does not have an assigned barangay. Please contact the administrator.",
+      });
+    }
+
     if (!process.env.JWT_SECRET) {
       console.error("[LOGIN ERROR] JWT_SECRET is not configured.");
 
@@ -340,6 +391,23 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
+
+    try {
+      await AuditLog.create({
+        user: user._id,
+        userName: user.fullName,
+        userEmail: user.email,
+        userRole: user.role,
+        barangay: user.barangay || "",
+        action: "LOGIN",
+        description: `${user.fullName} logged in successfully.`,
+        targetType: "Other",
+        ipAddress: req.ip || "",
+        userAgent: req.get("user-agent") || "",
+      });
+    } catch (auditError) {
+      console.error("[LOGIN AUDIT LOG ERROR]", auditError);
+    }
 
     return res.json({
       message: "Login successful.",
@@ -355,7 +423,44 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// FORGOT PASSWORD
+router.post("/logout", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select(
+      "_id fullName email role barangay"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    await AuditLog.create({
+      user: user._id,
+      userName: user.fullName,
+      userEmail: user.email,
+      userRole: user.role,
+      barangay: user.barangay || "",
+      action: "LOGOUT",
+      description: `${user.fullName} logged out.`,
+      targetType: "Other",
+      ipAddress: req.ip || "",
+      userAgent: req.get("user-agent") || "",
+    });
+
+    return res.json({
+      success: true,
+      message: "Logout recorded successfully.",
+    });
+  } catch (err) {
+    console.error("[LOGOUT AUDIT ERROR]", err);
+
+    return res.status(500).json({
+      message: "Failed to record logout.",
+    });
+  }
+});
+
 router.post("/forgot-password", async (req, res) => {
   try {
     const email =
@@ -387,7 +492,6 @@ router.post("/forgot-password", async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    // Avoid revealing whether an email address has an account.
     if (!user) {
       return res.json({
         message: "If the email is registered, a reset link will be sent.",
@@ -417,7 +521,6 @@ router.post("/forgot-password", async (req, res) => {
       user.resetPasswordToken = null;
       user.resetPasswordExpires = null;
       await user.save();
-
       throw emailError;
     }
 
@@ -433,12 +536,14 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// RESET PASSWORD
 router.post("/reset-password/:token", async (req, res) => {
   try {
     const { newPassword } = req.body;
 
-    if (typeof newPassword !== "string" || newPassword.length < 8) {
+    if (
+      typeof newPassword !== "string" ||
+      newPassword.length < 8
+    ) {
       return res.status(400).json({
         message: "Password must be at least 8 characters long.",
       });
@@ -484,14 +589,23 @@ router.post("/reset-password/:token", async (req, res) => {
   }
 });
 
-// CREATE ADMIN
 router.post("/admin", auth, adminOnly, async (req, res) => {
   try {
     const { fullName, email, password, barangay } = req.body;
 
-    if (!fullName || !email || !password) {
+    if (
+      typeof fullName !== "string" ||
+      typeof email !== "string" ||
+      typeof password !== "string" ||
+      typeof barangay !== "string" ||
+      !fullName.trim() ||
+      !email.trim() ||
+      !password ||
+      !barangay.trim()
+    ) {
       return res.status(400).json({
-        message: "Full name, email, and password are required.",
+        message:
+          "Full name, email, password, and assigned barangay are required.",
       });
     }
 
@@ -502,7 +616,10 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    const existing = await User.findOne({ email: normalizedEmail });
+
+    const existing = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (existing) {
       return res.status(409).json({
@@ -511,14 +628,20 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
+    const now = new Date();
 
     const newUser = await User.create({
       fullName: fullName.trim(),
       email: normalizedEmail,
       password: hashedPassword,
-      role: "admin",
+      barangay: barangay.trim(),
+      role: "barangay_personnel",
       accountStatus: "Active",
-      barangay: typeof barangay === "string" ? barangay.trim() : "",
+      verification: {
+        verifiedBy: req.user.id,
+        verifiedAt: now,
+        rejectionReason: null,
+      },
     });
 
     await logActivity({
@@ -527,23 +650,36 @@ router.post("/admin", auth, adminOnly, async (req, res) => {
       entityType: "user",
       entityId: newUser._id,
       entityTitle: newUser.fullName,
-      details: "Created a new admin account.",
+      details: `Created a Barangay Personnel account for ${newUser.barangay}.`,
+    });
+
+    await writeUserAuditLog({
+      actorId: req.user.id,
+      targetUser: newUser,
+      action: "USER_CREATED",
+      description: `Created a Barangay Personnel account for ${newUser.barangay}.`,
+      req,
     });
 
     return res.status(201).json({
-      message: "Admin account created successfully.",
+      message: "Barangay Personnel account created successfully.",
       user: removeSensitiveFields(newUser),
     });
   } catch (err) {
-    console.error("[CREATE ADMIN ERROR]", err);
+    console.error("[CREATE BARANGAY PERSONNEL ERROR]", err);
+
+    if (err.code === 11000) {
+      return res.status(409).json({
+        message: "An account with this email already exists.",
+      });
+    }
 
     return res.status(500).json({
-      message: "Failed to create admin account.",
+      message: "Failed to create Barangay Personnel account.",
     });
   }
 });
 
-// GET CURRENT USER
 router.get("/me", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select(
@@ -566,7 +702,6 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-// LIST USERS FOR ADMIN
 router.get("/", auth, adminOnly, async (req, res) => {
   try {
     const users = await User.find()
@@ -583,7 +718,6 @@ router.get("/", auth, adminOnly, async (req, res) => {
   }
 });
 
-// APPROVE COMMUNITY ACCOUNT
 router.patch("/:id/approve", auth, adminOnly, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -594,9 +728,15 @@ router.patch("/:id/approve", auth, adminOnly, async (req, res) => {
       });
     }
 
-    if (user.role !== "community_member") {
+    if (user.role !== "barangay_personnel") {
       return res.status(400).json({
-        message: "Only community member accounts require this approval.",
+        message: "Only Barangay Personnel accounts can be approved here.",
+      });
+    }
+
+    if (!user.barangay?.trim()) {
+      return res.status(400).json({
+        message: "This account must have an assigned barangay before approval.",
       });
     }
 
@@ -621,11 +761,19 @@ router.patch("/:id/approve", auth, adminOnly, async (req, res) => {
       entityType: "user",
       entityId: user._id,
       entityTitle: user.fullName,
-      details: "Approved a community member account.",
+      details: `Approved a Barangay Personnel account for ${user.barangay}.`,
+    });
+
+    await writeUserAuditLog({
+      actorId: req.user.id,
+      targetUser: user,
+      action: "USER_ACTIVATED",
+      description: `Activated the Barangay Personnel account of ${user.fullName}.`,
+      req,
     });
 
     return res.json({
-      message: "Community account approved successfully.",
+      message: "Barangay Personnel account approved successfully.",
       user: removeSensitiveFields(user),
     });
   } catch (err) {
@@ -637,11 +785,12 @@ router.patch("/:id/approve", auth, adminOnly, async (req, res) => {
   }
 });
 
-// REJECT COMMUNITY ACCOUNT
 router.patch("/:id/reject", auth, adminOnly, async (req, res) => {
   try {
     const reason =
-      typeof req.body.reason === "string" ? req.body.reason.trim() : "";
+      typeof req.body.reason === "string"
+        ? req.body.reason.trim()
+        : "";
 
     if (!reason) {
       return res.status(400).json({
@@ -657,9 +806,9 @@ router.patch("/:id/reject", auth, adminOnly, async (req, res) => {
       });
     }
 
-    if (user.role !== "community_member") {
+    if (user.role !== "barangay_personnel") {
       return res.status(400).json({
-        message: "Only community member accounts can be rejected here.",
+        message: "Only Barangay Personnel accounts can be rejected here.",
       });
     }
 
@@ -678,11 +827,20 @@ router.patch("/:id/reject", auth, adminOnly, async (req, res) => {
       entityType: "user",
       entityId: user._id,
       entityTitle: user.fullName,
-      details: `Rejected a community member account. Reason: ${reason}`,
+      details: `Rejected a Barangay Personnel account. Reason: ${reason}`,
+    });
+
+    await writeUserAuditLog({
+      actorId: req.user.id,
+      targetUser: user,
+      action: "USER_REJECTED",
+      description: `Rejected the Barangay Personnel account of ${user.fullName}.`,
+      remarks: reason,
+      req,
     });
 
     return res.json({
-      message: "Community account rejected.",
+      message: "Barangay Personnel account rejected.",
       user: removeSensitiveFields(user),
     });
   } catch (err) {
@@ -694,10 +852,8 @@ router.patch("/:id/reject", auth, adminOnly, async (req, res) => {
   }
 });
 
-// UPDATE USER DETAILS
 router.put("/:id", auth, adminOnly, async (req, res) => {
   try {
-    // Prevent this general-purpose endpoint from changing sensitive fields.
     const {
       password,
       role,
@@ -729,6 +885,14 @@ router.put("/:id", auth, adminOnly, async (req, res) => {
       details: "Updated user account details.",
     });
 
+    await writeUserAuditLog({
+      actorId: req.user.id,
+      targetUser: user,
+      action: "USER_UPDATED",
+      description: `Updated the account details of ${user.fullName}.`,
+      req,
+    });
+
     return res.json({
       message: "User updated successfully.",
       user,
@@ -742,7 +906,6 @@ router.put("/:id", auth, adminOnly, async (req, res) => {
   }
 });
 
-// CHANGE PASSWORD
 router.put("/:id/password", auth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -781,7 +944,10 @@ router.put("/:id/password", auth, async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
 
     if (!isMatch) {
       return res.status(400).json({
@@ -804,6 +970,14 @@ router.put("/:id/password", auth, async (req, res) => {
       details: "Changed account password.",
     });
 
+    await writeUserAuditLog({
+      actorId: req.user.id,
+      targetUser: user,
+      action: "USER_UPDATED",
+      description: `Changed the password for ${user.fullName}.`,
+      req,
+    });
+
     return res.json({
       message: "Password updated successfully.",
     });
@@ -816,7 +990,6 @@ router.put("/:id/password", auth, async (req, res) => {
   }
 });
 
-// DELETE USER
 router.delete("/:id", auth, adminOnly, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
@@ -834,6 +1007,14 @@ router.delete("/:id", auth, adminOnly, async (req, res) => {
       entityId: user._id,
       entityTitle: user.fullName,
       details: "Deleted user account.",
+    });
+
+    await writeUserAuditLog({
+      actorId: req.user.id,
+      targetUser: user,
+      action: "USER_DELETED",
+      description: `Deleted the account of ${user.fullName}.`,
+      req,
     });
 
     return res.json({

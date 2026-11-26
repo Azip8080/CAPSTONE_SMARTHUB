@@ -115,7 +115,7 @@ function Dashboard() {
         </div>
 
         <div className={styles.analyticsGrid}>
-          <DoughnutChart range={analyticsRange} />
+          <DoughnutChart projects={projects} events={events} />
           <BarChart range={analyticsRange} />
         </div>
 

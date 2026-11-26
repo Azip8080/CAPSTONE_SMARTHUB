@@ -18,6 +18,8 @@ import ProjectShowcase from "./pages/ProjectShowcase/ProjectShowcase";
 import KnowledgeHub from "./pages/KnowledgeHub/KnowledgeHub";
 import AIClassifier from "./pages/AIClassifier/AIClassifier";
 import CompletionReports from "./pages/CompletionReports";
+import Submissions from "./pages/Submissions/Submissions";
+import AuditLogs from "./pages/AuditLogs/AuditLogs";
 
 function AdminRoute({ children }) {
   const token = localStorage.getItem("adminToken");
@@ -25,7 +27,9 @@ function AdminRoute({ children }) {
   let user = null;
 
   try {
-    user = JSON.parse(localStorage.getItem("adminUser") || "null");
+    user = JSON.parse(
+      localStorage.getItem("adminUser") || "null"
+    );
   } catch {
     user = null;
   }
@@ -51,9 +55,15 @@ function App() {
             </AdminRoute>
           }
         >
-          <Route path="completion-reports"element={<CompletionReports />}/>
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route
+            index
+            element={<Navigate to="/dashboard" replace />}
+          />
+
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="submissions" element={<Submissions />} />
+          <Route path="audit-logs" element={<AuditLogs />} />
+          <Route path="completion-reports" element={<CompletionReports />} />
           <Route path="sdg-tracker" element={<SDGTracker />} />
           <Route path="analytics" element={<Reports />} />
           <Route path="data-management" element={<DataManagement />} />

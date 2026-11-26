@@ -1,7 +1,6 @@
+
 import { useState, useEffect } from "react";
 import styles from "./Events.module.css";
-
-import AuthGate from "../../components/AuthGate";
 
 import EventCalendar from "./components/EventCalendar";
 import EventList from "./components/EventList";
@@ -87,64 +86,62 @@ function Events() {
         </p>
       </div>
 
-      <AuthGate title="Sign in to view events">
-        <div className={styles.toolbar}>
-          <div className={styles.toolbarInner}>
-            <span className={styles.toolbarLabel}>
-              Filter by goal
-            </span>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarInner}>
+          <span className={styles.toolbarLabel}>
+            Filter by goal
+          </span>
 
-            <select
-              className={styles.select}
-              value={activeFilter}
-              onChange={(e) =>
-                setActiveFilter(e.target.value)
-              }
-            >
-              {SDG_FILTERS.map((filter) => (
-                <option
-                  key={filter}
-                  value={filter}
-                >
-                  {filter}
-                </option>
-              ))}
-            </select>
-
-            {selectedDate && (
-              <button
-                type="button"
-                className={styles.clearBtn}
-                onClick={() =>
-                  setSelectedDate(null)
-                }
+          <select
+            className={styles.select}
+            value={activeFilter}
+            onChange={(e) =>
+              setActiveFilter(e.target.value)
+            }
+          >
+            {SDG_FILTERS.map((filter) => (
+              <option
+                key={filter}
+                value={filter}
               >
-                ✕ Clear date
-              </button>
-            )}
-          </div>
-        </div>
+                {filter}
+              </option>
+            ))}
+          </select>
 
-        <div className={styles.eventsWrapper}>
-          <div className={styles.layout}>
-            <EventCalendar
-              events={sdgFilteredEvents}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
-
-            <EventList
-              events={filteredEvents}
-              loading={loading}
-              error={error}
-              selectedDate={selectedDate}
-              onClearDate={() =>
+          {selectedDate && (
+            <button
+              type="button"
+              className={styles.clearBtn}
+              onClick={() =>
                 setSelectedDate(null)
               }
-            />
-          </div>
+            >
+              ✕ Clear date
+            </button>
+          )}
         </div>
-      </AuthGate>
+      </div>
+
+      <div className={styles.eventsWrapper}>
+        <div className={styles.layout}>
+          <EventCalendar
+            events={sdgFilteredEvents}
+            selectedDate={selectedDate}
+            onSelectDate={setSelectedDate}
+          />
+
+          <EventList
+            events={filteredEvents}
+            loading={loading}
+            error={error}
+            selectedDate={selectedDate}
+            onClearDate={() =>
+              setSelectedDate(null)
+            }
+          />
+        </div>
+      </div>
     </main>
   );
 }

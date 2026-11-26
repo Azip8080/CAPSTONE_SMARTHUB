@@ -109,6 +109,12 @@ function getEventScope(req) {
           $options: "i",
         },
       },
+      {
+        barangays: {
+          $regex: `^${escapeRegex(barangay)}$`,
+          $options: "i",
+        },
+      },
     ],
   };
 }
@@ -238,6 +244,53 @@ function getPublishedProjectMatch(req) {
   };
 }
 
+function normalizeSDGValue(value) {
+  if (value === null || value === undefined) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(normalizeSDGValue);
+  }
+
+  if (typeof value === "object") {
+    return normalizeSDGValue(
+      value.sdgTag ??
+      value.tag ??
+      value.name ??
+      value.number
+    );
+  }
+
+  const match = String(value)
+    .trim()
+    .match(/^(?:SDG\s*)?(\d{1,2})$/i);
+
+  if (!match) {
+    return [];
+  }
+
+  const number = Number(match[1]);
+
+  if (number < 1 || number > 17) {
+    return [];
+  }
+
+  return [`SDG ${number}`];
+}
+
+function collectRecordSDGs(record, fields) {
+  const tags = new Set();
+
+  for (const field of fields) {
+    for (const tag of normalizeSDGValue(record[field])) {
+      tags.add(tag);
+    }
+  }
+
+  return [...tags];
+}
+
 function sendAnalyticsError(res, error, operation) {
   console.error(`${operation} error:`, error);
 
@@ -316,7 +369,7 @@ async function getSDGParticipation(req, res) {
       "createdAt"
     );
 
-    const requestedLimit = Number(req.query.limit || 3);
+    const requestedLimit = Number(req.query.limit || 17);
 
     if (
       !Number.isInteger(requestedLimit) ||
@@ -329,51 +382,90 @@ async function getSDGParticipation(req, res) {
       });
     }
 
-    const match = {
+    const projectMatch = {
       ...getPublishedProjectMatch(req),
       ...dateFilter,
     };
 
-    const results = await Project.aggregate([
-      { $match: match },
-      getProjectSDGTags(),
-      { $unwind: "$normalizedSDGs" },
-      {
-        $match: {
-          normalizedSDGs: {
-            $in: SDG_LIST.map((sdg) => sdg.tag),
-          },
-        },
-      },
-      {
-        $group: {
-          _id: "$normalizedSDGs",
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $sort: {
-          count: -1,
-          _id: 1,
-        },
-      },
-      { $limit: requestedLimit },
+    const eventMatch = {
+      ...getEventScope(req),
+      publicationStatus: "Published",
+      ...dateFilter,
+    };
+
+    const [projects, events] = await Promise.all([
+      Project.find(projectMatch)
+        .select("sdgTag sdgTags tags")
+        .lean(),
+
+      Event.find(eventMatch)
+        .select("sdgTag sdgTags sdg sdgNumber sdgGoal tags")
+        .lean(),
     ]);
 
-    const sdgMap = new Map(
-      SDG_LIST.map((sdg) => [sdg.tag, sdg])
+    const counts = new Map(
+      SDG_LIST.map((sdg) => [
+        sdg.tag,
+        {
+          projectCount: 0,
+          eventCount: 0,
+        },
+      ])
     );
 
-    const data = results.map((item) => {
-      const sdg = sdgMap.get(item._id);
+    for (const project of projects) {
+      const tags = collectRecordSDGs(project, [
+        "sdgTag",
+        "sdgTags",
+        "tags",
+      ]);
+
+      for (const tag of tags) {
+        counts.get(tag).projectCount += 1;
+      }
+    }
+
+    for (const event of events) {
+      const tags = collectRecordSDGs(event, [
+        "sdgTag",
+        "sdgTags",
+        "sdg",
+        "sdgNumber",
+        "sdgGoal",
+        "tags",
+      ]);
+
+      for (const tag of tags) {
+        counts.get(tag).eventCount += 1;
+      }
+    }
+
+    const data = SDG_LIST.map((sdg) => {
+      const result = counts.get(sdg.tag);
+      const totalParticipation =
+        result.projectCount + result.eventCount;
 
       return {
-        tag: item._id,
-        label: sdg?.label || item._id,
-        color: sdg?.color || "#64748b",
-        count: item.count,
+        tag: sdg.tag,
+        label: sdg.label,
+        color: sdg.color,
+        projectCount: result.projectCount,
+        eventCount: result.eventCount,
+        count: totalParticipation,
+        totalParticipation,
       };
-    });
+    })
+      .sort((a, b) => {
+        if (b.totalParticipation !== a.totalParticipation) {
+          return b.totalParticipation - a.totalParticipation;
+        }
+
+        return (
+          Number(a.tag.replace("SDG ", "")) -
+          Number(b.tag.replace("SDG ", ""))
+        );
+      })
+      .slice(0, requestedLimit);
 
     return res.json({
       success: true,

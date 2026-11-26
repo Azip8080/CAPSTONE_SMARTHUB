@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const ProjectSchema = new mongoose.Schema(
@@ -31,6 +30,20 @@ const ProjectSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    endDate: {
+      type: Date,
+      required: true,
+      validate: {
+        validator: function (value) {
+          return !this.startDate || value >= this.startDate;
+        },
+        message: "End date must be on or after the start date.",
+      },
+    },
     status: {
       type: String,
       enum: ["Planned", "Ongoing", "Completed"],
@@ -40,8 +53,6 @@ const ProjectSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-
-    // The actual uploaded project document
     document: {
       path: {
         type: String,
@@ -56,10 +67,29 @@ const ProjectSchema = new mongoose.Schema(
         default: "",
       },
     },
-
     featured: {
       type: Boolean,
       default: false,
+    },
+    reviewStatus: {
+      type: String,
+      enum: ["Pending Review", "Approved", "Rejected"],
+      default: "Pending Review",
+      index: true,
+    },
+    reviewRemarks: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    reviewedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    reviewedAt: {
+      type: Date,
+      default: null,
     },
     publicationStatus: {
       type: String,
@@ -79,6 +109,10 @@ const ProjectSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-ProjectSchema.index({ publicationStatus: 1, createdAt: -1 });
+ProjectSchema.index({
+  publicationStatus: 1,
+  reviewStatus: 1,
+  createdAt: -1,
+});
 
 module.exports = mongoose.model("Project", ProjectSchema);

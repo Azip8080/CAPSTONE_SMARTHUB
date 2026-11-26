@@ -1,3 +1,4 @@
+
 import {
   useCallback,
   useEffect,
@@ -98,15 +99,11 @@ export function useDashboard() {
       );
 
       setEvents(
-        Array.isArray(eventData)
-          ? eventData.slice(0, 5)
-          : []
+        Array.isArray(eventData) ? eventData : []
       );
 
       setActivities(
-        Array.isArray(activityData)
-          ? activityData
-          : []
+        Array.isArray(activityData) ? activityData : []
       );
     } catch (err) {
       console.error("[DASHBOARD ERROR]", err);
